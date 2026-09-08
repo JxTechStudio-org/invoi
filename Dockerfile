@@ -32,6 +32,10 @@ COPY --from=backend-build /app/backend/package*.json ./
 COPY --from=backend-build /app/backend/node_modules ./node_modules
 COPY --from=backend-build /app/backend/dist ./dist
 COPY --from=backend-build /app/backend/prisma ./prisma
+# Jenkins runs TypeScript E2E tests against the application source with ts-jest.
+COPY --from=backend-build /app/backend/test ./test
+COPY --from=backend-build /app/backend/src ./src
+COPY --from=backend-build /app/backend/tsconfig.json ./tsconfig.json
 COPY --from=frontend-build /app/frontend/dist /app/frontend/dist
 
 RUN mkdir -p /app/backend/uploads && chown -R node:node /app
