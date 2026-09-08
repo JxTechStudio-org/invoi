@@ -51,18 +51,33 @@ pipeline {
           done
         '''
 
-        echo 'Checking application health at http://127.0.0.1:3016/api/health...'
+        echo 'Checking application health inside the app container on port 3000...'
         sh '''
           set -eu
 
           for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error --output /dev/null http://127.0.0.1:3016/api/health; then
+            if docker compose --env-file /run/secrets/invoi.env exec -T app node -e "
+              fetch('http://127.0.0.1:3000/api/health', { signal: AbortSignal.timeout(5000) })
+                .then(response => {
+                  if (!response.ok) {
+                    console.error('Health check returned HTTP ' + response.status);
+                    process.exit(1);
+                  }
+                  console.log('Application health check passed.');
+                })
+                .catch(error => {
+                  console.error(error);
+                  process.exit(1);
+                });
+            "; then
               echo "Health check succeeded on attempt $attempt."
               exit 0
             fi
 
-            echo "Health check attempt $attempt failed; retrying shortly..."
-            sleep 3
+            if [ "$attempt" -lt 5 ]; then
+              echo "Health check attempt $attempt failed; retrying shortly..."
+              sleep 3
+            fi
           done
 
           echo 'Health check failed after 5 attempts.'
