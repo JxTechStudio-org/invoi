@@ -13,6 +13,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: ${PORT:-3000}
+      APP_URL: ${APP_URL:-}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
       STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/app/backend/uploads}
