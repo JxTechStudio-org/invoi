@@ -23,7 +23,7 @@ export const Footer = () => {
         </ul>
       </div>
       <div style={{ maxWidth: '1440px', margin: '20px auto 0 auto', textAlign: 'center' }}>
-        <p style={{ fontSize: '14px', color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>© 2025 invoi جميع الحقوق محفوظة.</p>
+        <p style={{ fontSize: '14px', color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>© 2026 invoi جميع الحقوق محفوظة.</p>
       </div>
     </AntFooter>
   );
