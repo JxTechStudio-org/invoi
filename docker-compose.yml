@@ -1,3 +1,5 @@
+name: invoiproject
+
 services:
   app:
     build:
@@ -46,5 +48,5 @@ volumes:
   postgres_data:
     name: invoiproject_postgres_data
   invoice_uploads:
-    # Preserve the existing Jenkins upload volume across Compose project names.
-    name: invoi_invoice_uploads
+    # Reuse the original production project's upload volume.
+    name: invoiproject_invoice_uploads
