@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+node_modules
+backend/node_modules
+backend/dist
+backend/uploads
+npm-debug.log
+yarn-error.log
+Dockerfile
+Jenkinsfile
