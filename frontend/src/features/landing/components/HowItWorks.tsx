@@ -9,14 +9,14 @@ export default function HowItWorks() {
         {
             stepNumber: '1',
             icon: <CloudUploadOutlined style={{ fontSize: '24px', color: '#10B981' }} />,
-            title: 'رفع الفاتورة',
+            title: 'ارفع الفاتورة',
             description: 'قم برفع ملف الفاتورة بصيغة PDF أو صورة.',
         },
         {
             stepNumber: '2',
             icon: <ThunderboltOutlined style={{ fontSize: '24px', color: '#10B981' }} />,
             title: 'استخراج تلقائي',
-            description: 'تقوم باستخراج البيانات المهمة بشكل تلقائي وبدقة عالية.',
+            description: 'يقوم النظام باستخراج البيانات بشكل تلقائي وبدقة عالية.',
         },
         {
             stepNumber: '3',

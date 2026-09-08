@@ -1,6 +1,7 @@
-import Hero from './features/landing/components/Hero';
+import { Hero } from './features/landing/components/Hero';
 import HowItWorks from './features/landing/components/HowItWorks';
 import Features from './features/landing/components/Features';
+import { Footer } from './features/landing/components/Footer';
 import './App.css';
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
       <Hero />
       <HowItWorks />
       <Features />
+      <Footer/>
 
     </>
   );
