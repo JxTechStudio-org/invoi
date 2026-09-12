@@ -11,7 +11,7 @@ const defaultFeatures = [
     "دعم للغتين العربية والإنجليزية",
 ];
 
-export const CtaBanner: React.FC = () => {
+export const CTABanner: React.FC = () => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
