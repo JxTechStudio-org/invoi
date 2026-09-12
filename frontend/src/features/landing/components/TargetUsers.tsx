@@ -9,8 +9,8 @@ export default function TargetUsers() {
         <section style={{ backgroundColor: '#F8FAFC', padding: '80px 24px', direction: 'rtl' }}>
             <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
 
-                {/* عنوان القسم */}
-                <Title level={2} style={{ color: '#0F172A', marginBottom: '16px' }}>
+                {/* section title*/}
+                <Title level={2} style={{ color: '#0F172A', fontSize: '32px', fontWeight: 700, marginBottom: '40px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>
                     لمن هذا المنتج؟
                 </Title>
 

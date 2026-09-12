@@ -7,6 +7,8 @@ const navLinks = [
     { name: 'الرئيسية', href: '#home' },
     { name: 'المميزات', href: '#features' },
     { name: 'كيف يعمل', href: '#how-it-works' },
+    { name: 'الأسئلة الشائعة', href: '#faq' },
+    
 ];
 
 export const Header = () => {
