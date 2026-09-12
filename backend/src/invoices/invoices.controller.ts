@@ -1,12 +1,16 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Header,
+  HttpCode,
   Param,
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseInterceptors,
@@ -15,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UploadInvoiceDto } from './dto/upload-invoice.dto';
+import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { InvoicesService } from './invoices.service';
 
 const maxUploadSize = Number(process.env.MAX_UPLOAD_SIZE_BYTES ?? 10485760);
@@ -51,6 +56,29 @@ export class InvoicesController {
   @Get()
   list(@Query() query: ListInvoicesQueryDto) {
     return this.invoicesService.list(query);
+  }
+
+  @Get('export')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="invoices.csv"')
+  export(@Query() query: ListInvoicesQueryDto) {
+    return this.invoicesService.export(query);
+  }
+
+  @Get(':id/status')
+  getStatus(@Param('id') id: string) {
+    return this.invoicesService.getStatus(id);
+  }
+
+  @Put(':id')
+  update(@Param('id') id: string, @Body() body: UpdateInvoiceDto) {
+    return this.invoicesService.update(id, body);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async delete(@Param('id') id: string): Promise<void> {
+    await this.invoicesService.delete(id);
   }
 
   @Get(':id')
