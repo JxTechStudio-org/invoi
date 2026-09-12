@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { extname, join, resolve } from 'node:path';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { dirname, extname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { StorageService, StoredFile } from './storage.service';
 
@@ -23,5 +23,12 @@ export class LocalStorageService implements StorageService {
       filePath,
       fileUrl: `/uploads/${filename}`,
     };
+  }
+
+  async remove(file: StoredFile): Promise<void> {
+    if (dirname(resolve(file.filePath)) !== this.storageDirectory) {
+      throw new Error('Cannot remove a file outside the invoice storage directory');
+    }
+    await rm(file.filePath, { force: true });
   }
 }

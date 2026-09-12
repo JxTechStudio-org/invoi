@@ -9,18 +9,45 @@ datasource db {
 
 enum InvoiceStatus {
   processing
+  completed
+  needs_review
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  businessName String
+  createdAt    DateTime  @default(now())
+  invoices     Invoice[]
 }
 
 model Invoice {
-  id          String        @id @default(cuid())
-  fileUrl     String
-  status      InvoiceStatus @default(processing)
-  sellerName  String?
-  invoiceDate DateTime?
-  amount      Decimal?      @db.Decimal(12, 2)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                   String        @id @default(cuid())
+  userId               String
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  fileUrl              String
+  status               InvoiceStatus @default(processing)
+  vendorName           String?
+  invoiceNumber        String?
+  invoiceDate          DateTime?
+  dueDate              DateTime?
+  totalAmount          Decimal?      @db.Decimal(12, 2)
+  taxAmount            Decimal?      @db.Decimal(12, 2)
+  currency             String?
+  paymentStatus        String?
+  paymentMethod        String?
+  // Extracted document value; User.businessName remains the account identity.
+  customerName         String?
+  // Vendor tax number and vendor commercial registration number only.
+  taxNumber            String?
+  crNumber             String?
+  extractionConfidence Json?
+  needsReviewReason    String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   @@index([status])
   @@index([invoiceDate])
+  @@index([userId])
 }
