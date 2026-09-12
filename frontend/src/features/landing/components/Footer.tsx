@@ -20,6 +20,8 @@ export const Footer = () => {
           <li><a href="#home" style={{ textDecoration: 'none', color: '#64748B', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الرئيسية</a></li>
           <li><a href="#features" style={{ textDecoration: 'none', color: '#64748B', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>المميزات</a></li>
           <li><a href="#how-it-works" style={{ textDecoration: 'none', color: '#64748B', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>كيف يعمل</a></li>
+          <li><a href="#faq" style={{ textDecoration: 'none', color: '#64748B', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الأسئلة الشائعة</a></li>
+
         </ul>
       </div>
       <div style={{ maxWidth: '1440px', margin: '20px auto 0 auto', textAlign: 'center' }}>

@@ -39,7 +39,7 @@ export default function Features() {
                 },
             }}
         >
-            <section style={{ padding: '96px 0', background: '#F8FAFC', direction: 'rtl' }}>
+            <section id="features" style={{ padding: '96px 0', background: '#F8FAFC', direction: 'rtl' }}>
                 <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
 
                     <div style={{ textAlign: 'center', marginBottom: '56px' }}>
