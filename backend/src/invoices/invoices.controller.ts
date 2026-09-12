@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -13,6 +14,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
+import { UploadInvoiceDto } from './dto/upload-invoice.dto';
 import { InvoicesService } from './invoices.service';
 
 const maxUploadSize = Number(process.env.MAX_UPLOAD_SIZE_BYTES ?? 10485760);
@@ -40,8 +42,9 @@ export class InvoicesController {
   )
   async upload(
     @UploadedFile(invoiceFilePipe) file: Express.Multer.File,
+    @Body() body: UploadInvoiceDto,
   ): Promise<{ invoice_id: string }> {
-    const invoice = await this.invoicesService.createFromUpload(file);
+    const invoice = await this.invoicesService.createFromUpload(file, body.userId);
     return { invoice_id: invoice.id };
   }
 
