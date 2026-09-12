@@ -7,4 +7,11 @@ export interface StoredFile {
 
 export interface StorageService {
   upload(file: Express.Multer.File): Promise<StoredFile>;
+  remove(file: StoredFile): Promise<void>;
+  stageRemoval(fileUrl: string): Promise<PendingFileRemoval>;
+}
+
+export interface PendingFileRemoval {
+  finalize(): Promise<void>;
+  restore(): Promise<void>;
 }
