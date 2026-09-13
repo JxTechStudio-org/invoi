@@ -9,7 +9,7 @@ export const FAQ = () => {
             key: '1',
             label: 'ما هي أنواع الفواتير التي يدعمها النظام؟',
             children: (
-                <Paragraph style={{ color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif', lineHeight: 1.7 }}>
+                <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
                     يوفر النظام حالياً دعماً كاملاً للفواتير الواردة فقط التي تتلقاها من الموردين والمصروفات.
                 </Paragraph>
             ),
@@ -18,7 +18,7 @@ export const FAQ = () => {
             key: '2',
             label: 'ما هي صيغ الملفات المدعومة لرفع الفواتير؟',
             children: (
-                <Paragraph style={{ color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif', lineHeight: 1.7 }}>
+                <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
                     يمكنك رفع الفواتير بكل سهولة إما على شكل صور (JPG / PNG) أو ملفات (PDF) لبدء عملية الاستخراج التلقائي.
                 </Paragraph>
             ),
@@ -27,7 +27,7 @@ export const FAQ = () => {
             key: '3',
             label: 'هل يدعم النظام الفواتير باللغة العربية؟',
             children: (
-                <Paragraph style={{ color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif', lineHeight: 1.7 }}>
+                <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
                     نعم، يدعم النظام الفواتير باللغتين العربية والإنجليزية بشكل كامل ومتساوٍ من اليوم الأول دون أي فرق في مستوى المعالجة.
                 </Paragraph>
             ),
@@ -36,7 +36,7 @@ export const FAQ = () => {
             key: '4',
             label: 'كيف يضمن النظام دقة البيانات وأمانها؟',
             children: (
-                <Paragraph style={{ color: '#64748B', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif', lineHeight: 1.7 }}>
+                <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
                     يقوم الذكاء الاصطناعي باستخراج البيانات تلقائياً، مع وجود نظام مراجعة يضع علامات وتنبيهات على أي حقل لضمان المراجعة اليدوية والتحكم الكامل قبل الاعتماد.
                 </Paragraph>
             ),
@@ -47,10 +47,10 @@ export const FAQ = () => {
         <section
             id="faq"
             style={{
-                backgroundColor: '#F8FAFC',
+                backgroundColor: 'var(--bg-main)',
                 padding: '80px 24px',
                 direction: 'rtl',
-                borderTop: '1px solid #E2E8F0'
+                borderTop: '1px solid var(-border-color)'
             }}
         >
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -60,9 +60,9 @@ export const FAQ = () => {
                         style={{
                             fontSize: '32px',
                             fontWeight: 800,
-                            color: '#0F172A',
+                            color: 'var(--text-primary)',
                             marginBottom: '12px',
-                            fontFamily: 'IBM Plex Sans Arabic, sans-serif'
+                            fontFamily: 'var(--sans)'
                         }}
                     >
                         الأسئلة الشائعة
@@ -70,8 +70,8 @@ export const FAQ = () => {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: '#64748B',
-                            fontFamily: 'IBM Plex Sans Arabic, sans-serif',
+                            color: 'var(--text-secondary)',
+                            fontFamily: 'var(--sans)',
                             margin: 0
                         }}
                     >
@@ -87,16 +87,16 @@ export const FAQ = () => {
                     items={faqItems.map(item => ({
                         key: item.key,
                         label: (
-                            <span style={{ fontSize: '16px', fontWeight: 600, color: '#0F172A', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>
+                            <span style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--sans)' }}>
                                 {item.label}
                             </span>
                         ),
                         children: item.children,
                         style: {
-                            background: '#F8FAFC',
+                            background: 'var(--bg-main)',
                             borderRadius: '12px',
                             marginBottom: '16px',
-                            border: '1px solid #E2E8F0',
+                            border: '1px solid var(-border-color)',
                             overflow: 'hidden',
                         }
                     }))}

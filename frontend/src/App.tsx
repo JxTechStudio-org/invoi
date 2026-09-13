@@ -4,6 +4,7 @@ import { lightTheme } from './config/theme/theme';
 import LandingPage from './features/landing/pages/landingPage';
 import './App.css';
 
+
 function App() {
   return (
     <>
