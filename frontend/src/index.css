@@ -45,6 +45,11 @@ body {
   box-sizing: border-box;
 }
 
+:root {
+  --footer-link: #F0FDF4;
+}
+
+
 h1 {
   font-size: 32px;
   font-weight: 700;

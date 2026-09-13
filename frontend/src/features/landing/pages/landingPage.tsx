@@ -21,8 +21,8 @@ export default function LandingPage() {
                 <HowItWorks />
                 <FAQ />
                 <CTABanner />
-                <Footer />
             </div>
+            <Footer />
         </>
 
     )

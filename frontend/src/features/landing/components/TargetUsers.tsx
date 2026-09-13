@@ -23,7 +23,7 @@ export default function TargetUsers() {
                     {/* card 1: small businesses */}
                     <Col xs={24} md={12}>
                         <div style={{
-                            backgroundColor: '#ffffff',
+                            backgroundColor: 'var(--bg-container)',
                             borderRadius: '16px',
                             overflow: 'hidden',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -74,7 +74,7 @@ export default function TargetUsers() {
                     {/* card 2: accountants */}
                     <Col xs={24} md={12}>
                         <div style={{
-                            backgroundColor: '#ffffff',
+                            backgroundColor: 'var(--bg-container)',
                             borderRadius: '16px',
                             overflow: 'hidden',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
