@@ -6,11 +6,11 @@ const { Title, Paragraph } = Typography;
 
 export default function TargetUsers() {
     return (
-        <section style={{ backgroundColor: '#F8FAFC', padding: '80px 24px', direction: 'rtl' }}>
+        <section style={{ backgroundColor: 'var(--bg-main)', padding: '80px 24px', direction: 'rtl' }}>
             <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', textAlign: 'center' }}>
 
                 {/* section title*/}
-                <Title level={2} style={{ color: '#0F172A', fontSize: '32px', fontWeight: 700, marginBottom: '40px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>
+                <Title level={2} style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 700, marginBottom: '40px', fontFamily: 'var(--sans)' }}>
                     لمن هذا المنتج؟
                 </Title>
 
@@ -22,7 +22,7 @@ export default function TargetUsers() {
                         <Card
                             bordered={false}
                             style={{
-                                backgroundColor: '#FFFFFF',
+                                backgroundColor: ' var(--bg-container)',
                                 borderRadius: '16px',
                                 textAlign: 'right',
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -39,16 +39,16 @@ export default function TargetUsers() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     marginBottom: '20px',
-                                    color: '#10B981',
+                                    color: 'var(--emerald-500)',
                                     fontSize: '28px'
                                 }}
                             >
                                 <ShopOutlined />
                             </div>
-                            <Title level={3} style={{ color: '#0F172A', marginTop: 0, marginBottom: '12px', fontSize: '20px' }}>
+                            <Title level={3} style={{ color: 'var(--text-primary)', marginTop: 0, marginBottom: '12px', fontSize: '20px' }}>
                                 أصحاب الأعمال الصغيرة
                             </Title>
-                            <Paragraph style={{ color: '#475569', fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
+                            <Paragraph style={{ color: 'var(--var(--text-secondary))', fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
                                 لمن لا يمتلكون خبرة محاسبية عميقة أو فريق مالية مخصص، ويحتاجون إلى طريقة سهلة لإدارة فواتيرهم الواردة وتوفير الوقت بدلاً من إدارتها يدوياً.
                             </Paragraph>
                         </Card>
@@ -59,7 +59,7 @@ export default function TargetUsers() {
                         <Card
                             bordered={false}
                             style={{
-                                backgroundColor: '#FFFFFF',
+                                backgroundColor: ' var(--bg-container)',
                                 borderRadius: '16px',
                                 textAlign: 'right',
                                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
@@ -76,16 +76,16 @@ export default function TargetUsers() {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     marginBottom: '20px',
-                                    color: '#10B981',
+                                    color: 'var(--emerald-500)',
                                     fontSize: '28px'
                                 }}
                             >
                                 <CalculatorOutlined />
                             </div>
-                            <Title level={3} style={{ color: '#0F172A', marginTop: 0, marginBottom: '12px', fontSize: '20px' }}>
+                            <Title level={3} style={{ color: 'var(--text-primary)', marginTop: 0, marginBottom: '12px', fontSize: '20px' }}>
                                 المحاسبون
                             </Title>
-                            <Paragraph style={{ color: '#475569', fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
+                            <Paragraph style={{ color: 'var(--var(--text-secondary))', fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
                                 يساعد المحاسبين في تسريع عملية التعامل مع الفواتير الواردة وتنظيمها بشكل آلي ومبسط دون الحاجة للمعالجة اليدوية لكل فاتورة على حدة.
                             </Paragraph>
                         </Card>
