@@ -13,14 +13,17 @@ export default function LandingPage() {
     return (
         <>
             <Header />
-            <Hero />
-            <TargetUsers />
-            <SupportedFiles />
-            <Features />
-            <HowItWorks />
-            <FAQ />
-            <CTABanner />
-            <Footer />
+            <div className='landing-gradient-bg' style={{ minHeight: '100vh', width: '100%' }}>
+                <Hero />
+                <TargetUsers />
+                <SupportedFiles />
+                <Features />
+                <HowItWorks />
+                <FAQ />
+                <CTABanner />
+                <Footer />
+            </div>
         </>
+
     )
 }
