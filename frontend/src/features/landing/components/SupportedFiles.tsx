@@ -31,11 +31,11 @@ export const SupportedFiles = () => {
     return (
         <section
             style={{
-                backgroundColor: '#F8FAFC',
+                backgroundColor: 'var(--bg-main)',
                 padding: '80px 24px',
                 direction: 'rtl',
-                borderTop: '1px solid #E2E8F0',
-                borderBottom: '1px solid #E2E8F0'
+                borderTop: '1px solid var(-border-color)',
+                borderBottom: '1px solid var(-border-color)'
             }}
         >
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -45,9 +45,9 @@ export const SupportedFiles = () => {
                         style={{
                             fontSize: '32px',
                             fontWeight: 800,
-                            color: '#0F172A',
+                            color: 'var(--text-primary)',
                             marginBottom: '12px',
-                            fontFamily: 'IBM Plex Sans Arabic, sans-serif'
+                            fontFamily: 'var(--sans)'
                         }}
                     >
                         صيغ الملفات المدعومة
@@ -55,8 +55,8 @@ export const SupportedFiles = () => {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: '#475569',
-                            fontFamily: 'IBM Plex Sans Arabic, sans-serif',
+                            color: 'var(--var(--text-secondary))',
+                            fontFamily: 'var(--sans)',
                             margin: 0
                         }}
                     >
@@ -75,7 +75,7 @@ export const SupportedFiles = () => {
                                     onMouseLeave={() => setHoveredIndex(null)}
                                     bordered={false}
                                     style={{
-                                        background: '#FFFFFF',
+                                        background: ' var(--bg-container)',
                                         borderRadius: '16px',
                                         border: `1px solid ${file.border}`,
                                         boxShadow: isHovered
@@ -107,19 +107,19 @@ export const SupportedFiles = () => {
                                     <Title
                                         level={4}
                                         style={{
-                                            color: '#0F172A',
+                                            color: 'var(--text-primary)',
                                             marginBottom: '8px',
-                                            fontFamily: 'IBM Plex Sans Arabic, sans-serif'
+                                            fontFamily: 'var(--sans)'
                                         }}
                                     >
                                         {file.title}
                                     </Title>
                                     <Paragraph
                                         style={{
-                                            color: '#475569',
+                                            color: 'var(--var(--text-secondary))',
                                             fontSize: '14px',
                                             margin: 0,
-                                            fontFamily: 'IBM Plex Sans Arabic, sans-serif'
+                                            fontFamily: 'var(--sans)'
                                         }}
                                     >
 

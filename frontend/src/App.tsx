@@ -7,6 +7,7 @@ import NavBar from './features/shared/components/NavBar'
 import NotFoundPage from './features/shared/pages/NotFoundPage'
 import './App.css'
 
+
 function App() {
   return (
     <>

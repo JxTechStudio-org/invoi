@@ -2,7 +2,7 @@
 
 :root {
   /* Light Mode Tokens - Invoi Design System */
-  --bg-main: #F8FAFC;        /* Slate 50 - Main Background */
+  --bg-main: #F8FAFC;       /* Slate 50 - Main Background */
   --bg-container: #FFFFFF;   /* White - Container Bg */
   --text-primary: #0F172A;   /* Slate 900 - Text Primary */
   --text-secondary: #475569; /* Slate 600 - Text Secondary */
@@ -28,12 +28,15 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-main);
   font-family: var(--sans);
   direction: rtl;
+  /* جعل الـ body بالكامل يحمل التدرج ليمتد على الشاشة */
+  background: linear-gradient(180deg, var(--emerald-700) 0%, var(--emerald-600) 50%, var(--emerald-500) 100%) !important;
+  min-height: 100vh;
 }
 
 #root {
+ 
   width: 100%;
   margin: 0 auto;
   min-height: 100vh;
@@ -41,6 +44,11 @@ body {
   flex-direction: column;
   box-sizing: border-box;
 }
+
+:root {
+  --footer-link: #F0FDF4;
+}
+
 
 h1 {
   font-size: 32px;
@@ -60,4 +68,17 @@ p {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+
+/* background gradient */
+.landing-gradient-bg {
+    background: linear-gradient(180deg, var(--bg-main) 0%, rgba(16, 185, 129, 0.12) 50%, var(--bg-main) 100%) !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+}
+
+.landing-gradient-bg > header,
+.landing-gradient-bg > section,
+.landing-gradient-bg > footer {
+    background-color: transparent !important;
 }
