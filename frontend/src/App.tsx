@@ -6,6 +6,7 @@ import {AppThemeProvider} from './features/shared/context/themContext'
 import NavBar from './features/shared/components/NavBar'
 import './App.css'
 
+
 function App() {
   return (
     <>
