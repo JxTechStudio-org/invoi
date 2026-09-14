@@ -1,22 +1,31 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { ConfigProvider } from 'antd';
-import { lightTheme } from './config/theme/theme';
-import LandingPage from './features/landing/pages/landingPage';
-import './App.css';
+import { lightTheme } from './config/theme/theme'
+import LandingPage from './features/landing/pages/landingPage'
+import {AppThemeProvider} from './features/shared/context/themContext'
+import NavBar from './features/shared/components/NavBar'
+import './App.css'
 
 function App() {
   return (
     <>
-      <ConfigProvider theme={lightTheme}>
+      <AppThemeProvider >
         <BrowserRouter>
           <Routes>
             <Route path='/' element={<LandingPage />} />
+            <Route element ={ <NavBar/>}>
+              <Route path='/dashboard' element={<div>Dashboard</div>} />
+              <Route path='/invoices' element={<div>Invoices</div>} />
+              <Route path='/vendors' element={<div>Vendors</div>} />
+              <Route path='/analytics' element={<div>Analytics</div>} />
+              <Route path='/settings' element={<div>Settings</div>} />
+            </Route>
           </Routes>
         </BrowserRouter>
-      </ConfigProvider>
+      </AppThemeProvider>
     </>
-  );
+  )
 }
 
-export default App;
+export default App
 
