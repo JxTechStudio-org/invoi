@@ -1,4 +1,3 @@
-// theme.ts
 import type { ThemeConfig } from 'antd';
 import { theme } from 'antd';
 

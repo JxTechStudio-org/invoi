@@ -1,8 +1,5 @@
-import React, { useRef, useState } from 'react'
 import type { TableColumnsType, TableProps } from 'antd'
 import { Table } from 'antd'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
-
 interface MainTabbleProps<T> {
     columns: TableColumnsType<T>
     dataSource: T[]
