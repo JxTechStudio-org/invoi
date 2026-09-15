@@ -10,13 +10,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rustfs:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: ${PORT:-3000}
       APP_URL: ${APP_URL:-}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
-      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-rustfs}
       STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/app/backend/uploads}
+      RUSTFS_ENDPOINT: ${RUSTFS_ENDPOINT:-http://rustfs:9000}
+      RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
+      RUSTFS_BUCKET: ${RUSTFS_BUCKET:-invoices}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY is required}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY is required}
       MAX_UPLOAD_SIZE_BYTES: ${MAX_UPLOAD_SIZE_BYTES:-10485760}
     ports:
       - "127.0.0.1:3016:3000"
@@ -47,9 +54,40 @@ services:
     # Internal Docker port: 5432
     # Database name: defined in POSTGRES_DB inside .env
 
+  rustfs:
+    image: rustfs/rustfs:1.0.0-rc.6
+    container_name: invoice-rustfs
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?RUSTFS_ACCESS_KEY is required}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?RUSTFS_SECRET_KEY is required}
+    ports:
+      - "127.0.0.1:${RUSTFS_CONSOLE_HOST_PORT:-9001}:9001"
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl --fail --silent http://127.0.0.1:9000/health/ready >/dev/null &&
+          curl --fail --silent http://127.0.0.1:9001/rustfs/console/health >/dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
 volumes:
   postgres_data:
     name: invoiproject_postgres_data
   invoice_uploads:
     # Reuse the original production project's upload volume.
     name: invoiproject_invoice_uploads
+  rustfs_data:
+    name: invoiproject_rustfs_data
