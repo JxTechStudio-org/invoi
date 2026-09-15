@@ -182,6 +182,7 @@ See the root [.env.example](../.env.example) and [docker-compose.yml](../docker-
 | --- | --- | --- | --- |
 | `DATABASE_URL` | Yes for application/database commands | PostgreSQL connection URL | Your local database URL; no application default |
 | `PORT` | No | HTTP listening port | `3000` when unset; keep `3000` with the current Compose mapping |
+| `CORS_ALLOWED_ORIGINS` | For cross-origin browser access | Comma-separated exact frontend origins | Example: `http://localhost:5173`; missing or empty grants no cross-origin access |
 | `NODE_ENV` | No for standalone setup | Node runtime mode | Docker sets `production`; no custom application branch |
 | `STORAGE_DRIVER` | No | Storage provider | Application default `local`; root example and Compose default `rustfs` |
 | `STORAGE_LOCAL_PATH` | No | Local upload directory, also used for legacy files in RustFS mode | Application default `uploads`; Compose default `/app/backend/uploads` |
@@ -200,6 +201,26 @@ See the root [.env.example](../.env.example) and [docker-compose.yml](../docker-
 Standalone local storage needs no RustFS settings. Standalone RustFS mode requires all five application settings explicitly; the example values are not defaults in the TypeScript provider. Compose requires both RustFS credentials and starts RustFS even when `STORAGE_DRIVER=local`, because its service dependencies and required substitutions are unconditional.
 
 The root example also contains unused JWT placeholders, and Compose passes `APP_URL`, which backend source does not consume. None enables authentication or changes API routing.
+
+## CORS / Frontend Origins
+
+Browser access to the backend is controlled using an explicit CORS allowlist configured through `CORS_ALLOWED_ORIGINS`.
+
+The value supports comma-separated exact origins. For example:
+
+```env
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
+
+Origins are matched exactly, including protocol and port.
+
+The backend does not use wildcard (`*`) origin access, and CORS credentials are currently disabled.
+
+If the variable is missing or empty, no cross-origin browser origins are allowed.
+
+Requests without an `Origin` header, such as server-to-server requests and normal health checks, continue to work.
+
+CORS is not authentication or authorization.
 
 ## Local Development
 
