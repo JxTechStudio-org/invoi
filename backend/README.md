@@ -24,6 +24,7 @@ Authentication, authorization, OCR, and AI extraction are not implemented. Uploa
 | Request validation | `class-validator`, `class-transformer`, NestJS validation pipes |
 | Upload handling | Multer with memory storage |
 | Testing | Jest, ts-jest, NestJS testing utilities, Supertest |
+| Static analysis | ESLint with TypeScript recommended rules |
 | Containers / CI | Root Dockerfile, Docker Compose, Jenkins |
 
 ## Project Structure
@@ -203,7 +204,7 @@ The root example also contains unused JWT placeholders, and Compose passes `APP_
 
 ## Local Development
 
-Prerequisites: Node.js 22, npm, and a running PostgreSQL instance with an existing development database and a role able to apply migrations. PostgreSQL 16 matches Compose. RustFS is optional when running the backend directly with local storage.
+Prerequisites: Node.js 22.13 or later in the Node.js 22 series (required by ESLint), npm, and a running PostgreSQL instance with an existing development database and a role able to apply migrations. PostgreSQL 16 matches Compose. RustFS is optional when running the backend directly with local storage.
 
 From the repository root:
 
@@ -278,7 +279,9 @@ The application is available at `http://localhost:3016`, with health at `/api/he
 
 PostgreSQL and RustFS use separate persistent volumes, `postgres_data` and `rustfs_data`. The `invoice_uploads` volume retains local files for legacy reference routing. The application waits for PostgreSQL and RustFS health checks before starting.
 
-[Jenkinsfile](../Jenkinsfile) validates Compose, builds the app image, runs `npm run test:e2e` in a one-off app container with `--no-deps`, and deploys `app postgres` with Compose resolving dependencies. It then checks those containers and `/api/health`. The health endpoint returns a static response; it does not probe database or storage operations. This configuration documents the implementation, not evidence of a verified live RustFS deployment.
+[Jenkinsfile](../Jenkinsfile) runs **Build → Lint → Test → Deploy**. After validating Compose and building the app image, it builds the existing `backend-build` Docker target and runs `npm run lint` in a temporary container. That target supplies the backend dependencies installed with `npm ci`; Jenkins does not need host-installed Node.js or npm for linting. Lint is validation-only, and lint errors fail the pipeline before tests or deployment; warnings alone do not fail lint.
+
+The Test stage runs `npm run test:e2e` in a one-off app container with `--no-deps`. Deploy starts `app postgres` with Compose resolving dependencies, then checks those containers and `/api/health`. The health endpoint returns a static response; it does not probe database or storage operations. This configuration documents the implementation, not evidence of a verified live RustFS deployment.
 
 ## Testing
 
@@ -289,6 +292,7 @@ From `backend/`, install dependencies and generate Prisma Client before running 
 | `npm test` | Run the backend suite through `test:e2e` |
 | `npm run test:e2e` | Run Jest with `test/jest-e2e.json`, serially |
 | `npm run test:e2e -- --runTestsByPath test/invoice-review.e2e-spec.ts` | Run a focused suite |
+| `npm run lint` | Check TypeScript source and tests with ESLint without modifying files |
 | `npm run build` | Compile and type-check application source with NestJS |
 | `npm run prisma:validate` | Validate the database schema |
 
@@ -305,9 +309,12 @@ These tests create uniquely named schemas, apply migrations, and drop their gene
 
 ## Validation Before Opening a PR
 
+ESLint provides static analysis for `src/**/*.ts` and `test/**/*.ts` using the JavaScript and TypeScript recommended rules in [eslint.config.mjs](eslint.config.mjs). `npm run lint` is validation-only: it does not fix or format files. Lint errors return a nonzero exit code; warnings alone do not fail the command.
+
 From `backend/`, with dependencies installed, Prisma Client generated, and `DATABASE_URL` configured:
 
 ```sh
+npm run lint
 npm test
 npm run build
 npm run prisma:validate
