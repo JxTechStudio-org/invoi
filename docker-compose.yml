@@ -16,6 +16,7 @@ services:
       NODE_ENV: production
       PORT: ${PORT:-3000}
       APP_URL: ${APP_URL:-}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
       STORAGE_DRIVER: ${STORAGE_DRIVER:-rustfs}
       STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/app/backend/uploads}

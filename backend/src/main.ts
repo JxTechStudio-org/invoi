@@ -5,9 +5,11 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
+import { corsOptions } from './cors.config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.enableCors(corsOptions(process.env.CORS_ALLOWED_ORIGINS));
   const frontendDistPath = join(__dirname, '..', '..', 'frontend', 'dist');
   const frontendIndexPath = join(frontendDistPath, 'index.html');
 
