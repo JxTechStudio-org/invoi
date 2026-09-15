@@ -5,6 +5,7 @@ import LandingPage from './features/landing/pages/landingPage'
 import {AppThemeProvider} from './features/shared/context/themContext'
 import NavBar from './features/shared/components/NavBar'
 import NotFoundPage from './features/shared/pages/NotFoundPage'
+import InvoiceDetail from "./features/invoices/components/InvoiceDetail";
 import './App.css'
 
 
@@ -22,6 +23,7 @@ function App() {
               <Route path='/analytics' element={<div>Analytics</div>} />
               <Route path='/settings' element={<div>Settings</div>} />
               <Route path='*' element={<NotFoundPage />} />
+              <Route path="/invoices/:id" element={<InvoiceDetail />} />
             </Route>
           </Routes>
         </BrowserRouter>
