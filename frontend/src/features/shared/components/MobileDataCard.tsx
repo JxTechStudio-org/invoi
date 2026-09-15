@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { TableColumnsType } from 'antd'
-import { Flex, Empty, Card, Spin } from 'antd'
+import { Flex, Empty, Card, Spin, theme } from 'antd'
 
 interface MobileDataCardsProps<T> {
     columns: TableColumnsType<T>
@@ -17,6 +17,7 @@ export default function MobileDataCard<T extends Record<string, unknown>>({
     limit = null,
     loading = false
 }: MobileDataCardsProps<T>) {
+    const { token } = theme.useToken()
     const actionColumn = columns.find((col) => col.key === 'action')
     const dataColumns = columns.filter((col) => col.key !== 'action')
     const displayData = limit ? dataSource.slice(0, limit) : dataSource
@@ -47,8 +48,8 @@ export default function MobileDataCard<T extends Record<string, unknown>>({
                         marginBottom: 20,
                         borderRadius: 12,
                         overflow: 'hidden',
-                        border: '1px solid #E2E8F0',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                        border: `1px solid ${token.colorBorder}`,
+                        boxShadow: token.boxShadowTertiary
                     }}
                 >
                     {actionPosition === 'top' && actionColumn?.render && (
@@ -58,7 +59,7 @@ export default function MobileDataCard<T extends Record<string, unknown>>({
                     )}
                     <Flex vertical gap={12}>
                         {dataColumns[0] && (
-                            <div style={{ fontSize: 20, fontWeight: 700, color: '#111827', textAlign: 'right' }}>
+                            <div style={{ fontSize: 20, fontWeight: 700, color: token.colorText, textAlign: 'right' }}>
                                 {dataColumns[0].render
                                     ? (dataColumns[0].render('dataIndex' in dataColumns[0] ? record[dataColumns[0].dataIndex as keyof T] : null, record, index) as ReactNode)
                                     : String('dataIndex' in dataColumns[0] ? record[dataColumns[0].dataIndex as keyof T] : '')}
@@ -71,10 +72,10 @@ export default function MobileDataCard<T extends Record<string, unknown>>({
                                 align="center"
                                 style={{
                                     paddingBottom: colIndex === dataColumns.length - 2 ? 0 : 12,
-                                    borderBottom: colIndex === dataColumns.length - 2 ? 'none' : '1px solid #F1F5F9'
+                                    borderBottom: colIndex === dataColumns.length - 2 ? 'none' : `1px solid ${token.colorBorderSecondary}`
                                 }}
                             >
-                                <span style={{ color: '#4B5563', fontSize: 15, fontWeight: 500 }}>
+                                <span style={{ color: token.colorTextSecondary, fontSize: 15, fontWeight: 500 }}>
                                     {col.title as ReactNode}
                                 </span>
                                 <span style={{ fontSize: 16, textAlign: 'left', wordBreak: 'break-all' }}>
