@@ -14,11 +14,11 @@ export function useAlert() {
     const showAlert = useCallback((message: string, type: AlertItem['type'] = 'info') => {
         const id = idCounter++;
         setAlerts((prev) => [...prev, { id, message, type }])
-    }, []);
+    }, [])
 
     const removeAlert = useCallback((id: number) => {
         setAlerts((prev) => prev.filter((a) => a.id !== id))
-    }, []);
+    }, [])
 
-    return { alerts, showAlert, removeAlert };
+    return { alerts, showAlert, removeAlert }
 }

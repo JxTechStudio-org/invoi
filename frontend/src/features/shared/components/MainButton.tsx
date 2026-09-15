@@ -18,5 +18,5 @@ export default function MainButton({ text = 'Click Me', icon = null, iconPositio
     >
       {text}
     </Button>
-  );
+  )
 }
