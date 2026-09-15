@@ -120,7 +120,7 @@ export default function NavBar() {
                 placement="right"
                 onClose={() => setDrawerOpen(false)}
                 open={drawerOpen}
-                bodyStyle={{ padding: 16 }}
+                styles={{ body: { padding: 16 } }}
             >
                 <Flex vertical gap={16}>
                     {/* في وضع الجوال، وضع زر "رفع فاتورة" في أعلى القائمة الجانبية يمنح تجربة استخدام أفضل (UX) لأنه إجراء رئيسي */}
