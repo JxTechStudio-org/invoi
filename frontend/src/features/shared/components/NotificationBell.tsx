@@ -1,6 +1,6 @@
-import { Badge, Popover, List, Empty } from 'antd'
+import { Badge, Popover, List, Empty, theme } from 'antd'
 import { BellOutlined } from '@ant-design/icons'
-import { theme } from 'antd'
+import type { GlobalToken } from 'antd/es/theme/interface'
 
 type NotificationType = 'success' | 'warning' | 'error'
 
@@ -16,10 +16,13 @@ interface NotificationBellProps {
     onNotificationClick?: (id: string) => void
 }
 
-const DOT_COLOR: Record<NotificationType, string> = {
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444'
+function getDotColor(type: NotificationType, token: GlobalToken): string {
+    const colorMap: Record<NotificationType, string> = {
+        success: token.colorSuccess,
+        warning: token.colorWarning,
+        error: token.colorError
+    }
+    return colorMap[type]
 }
 
 export default function NotificationBell({ notifications, onNotificationClick }: NotificationBellProps) {
@@ -40,7 +43,7 @@ export default function NotificationBell({ notifications, onNotificationClick }:
                             width: 8,
                             height: 8,
                             borderRadius: '50%',
-                            backgroundColor: DOT_COLOR[item.type],
+                            backgroundColor: getDotColor(item.type, token),
                             marginInlineEnd: 10,
                             flexShrink: 0
                         }}
@@ -62,4 +65,3 @@ export default function NotificationBell({ notifications, onNotificationClick }:
         </Popover>
     )
 }
-

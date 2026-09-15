@@ -1,4 +1,4 @@
-import { InvoiceStatus, Prisma } from '@prisma/client';
+import { Currency, InvoiceStatus, PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
 
 describe('Ownership schema', () => {
   const user = Prisma.dmmf.datamodel.models.find((model) => model.name === 'User')!;
@@ -13,6 +13,9 @@ describe('Ownership schema', () => {
     }
     expect(user.fields.find((field) => field.name === 'email')).toMatchObject({
       isUnique: true,
+    });
+    expect(user.fields.find((field) => field.name === 'reviewAmountThreshold')).toMatchObject({
+      type: 'Decimal', isRequired: false,
     });
     expect(user.fields.some((field) => field.name === 'password')).toBe(false);
   });
@@ -36,8 +39,9 @@ describe('Ownership schema', () => {
     ['status', 'InvoiceStatus', true], ['vendorName', 'String', false],
     ['invoiceNumber', 'String', false], ['invoiceDate', 'DateTime', false],
     ['dueDate', 'DateTime', false], ['totalAmount', 'Decimal', false],
-    ['taxAmount', 'Decimal', false], ['currency', 'String', false],
-    ['paymentStatus', 'String', false], ['paymentMethod', 'String', false],
+    ['taxAmount', 'Decimal', false], ['amountPaid', 'Decimal', false],
+    ['currency', 'Currency', false], ['paymentStatus', 'PaymentStatus', false],
+    ['paymentMethod', 'PaymentMethod', false],
     ['customerName', 'String', false], ['taxNumber', 'String', false],
     ['crNumber', 'String', false], ['extractionConfidence', 'Json', false],
     ['needsReviewReason', 'String', false], ['createdAt', 'DateTime', true],
@@ -52,8 +56,23 @@ describe('Ownership schema', () => {
     expect(InvoiceStatus).toEqual({
       processing: 'processing', completed: 'completed', needs_review: 'needs_review',
     });
+    expect(PaymentStatus).toEqual({
+      paid: 'paid', unpaid: 'unpaid', partially_paid: 'partially_paid', overdue: 'overdue',
+    });
+    expect(PaymentMethod).toEqual({
+      bank_transfer: 'bank_transfer', credit_card: 'credit_card', cash: 'cash',
+      cheque: 'cheque', online_payment: 'online_payment', mixed: 'mixed',
+    });
+    expect(Currency).toEqual({ SAR: 'SAR', USD: 'USD', AED: 'AED' });
     for (const name of ['invoiceType', 'sellerName', 'amount', 'needsReview']) {
       expect(invoice.fields.some((field) => field.name === name)).toBe(false);
     }
+  });
+
+  it.each([
+    [user, 'reviewAmountThreshold'], [invoice, 'amountPaid'],
+  ])('uses Decimal(12,2) for %s.%s', (model, fieldName) => {
+    expect(model.fields.find((field) => field.name === fieldName)?.nativeType)
+      .toEqual(['Decimal', ['12', '2']]);
   });
 });

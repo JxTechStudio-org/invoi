@@ -11,7 +11,7 @@ describe('Invoice upload ownership service', () => {
   let findUser: jest.Mock;
   let remove: jest.Mock;
   const file = { originalname: 'invoice.pdf', buffer: Buffer.from('%PDF-1.4') } as Express.Multer.File;
-  const storedFile = { filePath: '/tmp/invoice.pdf', fileUrl: '/uploads/invoice.pdf' };
+  const storedFile = { fileUrl: 's3://invoices/invoices/test-upload.pdf' };
 
   beforeEach(async () => {
     upload = jest.fn().mockResolvedValue(storedFile);
@@ -43,7 +43,7 @@ describe('Invoice upload ownership service', () => {
     });
     expect(upload).toHaveBeenCalledWith(file);
     expect(create).toHaveBeenCalledWith({ data: {
-      fileUrl: '/uploads/invoice.pdf', status: 'processing',
+      fileUrl: 's3://invoices/invoices/test-upload.pdf', status: 'processing',
       user: { connect: { id: 'existing-test-owner' } },
     } });
     expect(invoice).toMatchObject({ id: 'created-invoice', userId: 'existing-test-owner' });

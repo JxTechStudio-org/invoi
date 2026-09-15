@@ -15,12 +15,12 @@ import { evaluateInvoiceReview } from './invoice-review';
 import { invoicesToCsv } from './invoice-csv';
 
 const editableTextFields = [
-  'vendorName', 'invoiceNumber', 'currency', 'paymentStatus', 'paymentMethod',
-  'customerName', 'taxNumber', 'crNumber',
+  'vendorName', 'invoiceNumber', 'customerName', 'taxNumber', 'crNumber',
 ] as const;
 
 type EditableInvoice = Pick<Invoice,
-  typeof editableTextFields[number] | 'invoiceDate' | 'dueDate' | 'totalAmount' | 'taxAmount'
+  typeof editableTextFields[number] | 'currency' | 'paymentStatus' | 'paymentMethod'
+  | 'invoiceDate' | 'dueDate' | 'totalAmount' | 'taxAmount' | 'amountPaid'
 >;
 
 type InvoiceResponse = Invoice & {
@@ -118,11 +118,14 @@ export class InvoicesService {
     for (const field of editableTextFields) {
       if (body[field] !== undefined) changes[field] = body[field];
     }
+    if (body.currency !== undefined) changes.currency = body.currency;
+    if (body.paymentStatus !== undefined) changes.paymentStatus = body.paymentStatus;
+    if (body.paymentMethod !== undefined) changes.paymentMethod = body.paymentMethod;
     for (const field of ['invoiceDate', 'dueDate'] as const) {
       const value = body[field];
       if (value !== undefined) changes[field] = value === null ? null : new Date(value);
     }
-    for (const field of ['totalAmount', 'taxAmount'] as const) {
+    for (const field of ['totalAmount', 'taxAmount', 'amountPaid'] as const) {
       const value = body[field];
       if (value !== undefined) changes[field] = value === null ? null : new Prisma.Decimal(value);
     }
@@ -131,11 +134,13 @@ export class InvoicesService {
     }
 
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id }, include: { user: { select: { businessName: true } } },
+      where: { id }, include: { user: { select: {
+        businessName: true, reviewAmountThreshold: true,
+      } } },
     });
     if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
 
-    const review = evaluateInvoiceReview({ ...invoice, ...changes }, invoice.user.businessName);
+    const review = evaluateInvoiceReview({ ...invoice, ...changes }, invoice.user);
     try {
       const updated = await this.prisma.invoice.update({ where: { id }, data: { ...changes, ...review } });
       return this.toResponse(updated);

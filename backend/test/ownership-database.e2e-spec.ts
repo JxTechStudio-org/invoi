@@ -3,7 +3,7 @@ import { randomUUID, scryptSync } from 'node:crypto';
 import { cpSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { PrismaClient } from '@prisma/client';
+import { Currency, PaymentMethod, PaymentStatus, PrismaClient } from '@prisma/client';
 
 // Opt in with a disposable PostgreSQL database. Never use DATABASE_URL implicitly.
 const databaseUrl = process.env.TEST_DATABASE_URL;
@@ -112,18 +112,21 @@ describeDatabase('Ownership migration and persistence (PostgreSQL)', () => {
       userId: user.id, fileUrl: '/reporting.pdf', vendorName: 'Vendor Business',
       invoiceNumber: 'INV-2026-1', invoiceDate: new Date('2026-09-12T00:00:00Z'),
       dueDate: new Date('2026-10-12T00:00:00Z'), totalAmount: '1234567890.12',
-      taxAmount: '123456789.01', currency: 'SAR', paymentStatus: 'partially_paid',
-      paymentMethod: 'bank transfer + credit', customerName: 'Extracted Customer',
+      taxAmount: '123456789.01', currency: Currency.SAR,
+      paymentStatus: PaymentStatus.partially_paid,
+      amountPaid: '1000000000.01', paymentMethod: PaymentMethod.mixed,
+      customerName: 'Extracted Customer',
       taxNumber: '001234567890123', crNumber: '0012345678',
       extractionConfidence: { vendorName: 0.99, totalAmount: 0.87, customerName: 0.65 },
       needsReviewReason: 'Customer name confidence is low',
     };
     const created = await prisma.invoice.create({ data: { ...data, status: 'needs_review' } });
     const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: created.id } });
-    const { totalAmount, taxAmount, ...otherFields } = data;
+    const { totalAmount, taxAmount, amountPaid, ...otherFields } = data;
     expect(invoice).toMatchObject({ ...otherFields, status: 'needs_review' });
     expect(invoice.totalAmount?.toFixed(2)).toBe(totalAmount);
     expect(invoice.taxAmount?.toFixed(2)).toBe(taxAmount);
+    expect(invoice.amountPaid?.toFixed(2)).toBe(amountPaid);
     expect((await prisma.user.findUniqueOrThrow({ where: { id: user.id } })).businessName)
       .toBe('Test Business');
     expect(await prisma.invoice.update({ where: { id: invoice.id }, data: { status: 'completed' } }))

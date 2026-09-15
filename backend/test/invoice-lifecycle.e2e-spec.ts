@@ -20,6 +20,7 @@ describe('Invoice lifecycle API (e2e)', () => {
   let finalize: jest.Mock;
   let restore: jest.Mock;
   let transactionError: Error | null;
+  let reviewAmountThreshold: Prisma.Decimal | null;
   let errorLog: jest.SpyInstance;
 
   function notFound() {
@@ -29,12 +30,15 @@ describe('Invoice lifecycle API (e2e)', () => {
   beforeEach(async () => {
     records = new Map([['test-invoice', invoiceFixture()]]);
     transactionError = null;
+    reviewAmountThreshold = null;
     errorLog = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     findUnique = jest.fn(async ({ where, select, include }) => {
       const invoice = records.get(where.id);
       if (!invoice) return null;
       if (select) return Object.fromEntries(Object.keys(select).map(key => [key, invoice[key as keyof Invoice]]));
-      return include?.user ? { ...invoice, user: { businessName: 'Demo Business' } } : invoice;
+      return include?.user
+        ? { ...invoice, user: { businessName: 'Demo Business', reviewAmountThreshold } }
+        : invoice;
     });
     findMany = jest.fn(async ({ where }) => [...records.values()].filter(invoice =>
       (!where.status || invoice.status === where.status)
@@ -91,8 +95,8 @@ describe('Invoice lifecycle API (e2e)', () => {
     const body = {
       vendorName: 'Updated Vendor', invoiceNumber: 'INV-002',
       invoiceDate: '2026-09-13', dueDate: '2026-10-13T12:30:00+03:00',
-      totalAmount: '9999999999.99', taxAmount: '0.01', currency: 'USD',
-      paymentStatus: 'partially_paid', paymentMethod: 'card + bank transfer',
+      totalAmount: '9999999999.99', taxAmount: '0.01', amountPaid: '500.25', currency: 'USD',
+      paymentStatus: 'partially_paid', paymentMethod: 'mixed',
       customerName: ' DEMO, BUSINESS. ', taxNumber: '000111', crNumber: '000222',
     };
     const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice').send(body).expect(200);
@@ -106,6 +110,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     const saved = records.get('test-invoice')!;
     expect(saved.totalAmount?.toFixed(2)).toBe('9999999999.99');
     expect(saved.taxAmount?.toFixed(2)).toBe('0.01');
+    expect(saved.amountPaid?.toFixed(2)).toBe('500.25');
     expect(saved.createdAt).toEqual(invoiceFixture().createdAt);
     expect(saved.fileUrl).toBe('/uploads/test-invoice.pdf');
     expect(saved.crNumber).toBe('000222');
@@ -113,16 +118,23 @@ describe('Invoice lifecycle API (e2e)', () => {
 
   it('allows numeric monetary inputs within the database precision', async () => {
     await request(app.getHttpServer()).put('/api/invoices/test-invoice')
-      .send({ totalAmount: 123.45, taxAmount: 12.34 }).expect(200);
+      .send({ totalAmount: 123.45, taxAmount: 12.34, amountPaid: 0 }).expect(200);
     expect(records.get('test-invoice')!.totalAmount?.toFixed(2)).toBe('123.45');
+    expect(records.get('test-invoice')!.amountPaid?.toFixed(2)).toBe('0.00');
   });
 
   it('supports explicit nulls and preserves omitted fields', async () => {
     await request(app.getHttpServer()).put('/api/invoices/test-invoice')
-      .send({ vendorName: null, invoiceDate: null, dueDate: null, totalAmount: null, taxAmount: null })
+      .send({
+        vendorName: null, invoiceDate: null, dueDate: null,
+        totalAmount: null, taxAmount: null, amountPaid: null,
+        currency: null, paymentStatus: null, paymentMethod: null,
+      })
       .expect(200);
     expect(records.get('test-invoice')).toMatchObject({
-      vendorName: null, invoiceDate: null, dueDate: null, totalAmount: null, taxAmount: null,
+      vendorName: null, invoiceDate: null, dueDate: null,
+      totalAmount: null, taxAmount: null, amountPaid: null,
+      currency: null, paymentStatus: null, paymentMethod: null,
       customerName: 'Demo Business', invoiceNumber: 'INV-001',
     });
   });
@@ -132,7 +144,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  it.each(['id', 'userId', 'fileUrl', 'createdAt', 'updatedAt', 'status', 'extractionConfidence', 'needsReviewReason', 'user', 'passwordHash'])(
+  it.each(['id', 'userId', 'fileUrl', 'createdAt', 'updatedAt', 'status', 'extractionConfidence', 'needsReviewReason', 'reviewAmountThreshold', 'user', 'passwordHash'])(
     'rejects protected field %s', async field => {
       await request(app.getHttpServer()).put('/api/invoices/test-invoice')
         .send({ vendorName: 'Vendor', [field]: 'not-allowed' }).expect(400);
@@ -147,9 +159,31 @@ describe('Invoice lifecycle API (e2e)', () => {
     { totalAmount: '10000000000' }, { totalAmount: '1e3' },
     { totalAmount: 'NaN' }, { totalAmount: true }, { taxAmount: {} },
     { totalAmount: '-1' }, { totalAmount: -0.01 }, { taxAmount: '-0.01' }, { taxAmount: -10 },
+    { amountPaid: '-0.01' }, { amountPaid: '1.001' }, { amountPaid: '10000000000' },
+    { paymentStatus: 'invalid' }, { paymentMethod: 'Bank Transfer' }, { currency: 'EUR' },
   ])('rejects invalid updates %p', async body => {
     await request(app.getHttpServer()).put('/api/invoices/test-invoice').send(body).expect(400);
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it.each(['paid', 'unpaid', 'partially_paid', 'overdue'])('accepts payment status %s', async paymentStatus => {
+    await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ paymentStatus }).expect(200);
+    expect(records.get('test-invoice')?.paymentStatus).toBe(paymentStatus);
+  });
+
+  it.each(['bank_transfer', 'credit_card', 'cash', 'cheque', 'online_payment', 'mixed'])(
+    'accepts payment method %s', async paymentMethod => {
+      await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+        .send({ paymentMethod }).expect(200);
+      expect(records.get('test-invoice')?.paymentMethod).toBe(paymentMethod);
+    },
+  );
+
+  it.each(['SAR', 'USD', 'AED'])('accepts currency %s', async currency => {
+    await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ currency }).expect(200);
+    expect(records.get('test-invoice')?.currency).toBe(currency);
   });
 
   it('preserves confidence after manual corrections and reapplies review rules', async () => {
@@ -176,6 +210,19 @@ describe('Invoice lifecycle API (e2e)', () => {
     const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
       .send({ totalAmount: '1.00', taxAmount: '9999.99' }).expect(200);
     expect(response.body).toMatchObject({ status: 'completed', needsReviewReason: null });
+  });
+
+  it('applies the owning user amount threshold with Decimal precision', async () => {
+    reviewAmountThreshold = new Prisma.Decimal('100.00');
+    const equal = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ totalAmount: '100.00', taxAmount: '100.00' }).expect(200);
+    expect(equal.body.needsReviewReason).toBeNull();
+
+    const above = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ taxAmount: '100.01' }).expect(200);
+    expect(above.body).toMatchObject({
+      status: 'needs_review', needsReviewReason: 'amount_threshold_exceeded',
+    });
   });
 
   it('accepts zero amounts without inferring a review reason', async () => {
@@ -258,7 +305,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     const response = await request(app.getHttpServer()).get('/api/invoices/export').expect(200);
     expect(response.headers['content-type']).toMatch(/^text\/csv; charset=utf-8/i);
     expect(response.headers['content-disposition']).toBe('attachment; filename="invoices.csv"');
-    expect(response.text).toBe(`\uFEFF${csvHeader}\r\ntest-invoice,INV-001,Example Vendor,001234567890123,0012345678,Demo Business,2026-09-12,2026-10-12,100.00,15.00,SAR,unpaid,bank transfer\r\n`);
+    expect(response.text).toBe(`\uFEFF${csvHeader}\r\ntest-invoice,INV-001,Example Vendor,001234567890123,0012345678,Demo Business,2026-09-12,2026-10-12,100.00,15.00,SAR,unpaid,bank_transfer\r\n`);
     expect(findUnique).not.toHaveBeenCalled();
   });
 
