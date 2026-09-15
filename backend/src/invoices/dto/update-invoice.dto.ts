@@ -1,5 +1,7 @@
+import { Currency, PaymentMethod, PaymentStatus } from '@prisma/client';
 import {
   IsDateString,
+  IsEnum,
   IsOptional,
   IsString,
   Matches,
@@ -51,16 +53,20 @@ export class UpdateInvoiceDto {
   taxAmount?: string | number | null;
 
   @IsOptional()
-  @IsString()
-  currency?: string | null;
+  @Validate(InvoiceAmountConstraint)
+  amountPaid?: string | number | null;
 
   @IsOptional()
-  @IsString()
-  paymentStatus?: string | null;
+  @IsEnum(Currency)
+  currency?: Currency | null;
 
   @IsOptional()
-  @IsString()
-  paymentMethod?: string | null;
+  @IsEnum(PaymentStatus)
+  paymentStatus?: PaymentStatus | null;
+
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod | null;
 
   @IsOptional()
   @IsString()
