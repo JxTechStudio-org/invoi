@@ -5,6 +5,7 @@ import LandingPage from './features/landing/pages/landingPage'
 import NavBar from './features/shared/components/NavBar'
 import NotFoundPage from './features/shared/pages/NotFoundPage'
 import UploadInvoicePage from './features/invoice/pages/uploadInvoicPage'
+import InvoiceDetailPage from "./features/invoice/pages/InvoiceDetailPage"
 
 import './App.css'
 
@@ -25,6 +26,8 @@ function App() {
                 <Route path='/analytics' element={<div>Analytics</div>} />
                 <Route path='/settings' element={<div>Settings</div>} />
                 <Route path='/upload-invoice' element={<UploadInvoicePage />} />
+                <Route path='/invoice-detail/:id' element={<InvoiceDetailPage />} />
+
                 <Route path='*' element={<NotFoundPage />} />
               </Route>
             </Routes>
