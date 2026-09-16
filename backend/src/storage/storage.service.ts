@@ -1,7 +1,7 @@
 export const STORAGE_SERVICE = Symbol('STORAGE_SERVICE');
 
 export interface StoredFile {
-  filePath: string;
+  filePath?: string;
   fileUrl: string;
 }
 
