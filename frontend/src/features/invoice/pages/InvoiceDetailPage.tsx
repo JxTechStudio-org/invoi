@@ -92,33 +92,37 @@ export default function InvoiceDetailPage() {
     );
   }
 
+  // invoice detsil fields
   const columns = [
     { title: 'معرّف الفاتورة', dataIndex: 'id', key: 'id' },
-    { title: 'اسم البائع', dataIndex: 'sellerName', key: 'sellerName', render: (val: string) => val || 'قيد المعالجة' },
-    { title: 'المبلغ', dataIndex: 'amount', key: 'amount', render: (val: any) => val ?? 'قيد المعالجة' },
-    { title: 'تاريخ الفاتورة', dataIndex: 'invoiceDate', key: 'invoiceDate', render: (val: string) => val ? new Date(val).toLocaleDateString() : 'قيد المعالجة' },
-    { title: 'تاريخ الإنشاء', dataIndex: 'createdAt', key: 'createdAt', render: (val: string) => val ? new Date(val).toLocaleString() : '-' },
+    { title: 'رقم الفاتورة', dataIndex: 'invoiceNumber', key: 'invoiceNumber', render: (val: string) => val || '-' },
+    { title: 'اسم البائع', dataIndex: 'vendorName', key: 'vendorName', render: (val: string) => val || '-' },
+    { title: 'الرقم الضريبي للبائع', dataIndex: 'taxNumber', key: 'taxNumber', render: (val: string) => val || '-' },
+    { title: 'رقم السجل التجاري', dataIndex: 'crNumber', key: 'crNumber', render: (val: string) => val || '-' },
+    { title: 'اسم العميل', dataIndex: 'customerName', key: 'customerName', render: (val: string) => val || '-' },
+    { title: 'تاريخ الفاتورة', dataIndex: 'invoiceDate', key: 'invoiceDate', render: (val: string) => val ? new Date(val).toLocaleDateString() : '-' },
+    { title: 'تاريخ الاستحقاق', dataIndex: 'dueDate', key: 'dueDate', render: (val: string) => val ? new Date(val).toLocaleDateString() : '-' },
     {
-      title: 'الحالة',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        switch (status) {
-          case 'completed': return 'مكتملة';
-          case 'processing': return 'قيد المعالجة';
-          case 'needs_review': return 'تحتاج مراجعة';
-          default: return status || 'processing';
-        }
-      }
+      title: 'المبلغ الإجمالي',
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      render: (val: any, record: any) => val != null ? `${val} ${record.currency || ''}` : '-'
     },
     {
-      title: 'رابط الملف (الملف المرفق)',
+      title: 'قيمة الضريبة',
+      dataIndex: 'taxAmount',
+      key: 'taxAmount',
+      render: (val: any, record: any) => val != null ? `${val} ${record.currency || ''}` : '-'
+    },
+    { title: 'حالة الدفع', dataIndex: 'paymentStatus', key: 'paymentStatus', render: (val: string) => val || '-' },
+    { title: 'طريقة الدفع', dataIndex: 'paymentMethod', key: 'paymentMethod', render: (val: string) => val || '-' },
+    {
+      title: 'رابط الملف',
       dataIndex: 'fileUrl',
       key: 'fileUrl',
       render: (url: string) => url ? <a href={url} target="_blank" rel="noreferrer">معاينة الملف</a> : 'لا يوجد ملف'
     }
   ];
-
   const dataSource = invoice ? [invoice] : [];
 
   return (
@@ -146,6 +150,7 @@ export default function InvoiceDetailPage() {
           rowKey="id"
           loading={loading}
         />
+
 
         <div style={{ marginTop: '20px' }}>
           <MainButton type="primary" text="الرجوع للقائمة" onClick={() => navigate('/invoices')}>
