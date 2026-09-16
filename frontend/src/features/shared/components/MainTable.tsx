@@ -1,9 +1,6 @@
-import React, { useRef, useState } from 'react'
 import type { TableColumnsType, TableProps } from 'antd'
 import { Table } from 'antd'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
-
-interface MainTabbleProps<T> {
+interface MainTableProps<T> {
     columns: TableColumnsType<T>
     dataSource: T[]
     loading?: boolean
@@ -12,7 +9,7 @@ interface MainTabbleProps<T> {
     onChange?: TableProps<T>['onChange']
 }
 
-export default function MainTable<T extends object>({ columns, dataSource, loading = false, rowKey = 'key', pagination, onChange }: MainTabbleProps<T>) {
+export default function MainTable<T extends object>({ columns, dataSource, loading = false, rowKey = 'key', pagination, onChange }: MainTableProps<T>) {
 
     return (
         <>
