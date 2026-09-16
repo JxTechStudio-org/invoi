@@ -23,6 +23,7 @@ Authentication, authorization, OCR, and AI extraction are not implemented. Uploa
 | S3 client | AWS SDK v3, `@aws-sdk/client-s3` |
 | Request validation | `class-validator`, `class-transformer`, NestJS validation pipes |
 | Upload handling | Multer with memory storage |
+| Monitoring | Prometheus application and Node.js metrics with Grafana dashboards |
 | Testing | Jest, ts-jest, NestJS testing utilities, Supertest |
 | Static analysis | ESLint with TypeScript recommended rules |
 | Containers / CI | Root Dockerfile, Docker Compose, Jenkins |
@@ -43,6 +44,7 @@ backend/
 │   │   ├── invoices.controller.ts
 │   │   ├── invoices.module.ts
 │   │   └── invoices.service.ts
+│   ├── metrics/
 │   ├── prisma/
 │   ├── storage/
 │   ├── app.module.ts
@@ -60,6 +62,7 @@ backend/
 | --- | --- |
 | [src/invoices/](src/invoices/) | HTTP endpoints, upload lifecycle, updates, review rules, CSV formatting |
 | [src/invoices/dto/](src/invoices/dto/) | Allowed request fields and validation |
+| [src/metrics/](src/metrics/) | Prometheus endpoint, registry, default Node.js metrics, and centralized HTTP request instrumentation |
 | [src/storage/](src/storage/) | Storage interface, driver selection, local and RustFS implementations, legacy reference routing |
 | [src/prisma/](src/prisma/) | Shared Prisma client and connection lifecycle |
 | [prisma/](prisma/) | Database schema and versioned SQL migrations |
@@ -81,7 +84,7 @@ flowchart TD
     Storage --> RustFS[RustFS via S3 API]
 ```
 
-[AppModule](src/app.module.ts) imports `PrismaModule`, `StorageModule`, `InvoicesModule`, and `HealthModule`. `PrismaModule` is global; its service connects on module initialization and disconnects on module destruction.
+[AppModule](src/app.module.ts) imports `PrismaModule`, `StorageModule`, `InvoicesModule`, `HealthModule`, and `MetricsModule`. `PrismaModule` is global; its service connects on module initialization and disconnects on module destruction.
 
 [main.ts](src/main.ts) sets the `/api` prefix and a global validation pipe that transforms DTOs and rejects unknown fields. When `frontend/dist/index.html` exists, the same process also serves the built frontend and its non-API GET fallback.
 
@@ -94,6 +97,7 @@ All routes use the **`/api`** prefix. A standalone server defaults to `http://lo
 | Method | Path | Purpose |
 | --- | --- | --- |
 | GET | `/api/health` | Return `{ "status": "ok" }` |
+| GET | `/api/metrics` | Return Prometheus text exposition data for operational monitoring |
 | POST | `/api/invoices/upload` | Upload a file for an existing user; return `invoice_id` |
 | GET | `/api/invoices` | List invoices with optional status and date filters |
 | GET | `/api/invoices/export` | Export the filtered list as CSV |
@@ -222,6 +226,84 @@ If the variable is missing or empty, no cross-origin browser origins are allowed
 Requests without an `Origin` header, such as server-to-server requests and normal health checks, continue to work.
 
 CORS is not authentication or authorization.
+
+## Monitoring
+
+The operational `GET /api/metrics` endpoint returns Prometheus text exposition data. It is intended for monitoring systems, not for frontend application integration.
+
+The Invoi-specific request counter is:
+
+```text
+invoi_http_requests_total{method,route,status_code}
+```
+
+Its labels are intentionally bounded:
+
+- `method` is the HTTP method.
+- `route` is the normalized NestJS route template, such as `/api/invoices/:id`.
+- `status_code` is the HTTP response status code.
+
+Raw request URLs, invoice IDs, UUIDs, query values, request bodies, filenames, customer data, and user data are not used as labels. Requests to `/api/metrics` are excluded from `invoi_http_requests_total`, so Prometheus scrapes do not inflate application request volume.
+
+Standard Node.js and process metrics are also enabled. Application uptime is derived from `process_start_time_seconds` with:
+
+```promql
+time() - process_start_time_seconds
+```
+
+For a standalone backend on the default port:
+
+```sh
+curl http://localhost:3000/api/metrics
+```
+
+For the Docker Compose application through its host-loopback mapping:
+
+```sh
+curl http://127.0.0.1:3016/api/metrics
+```
+
+Production uses the existing Prometheus and Grafana infrastructure:
+
+```text
+invoice-app:3000/api/metrics
+            ↓
+existing Prometheus
+            ↓
+existing Grafana
+```
+
+Prometheus scrapes `invoice-app:3000/api/metrics` privately through Docker networking. The public Nginx route is not the scrape path and should not provide unnecessary public access to the operational endpoint. Do not launch another Prometheus or Grafana stack for Invoi.
+
+### Invoi Health Grafana Dashboard
+
+The `Invoi Health` dashboard contains three panels. Its Prometheus scrape job is named `invoi`.
+
+1. **Uptime** — duration since the current backend process started:
+
+   ```promql
+   time() - process_start_time_seconds{job="invoi"}
+   ```
+
+2. **Request Volume** — requests per second over a five-minute window:
+
+   ```promql
+   sum(rate(invoi_http_requests_total{job="invoi"}[5m]))
+   ```
+
+3. **Error Rate** — percentage of HTTP 5xx responses over a five-minute window, returning zero when there is no traffic:
+
+   ```promql
+   100 *
+   (
+     (sum(rate(invoi_http_requests_total{job="invoi",status_code=~"5.."}[5m])) or vector(0))
+     /
+     clamp_min(
+       (sum(rate(invoi_http_requests_total{job="invoi"}[5m])) or vector(0)),
+       1e-9
+     )
+   )
+   ```
 
 ## Local Development
 
