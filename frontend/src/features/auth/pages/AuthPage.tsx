@@ -2,9 +2,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Form, Input, Typography, Card, theme } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons'
-import logoWordmark from '../../assets/invoi-logo-wordmark.svg'
-import MainButton from '../shared/components/MainButton'
-import MainAlert from '../shared/components/MainAlert'
+import logoWordmark from '../../../assets/invoi-logo-wordmark.svg'
+import MainButton from '../../shared/components/MainButton'
+import MainAlert from '../../shared/components/MainAlert'
 
 const { Title, Text } = Typography
 
@@ -61,7 +61,7 @@ export default function AuthPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: `linear-gradient${token.colorPrimaryBg}`,
+                background: `linear-gradient(${token.colorPrimaryBg})`,
                 padding: '24px 16px'
             }}
         >
