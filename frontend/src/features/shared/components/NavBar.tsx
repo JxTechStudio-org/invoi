@@ -25,12 +25,13 @@ const navLinks: NavLinkItem[] = [
 export default function NavBar() {
     const { token } = useToken()
     const { mode, toggleTheme } = useThemeMode()
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+    // Changed from 768 to 1024 so it covers both phones and tablets
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
     const [drawerOpen, setDrawerOpen] = useState(false)
 
     useEffect(() => {
         const handleResize = () => {
-            setIsMobile(window.innerWidth < 768)
+            setIsMobile(window.innerWidth < 1024)
         }
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
@@ -153,4 +154,3 @@ export default function NavBar() {
         </Layout>
     )
 }
-
