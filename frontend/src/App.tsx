@@ -5,6 +5,7 @@ import LandingPage from './features/landing/pages/landingPage'
 import NavBar from './features/shared/components/NavBar'
 import NotFoundPage from './features/shared/pages/NotFoundPage'
 import UploadInvoicePage from './features/invoice/pages/uploadInvoicPage'
+import AuthPage from './features/auth/AuthPage'
 
 import './App.css'
 
@@ -18,6 +19,8 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path='/' element={<LandingPage />} />
+              <Route path='/login' element={<AuthPage/>} />
+              <Route path='/register' element={<AuthPage/>} />
               <Route element={<NavBar />}>
                 <Route path='/dashboard' element={<div>Dashboard</div>} />
                 <Route path='/invoices' element={<div>Invoices</div>} />
