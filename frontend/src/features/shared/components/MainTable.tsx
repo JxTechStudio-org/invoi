@@ -1,5 +1,7 @@
 import type { TableColumnsType, TableProps } from 'antd'
-import { Table } from 'antd'
+import { Table, theme } from 'antd'
+const { useToken } = theme
+
 interface MainTableProps<T> {
     columns: TableColumnsType<T>
     dataSource: T[]
@@ -10,6 +12,7 @@ interface MainTableProps<T> {
 }
 
 export default function MainTable<T extends object>({ columns, dataSource, loading = false, rowKey = 'key', pagination, onChange }: MainTableProps<T>) {
+    const { token } = useToken()
 
     return (
         <>
@@ -18,8 +21,22 @@ export default function MainTable<T extends object>({ columns, dataSource, loadi
                 dataSource={dataSource}
                 loading={loading}
                 rowKey={rowKey}
-                pagination={pagination}
                 onChange={onChange}
+                pagination={
+                    pagination === false
+                        ? false
+                        : {
+                            position: ['bottomCenter'],
+                            pageSize: 9,
+                            ...pagination,
+                        }
+                }
+                style={{
+                    border: `1px solid ${token.colorBorder}`,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                }}
             />
         </>
     )
