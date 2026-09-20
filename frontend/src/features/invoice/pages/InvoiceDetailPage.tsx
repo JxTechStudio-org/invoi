@@ -8,6 +8,7 @@ import MainAlert from '../../shared/components/MainAlert';
 import MainTable from '../../shared/components/MainTable';
 import { apiClient } from '../../../services/api/client';
 import { getErrorMessage } from '../../../errors/errorMassages';
+import MobileDataCard from '../../shared/components/MobileDataCard';
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,43 +95,74 @@ export default function InvoiceDetailPage() {
 
   // invoice detsil fields
   const columns = [
-    { title: 'معرّف الفاتورة', dataIndex: 'id', key: 'id' },
-    { title: 'رقم الفاتورة', dataIndex: 'invoiceNumber', key: 'invoiceNumber', render: (val: string) => val || '-' },
-    { title: 'اسم البائع', dataIndex: 'vendorName', key: 'vendorName', render: (val: string) => val || '-' },
-    { title: 'الرقم الضريبي للبائع', dataIndex: 'taxNumber', key: 'taxNumber', render: (val: string) => val || '-' },
-    { title: 'رقم السجل التجاري', dataIndex: 'crNumber', key: 'crNumber', render: (val: string) => val || '-' },
-    { title: 'اسم العميل', dataIndex: 'customerName', key: 'customerName', render: (val: string) => val || '-' },
-    { title: 'تاريخ الفاتورة', dataIndex: 'invoiceDate', key: 'invoiceDate', render: (val: string) => val ? new Date(val).toLocaleDateString() : '-' },
-    { title: 'تاريخ الاستحقاق', dataIndex: 'dueDate', key: 'dueDate', render: (val: string) => val ? new Date(val).toLocaleDateString() : '-' },
     {
-      title: 'المبلغ الإجمالي',
-      dataIndex: 'totalAmount',
-      key: 'totalAmount',
-      render: (val: any, record: any) => val != null ? `${val} ${record.currency || ''}` : '-'
+      key: 'invoiceNumber',
+      title: 'رقم الفاتورة',
+      dataIndex: 'invoiceNumber',
     },
     {
-      title: 'قيمة الضريبة',
-      dataIndex: 'taxAmount',
+      key: 'vendorName',
+      title: 'اسم البائع (vendorName)',
+      dataIndex: 'vendorName',
+    },
+    {
+      key: 'taxNumber',
+      title: 'الرقم الضريبي للبائع (taxNumber)',
+      dataIndex: 'taxNumber',
+    },
+    {
+      key: 'crNumber',
+      title: 'رقم السجل التجاري (crNumber)',
+      dataIndex: 'crNumber',
+    },
+    {
+      key: 'customerName',
+      title: 'اسم العميل (customerName)',
+      dataIndex: 'customerName',
+    },
+    {
+      key: 'invoiceDate',
+      title: 'تاريخ الفاتورة (invoiceDate)',
+      dataIndex: 'invoiceDate',
+      render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-'),
+    },
+    {
+      key: 'dueDate',
+      title: 'تاريخ الاستحقاق (dueDate)',
+      dataIndex: 'dueDate',
+      render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-'),
+    },
+    {
+      key: 'paymentMethod',
+      title: 'طريقة الدفع (paymentMethod)',
+      dataIndex: 'paymentMethod',
+    },
+    {
+      key: 'paymentStatus',
+      title: 'حالة الدفع (paymentStatus)',
+      dataIndex: 'paymentStatus',
+    },
+    {
       key: 'taxAmount',
-      render: (val: any, record: any) => val != null ? `${val} ${record.currency || ''}` : '-'
+      title: 'قيمة الضريبة (taxAmount)',
+      dataIndex: 'taxAmount',
+      render: (val: any) => (val != null ? `${val} ر.س` : '-'),
     },
-    { title: 'حالة الدفع', dataIndex: 'paymentStatus', key: 'paymentStatus', render: (val: string) => val || '-' },
-    { title: 'طريقة الدفع', dataIndex: 'paymentMethod', key: 'paymentMethod', render: (val: string) => val || '-' },
     {
-      title: 'رابط الملف',
-      dataIndex: 'fileUrl',
-      key: 'fileUrl',
-      render: (url: string) => url ? <a href={url} target="_blank" rel="noreferrer">معاينة الملف</a> : 'لا يوجد ملف'
-    }
+      key: 'totalAmount',
+      title: 'المبلغ الإجمالي (totalAmount)',
+      dataIndex: 'totalAmount',
+      render: (val: any) => (val != null ? `${val} ر.س` : '-'),
+    },
   ];
   const dataSource = invoice ? [invoice] : [];
 
-  return (
+ return (
     <div>
       <PageHeader
         pageIcon={<LiaFileInvoiceDollarSolid />}
         pagename1='الفواتير'
-        pagename2={`تفاصيل الفاتورة #${id}`}
+        pagename2={`تفاصيل الفاتورة #${invoice?.invoiceNumber || id}`}
         page1path=''
       />
 
@@ -144,19 +176,109 @@ export default function InvoiceDetailPage() {
           />
         ))}
 
-        <MainTable
-          columns={columns}
-          dataSource={dataSource}
-          rowKey="id"
-          loading={loading}
-        />
+        {/* تصميم الشبكة (Grid) لعرض المستند والحقول */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: '24px', alignItems: 'start' }}>
+          
+          {/* القسم الأيمن: بيانات الفاتورة باستخدام MobileDataCard الصحيح */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* رأس الصفحة والحالة */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#131C2E', padding: '20px', borderRadius: '12px', border: '1px solid #2A3648' }}>
+              <div>
+                <h1 style={{ fontSize: '20px', margin: '0 0 4px', color: '#F1F5F9' }}>فاتورة #{invoice?.invoiceNumber || id}</h1>
+                <div style={{ color: '#94A3B8', fontSize: '13px' }}>
+                  معرّف الفاتورة (id): {id} | تاريخ الإصدار: {invoice?.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : '-'}
+                </div>
+              </div>
+              <span style={{ 
+                fontSize: '12px', fontWeight: '600', padding: '4px 10px', borderRadius: '999px',
+                background: '#2A2210', color: '#FBBF24', display: 'inline-flex', alignItems: 'center' 
+              }}>
+                {invoice?.paymentStatus || 'تحتاج مراجعة'}
+              </span>
+            </div>
 
+            {/* استخدام MobileDataCard المخصص مع الأعمدة والبيانات الكاملة */}
+            <MobileDataCard
+              dataSource={invoice ? [invoice] : []}
+              columns={[
+                { title: 'معرّف الفاتورة (id)', dataIndex: 'id', key: 'id' },
+                { title: 'رقم الفاتورة (invoiceNumber)', dataIndex: 'invoiceNumber', key: 'invoiceNumber' },
+                { title: 'اسم البائع (vendorName)', dataIndex: 'vendorName', key: 'vendorName' },
+                { title: 'الرقم الضريبي للبائع (taxNumber)', dataIndex: 'taxNumber', key: 'taxNumber' },
+                { title: 'رقم السجل التجاري (crNumber)', dataIndex: 'crNumber', key: 'crNumber' },
+                { title: 'اسم العميل (customerName)', dataIndex: 'customerName', key: 'customerName' },
+                { 
+                  title: 'تاريخ الفاتورة (invoiceDate)', 
+                  dataIndex: 'invoiceDate', 
+                  key: 'invoiceDate',
+                  render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-')
+                },
+                { 
+                  title: 'تاريخ الاستحقاق (dueDate)', 
+                  dataIndex: 'dueDate', 
+                  key: 'dueDate',
+                  render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-')
+                },
+                { 
+                  title: 'المبلغ الإجمالي (totalAmount)', 
+                  dataIndex: 'totalAmount', 
+                  key: 'totalAmount',
+                  render: (val: any) => (val != null ? `${val} ر.س` : '-')
+                },
+                { 
+                  title: 'قيمة الضريبة (taxAmount)', 
+                  dataIndex: 'taxAmount', 
+                  key: 'taxAmount',
+                  render: (val: any) => (val != null ? `${val} ر.س` : '-')
+                },
+                { title: 'حالة الدفع (paymentStatus)', dataIndex: 'paymentStatus', key: 'paymentStatus' },
+                { title: 'طريقة الدفع (paymentMethod)', dataIndex: 'paymentMethod', key: 'paymentMethod' },
+                { 
+                  title: 'رابط الملف (fileUrl)', 
+                  dataIndex: 'fileUrl', 
+                  key: 'fileUrl',
+                  render: (val: any) => (val ? String(val) : 'لا يوجد ملف')
+                }
+              ]}
+            />
 
-        <div style={{ marginTop: '20px' }}>
-          <MainButton type="primary" text="الرجوع للقائمة" onClick={() => navigate('/invoices')}>
-            الرجوع للقائمة
-          </MainButton>
+            {/* الأزرار بالأسفل باستخدام MainButton */}
+            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+              <MainButton 
+                type="primary" 
+                text="اعتماد كل الحقول" 
+                onClick={() => {}} 
+                style={{ flex: 1, backgroundColor: '#10B981', borderColor: '#10B981' }} 
+              />
+              <MainButton 
+                type="default" 
+                text="رفض / إبلاغ عن خطأ" 
+                onClick={() => {}} 
+                style={{ flex: 1, backgroundColor: '#1E293B', color: '#F1F5F9', borderColor: '#334155' }} 
+              />
+            </div>
+
+          </div>
+
+          {/* القسم الأيسر: معاينة المستند PDF ورابط الملف */}
+          <div style={{ background: '#111826', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '500px', border: '1px solid #2A3648' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', color: '#CBD5E1', fontSize: '13px' }}>
+              <span>{invoice?.fileUrl ? `رابط الملف: ${invoice.fileUrl}` : 'لا يوجد ملف مرفق (fileUrl)'}</span>
+            </div>
+            {invoice?.fileUrl ? (
+              <iframe 
+                src={invoice.fileUrl} 
+                title="Invoice Preview" 
+                style={{ width: '100%', height: '520px', border: 'none', borderRadius: '8px' }} 
+              />
+            ) : (
+              <div style={{ color: '#94A3B8', marginTop: '200px' }}>عذراً، المستند غير متوفر</div>
+            )}
+          </div>
+
         </div>
+
       </div>
     </div>
   );
