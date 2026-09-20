@@ -12,8 +12,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
 
     // خاصة برفع الفواتير — تتفعّل فقط لو الباك إند يرجّع هذا الكود صراحة بالـ response
     INVALID_FILE_TYPE: 'نوع الملف غير مدعوم أو الملف غير صالح.',
-    FILE_TOO_LARGE: 'حجم الملف يتجاوز الحد المسموح.',
     UPLOAD_FAILED: 'فشل رفع الملف. حاولي مرة أخرى.',
+    PAYLOAD_TOO_LARGE: 'حجم الملف أكبر من الحد المسموح به.',
 
     // خاصة بالموردين — مثال جاهز لـ CONFLICT لو الباك إند يفرّق بينهم
     DUPLICATE_VENDOR: 'يوجد مورّد مكرر بنفس البيانات.'

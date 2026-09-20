@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import LandingPage from './features/landing/pages/landingPage'
 import NavBar from './features/shared/components/NavBar'
 import NotFoundPage from './features/shared/pages/NotFoundPage'
-import UploadInvoicePage from './features/invoice/pages/uploadInvoicPage'
+import UploadInvoicePage from './features/invoice/pages/uploadInvoicePage'
 
 import './App.css'
 
