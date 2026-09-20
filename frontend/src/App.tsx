@@ -34,7 +34,8 @@ function App() {
                 <Route path='/settings' element={<div>Settings</div>} />
                 <Route path='/invoices' element={<InvoiceListPage />} />
                 <Route path='/upload-invoice' element={<UploadInvoicePage />} />
-                <Route path='/invoice-detail/:id' element={<InvoiceDetailPage />} />
+                <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
+
                 <Route path='*' element={<NotFoundPage />} />
               </Route>
             </Routes>
