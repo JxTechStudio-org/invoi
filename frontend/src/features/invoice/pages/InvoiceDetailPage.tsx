@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin } from 'antd';
+import { Spin, Tag, theme } from 'antd';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import PageHeader from '../../shared/components/PageHeader';
 import MainButton from '../../shared/components/MainButton';
 import MainAlert from '../../shared/components/MainAlert';
-import MainTable from '../../shared/components/MainTable';
 import { apiClient } from '../../../services/api/client';
 import { getErrorMessage } from '../../../errors/errorMassages';
 import MobileDataCard from '../../shared/components/MobileDataCard';
+import { FileTextOutlined } from '@ant-design/icons';
+
+const STATUS_LABELS: Record<string, string> = {
+  processing: 'قيد المعالجة',
+  completed: 'مكتملة',
+  needs_review: 'تحتاج مراجعة'
+};
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { token } = theme.useToken();
 
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -40,17 +47,21 @@ export default function InvoiceDetailPage() {
         if (err.response) {
           if (err.response.status === 404) {
             setIsNotFound(true);
-            errorCode = 'NOT_FOUND';
+            const msg = 'الفاتورة غير موجودة';
+            setErrorMsg(msg);
+            setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
           } else {
             errorCode = err.response?.data?.error_code || 'SERVER_ERROR';
+            const msg = getErrorMessage(errorCode);
+            setErrorMsg(msg);
+            setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
           }
         } else if (err.request) {
           errorCode = 'NETWORK_ERROR';
+          const msg = getErrorMessage(errorCode);
+          setErrorMsg(msg);
+          setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
         }
-
-        const msg = getErrorMessage(errorCode);
-        setErrorMsg(msg);
-        setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
       }
     };
 
@@ -93,192 +104,249 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  // invoice detsil fields
-  const columns = [
+  // invoice detail fields
+
+  const vendorColumns = [
     {
-      key: 'invoiceNumber',
-      title: 'رقم الفاتورة',
-      dataIndex: 'invoiceNumber',
+      title: 'بيانات البائع',
+      dataIndex: 'header',
+      key: 'header',
+      render: () => null
     },
     {
-      key: 'vendorName',
-      title: 'اسم البائع (vendorName)',
+      title: 'اسم البائع',
       dataIndex: 'vendorName',
+      key: 'vendorName',
+      render: (val: string) => val || '-'
     },
     {
-      key: 'taxNumber',
-      title: 'الرقم الضريبي للبائع (taxNumber)',
+      title: 'الرقم الضريبي للبائع',
       dataIndex: 'taxNumber',
+      key: 'taxNumber',
+      render: (val: string) => val || '-'
     },
     {
-      key: 'crNumber',
-      title: 'رقم السجل التجاري (crNumber)',
+      title: 'رقم السجل التجاري',
       dataIndex: 'crNumber',
-    },
-    {
-      key: 'customerName',
-      title: 'اسم العميل (customerName)',
-      dataIndex: 'customerName',
-    },
-    {
-      key: 'invoiceDate',
-      title: 'تاريخ الفاتورة (invoiceDate)',
-      dataIndex: 'invoiceDate',
-      render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-'),
-    },
-    {
-      key: 'dueDate',
-      title: 'تاريخ الاستحقاق (dueDate)',
-      dataIndex: 'dueDate',
-      render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-'),
-    },
-    {
-      key: 'paymentMethod',
-      title: 'طريقة الدفع (paymentMethod)',
-      dataIndex: 'paymentMethod',
-    },
-    {
-      key: 'paymentStatus',
-      title: 'حالة الدفع (paymentStatus)',
-      dataIndex: 'paymentStatus',
-    },
-    {
-      key: 'taxAmount',
-      title: 'قيمة الضريبة (taxAmount)',
-      dataIndex: 'taxAmount',
-      render: (val: any) => (val != null ? `${val} ر.س` : '-'),
-    },
-    {
-      key: 'totalAmount',
-      title: 'المبلغ الإجمالي (totalAmount)',
-      dataIndex: 'totalAmount',
-      render: (val: any) => (val != null ? `${val} ر.س` : '-'),
+      key: 'crNumber',
+      render: (val: string) => val || '-'
     },
   ];
+
+  const invoiceInfoColumns = [
+    {
+      title: 'بيانات الفاتورة',
+      dataIndex: 'header',
+      key: 'header',
+      render: () => null
+    },
+    {
+      title: 'رقم الفاتورة',
+      dataIndex: 'invoiceNumber',
+      key: 'invoiceNumber',
+      render: (val: string) => val || '-'
+    },
+    {
+      title: 'طريقة الدفع',
+      dataIndex: 'paymentMethod',
+      key: 'paymentMethod',
+      render: (val: string) => val || '-'
+    },
+    {
+      title: 'تاريخ الفاتورة',
+      dataIndex: 'invoiceDate',
+      key: 'invoiceDate',
+      render: (val: string) => val ? new Date(val).toLocaleDateString() : '-'
+    },
+    {
+      title: 'تاريخ الاستحقاق',
+      dataIndex: 'dueDate',
+      key: 'dueDate',
+      render: (val: string) => val ? new Date(val).toLocaleDateString() : '-'
+    },
+    {
+      title: 'اسم العميل',
+      dataIndex: 'customerName',
+      key: 'customerName',
+      render: (val: string) => (
+        <span>
+          {val || '-'}
+          {invoice?.needsReviewReason?.includes('customer_name_mismatch') && (
+            <span
+              className="conf-tag"
+              style={{
+                fontSize: '10.5px',
+                fontWeight: 600,
+                color: token.colorWarningText || '#B45309',
+                background: token.colorWarningBg || '#FEF0CD',
+                borderRadius: token.borderRadiusSM,
+                padding: '1.5px 6px',
+                marginInlineStart: '7px',
+                display: 'inline-block',
+                verticalAlign: 'middle'
+              }}
+            >
+              يحتاج مراجعة
+            </span>
+          )}
+        </span>
+      )
+    },
+    {
+      title: 'الملف',
+      dataIndex: 'fileUrl',
+      key: 'fileUrl',
+      render: (value: string) => (
+        <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: token.colorPrimary, textDecoration: 'underline' }}>
+          <FileTextOutlined /> عرض الملف
+        </a>
+      )
+    },
+  ];
+
+  const amountColumns = [
+    {
+      title: 'المبالغ',
+      dataIndex: 'header',
+      key: 'header',
+      render: () => null,
+    },
+    {
+      title: 'المبلغ قبل الضريبة',
+      dataIndex: 'subTotal',
+      key: 'subTotal',
+      render: (_val: any, record: any) => {
+        const sub = record.totalAmount != null && record.taxAmount != null
+          ? Number(record.totalAmount) - Number(record.taxAmount)
+          : (record.amount || 0);
+        return `${Number(sub).toFixed(2)} ${record.currency || 'SAR'}`;
+      },
+    },
+    {
+      title: 'قيمة الضريبة 15%',
+      dataIndex: 'taxAmount',
+      key: 'taxAmount',
+      render: (val: any) => `${Number(val ?? 0).toFixed(2)} SAR`,
+    },
+    {
+      title: 'الإجمالي',
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      render: (val: any) => `${Number(val ?? 0).toFixed(2)} SAR`,
+    },
+  ];
+
   const dataSource = invoice ? [invoice] : [];
 
- return (
+  return (
     <div>
       <PageHeader
         pageIcon={<LiaFileInvoiceDollarSolid />}
         pagename1='الفواتير'
-        pagename2={`تفاصيل الفاتورة #${invoice?.invoiceNumber || id}`}
+        pagename2={`تفاصيل الفاتورة #${id}`}
         page1path=''
       />
 
       <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
-        {alerts.map((alert) => (
-          <MainAlert
-            key={alert.id}
-            alertMessage={alert.message}
-            alertType={alert.type}
-            closeAction={() => removeAlert(alert.id)}
-          />
-        ))}
+        <div>
+          <div>
+            {alerts.map((alert) => (
+              <MainAlert
+                key={alert.id}
+                alertMessage={alert.message}
+                alertType={alert.type}
+                closeAction={() => removeAlert(alert.id)}
+              />
+            ))}
 
-        {/* تصميم الشبكة (Grid) لعرض المستند والحقول */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: '24px', alignItems: 'start' }}>
-          
-          {/* القسم الأيمن: بيانات الفاتورة باستخدام MobileDataCard الصحيح */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* رأس الصفحة والحالة */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', background: '#131C2E', padding: '20px', borderRadius: '12px', border: '1px solid #2A3648' }}>
-              <div>
-                <h1 style={{ fontSize: '20px', margin: '0 0 4px', color: '#F1F5F9' }}>فاتورة #{invoice?.invoiceNumber || id}</h1>
-                <div style={{ color: '#94A3B8', fontSize: '13px' }}>
-                  معرّف الفاتورة (id): {id} | تاريخ الإصدار: {invoice?.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : '-'}
+            <div dir="ltr" className="flex items-start justify-between mb-6 w-full">
+              <div dir="rtl" className="text-right">
+                <h1 className="text-2xl font-bold mb-1" style={{ color: token.colorTextHeading }}>
+                  فاتورة {invoice?.invoiceNumber || `#${id}`}
+                </h1>
+                <div className="text-sm opacity-65" style={{ color: token.colorTextSecondary }}>
+                  تم الرفع بتاريخ {invoice?.createdAt ? new Date(invoice.createdAt).toLocaleDateString('ar-GB', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  }) + ' - ' + new Date(invoice.createdAt).toLocaleTimeString('ar-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  }) : '-'}
                 </div>
               </div>
-              <span style={{ 
-                fontSize: '12px', fontWeight: '600', padding: '4px 10px', borderRadius: '999px',
-                background: '#2A2210', color: '#FBBF24', display: 'inline-flex', alignItems: 'center' 
-              }}>
-                {invoice?.paymentStatus || 'تحتاج مراجعة'}
-              </span>
+
+              <div className="flex flex-col items-end gap-3">
+                <div className="flex items-center gap-2">
+                  <MainButton type="primary" text="اعتماد الفاتورة" onClick={() => { }} />
+                  <MainButton type="default" text="تعديل يدوي" onClick={() => { }} />
+                </div>
+
+                {/* andtd status tag */}
+                {(() => {
+                  const status = invoice?.status || 'needs_review';
+                  const colorMap: Record<string, string> = {
+                    completed: 'success',
+                    processing: 'processing',
+                    needs_review: 'warning',
+                  };
+
+                  return (
+                    <Tag
+                      color={colorMap[status] || 'warning'}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold m-0"
+                    >
+                      {STATUS_LABELS[status] || status}
+                    </Tag>
+                  );
+                })()}
+              </div>
             </div>
 
-            {/* استخدام MobileDataCard المخصص مع الأعمدة والبيانات الكاملة */}
-            <MobileDataCard
-              dataSource={invoice ? [invoice] : []}
-              columns={[
-                { title: 'معرّف الفاتورة (id)', dataIndex: 'id', key: 'id' },
-                { title: 'رقم الفاتورة (invoiceNumber)', dataIndex: 'invoiceNumber', key: 'invoiceNumber' },
-                { title: 'اسم البائع (vendorName)', dataIndex: 'vendorName', key: 'vendorName' },
-                { title: 'الرقم الضريبي للبائع (taxNumber)', dataIndex: 'taxNumber', key: 'taxNumber' },
-                { title: 'رقم السجل التجاري (crNumber)', dataIndex: 'crNumber', key: 'crNumber' },
-                { title: 'اسم العميل (customerName)', dataIndex: 'customerName', key: 'customerName' },
-                { 
-                  title: 'تاريخ الفاتورة (invoiceDate)', 
-                  dataIndex: 'invoiceDate', 
-                  key: 'invoiceDate',
-                  render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-')
-                },
-                { 
-                  title: 'تاريخ الاستحقاق (dueDate)', 
-                  dataIndex: 'dueDate', 
-                  key: 'dueDate',
-                  render: (val: any) => (val ? new Date(val).toLocaleDateString() : '-')
-                },
-                { 
-                  title: 'المبلغ الإجمالي (totalAmount)', 
-                  dataIndex: 'totalAmount', 
-                  key: 'totalAmount',
-                  render: (val: any) => (val != null ? `${val} ر.س` : '-')
-                },
-                { 
-                  title: 'قيمة الضريبة (taxAmount)', 
-                  dataIndex: 'taxAmount', 
-                  key: 'taxAmount',
-                  render: (val: any) => (val != null ? `${val} ر.س` : '-')
-                },
-                { title: 'حالة الدفع (paymentStatus)', dataIndex: 'paymentStatus', key: 'paymentStatus' },
-                { title: 'طريقة الدفع (paymentMethod)', dataIndex: 'paymentMethod', key: 'paymentMethod' },
-                { 
-                  title: 'رابط الملف (fileUrl)', 
-                  dataIndex: 'fileUrl', 
-                  key: 'fileUrl',
-                  render: (val: any) => (val ? String(val) : 'لا يوجد ملف')
-                }
-              ]}
-            />
-
-            {/* الأزرار بالأسفل باستخدام MainButton */}
-            <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-              <MainButton 
-                type="primary" 
-                text="اعتماد كل الحقول" 
-                onClick={() => {}} 
-                style={{ flex: 1, backgroundColor: '#10B981', borderColor: '#10B981' }} 
-              />
-              <MainButton 
-                type="default" 
-                text="رفض / إبلاغ عن خطأ" 
-                onClick={() => {}} 
-                style={{ flex: 1, backgroundColor: '#1E293B', color: '#F1F5F9', borderColor: '#334155' }} 
+            {/* بيانات المورد */}
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
+                بيانات المورد
+              </h3>
+              <MobileDataCard
+                columns={vendorColumns}
+                dataSource={dataSource}
+                loading={loading}
               />
             </div>
 
+            {/* بيانات الفاتورة */}
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
+                بيانات الفاتورة
+              </h3>
+              <MobileDataCard
+                columns={invoiceInfoColumns}
+                dataSource={dataSource}
+                loading={loading}
+              />
+            </div>
+
+            {/* المبالغ */}
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
+                المبالغ
+              </h3>
+              <MobileDataCard
+                columns={amountColumns}
+                dataSource={dataSource}
+                loading={loading}
+              />
+            </div>
+
+            <div className="flex items-center gap-4 mt-6">
+              <MainButton type="primary" text="اعتماد كل الحقول" onClick={() => { }} />
+              <MainButton type="default" text="رفض / إبلاغ عن خطأ" onClick={() => { }} />
+              <MainButton type="default" text="الرجوع للقائمة" onClick={() => navigate('/invoices')} />
+            </div>
           </div>
-
-          {/* القسم الأيسر: معاينة المستند PDF ورابط الملف */}
-          <div style={{ background: '#111826', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '500px', border: '1px solid #2A3648' }}>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', color: '#CBD5E1', fontSize: '13px' }}>
-              <span>{invoice?.fileUrl ? `رابط الملف: ${invoice.fileUrl}` : 'لا يوجد ملف مرفق (fileUrl)'}</span>
-            </div>
-            {invoice?.fileUrl ? (
-              <iframe 
-                src={invoice.fileUrl} 
-                title="Invoice Preview" 
-                style={{ width: '100%', height: '520px', border: 'none', borderRadius: '8px' }} 
-              />
-            ) : (
-              <div style={{ color: '#94A3B8', marginTop: '200px' }}>عذراً، المستند غير متوفر</div>
-            )}
-          </div>
-
         </div>
-
       </div>
     </div>
   );
