@@ -23,7 +23,7 @@ export default function LoginForm() {
             <MainButton text="تسجيل الدخول" type="primary" htmlType="submit" block style={{ height: 46, fontSize: 16, borderRadius: 10, fontWeight: 600 }} />
 
             <Text style={{ display: 'block', textAlign: 'center', marginTop: 24, fontSize: 14 }}>
-                ما عندك حساب؟{' '}
+                لا يوجد لديك حساب؟{' '}
                 <Link to="/auth'/register" style={{ color: token.colorPrimary, fontWeight: 600 }}>
                     سجل الآن
                 </Link>
