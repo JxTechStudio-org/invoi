@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
 
                     <Text style={{ display: 'block', textAlign: 'center', marginTop: 24, fontSize: 14 }}>
                         تذكرت كلمة المرور؟{' '}
-                        <Link to="/login" style={{ color: token.colorPrimary, fontWeight: 600 }}>
+                        <Link to="/auth'/login" style={{ color: token.colorPrimary, fontWeight: 600 }}>
                             سجل الدخول
                         </Link>
                     </Text>
