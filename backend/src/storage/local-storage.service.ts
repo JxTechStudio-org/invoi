@@ -4,13 +4,17 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
 
+interface LocalStoredFile extends StoredFile {
+  filePath: string;
+}
+
 @Injectable()
 export class LocalStorageService implements StorageService {
   private readonly storageDirectory = resolve(
     process.env.STORAGE_LOCAL_PATH ?? 'uploads',
   );
 
-  async upload(file: Express.Multer.File): Promise<StoredFile> {
+  async upload(file: Express.Multer.File): Promise<LocalStoredFile> {
     await mkdir(this.storageDirectory, { recursive: true });
 
     const extension = extname(file.originalname).toLowerCase();
@@ -26,20 +30,15 @@ export class LocalStorageService implements StorageService {
   }
 
   async remove(file: StoredFile): Promise<void> {
-    if (dirname(resolve(file.filePath)) !== this.storageDirectory) {
+    const filePath = file.filePath ?? this.resolveReference(file.fileUrl);
+    if (dirname(resolve(filePath)) !== this.storageDirectory) {
       throw new Error('Cannot remove a file outside the invoice storage directory');
     }
-    await rm(file.filePath, { force: true });
+    await rm(filePath, { force: true });
   }
 
   async stageRemoval(fileUrl: string): Promise<PendingFileRemoval> {
-    const prefix = '/uploads/';
-    const filename = fileUrl.slice(prefix.length);
-    const originalPath = resolve(this.storageDirectory, filename);
-    if (!fileUrl.startsWith(prefix) || !filename || filename !== basename(filename)
-      || filename.includes('\\') || dirname(originalPath) !== this.storageDirectory) {
-      throw new Error('Invalid invoice storage URL');
-    }
+    const originalPath = this.resolveReference(fileUrl);
 
     const stagedPath = join(this.storageDirectory, `.deleting-${randomUUID()}`);
     try {
@@ -59,5 +58,16 @@ export class LocalStorageService implements StorageService {
       finalize: () => rm(stagedPath, { force: true }),
       restore: () => rename(stagedPath, originalPath),
     };
+  }
+
+  private resolveReference(fileUrl: string): string {
+    const prefix = '/uploads/';
+    const filename = fileUrl.slice(prefix.length);
+    const originalPath = resolve(this.storageDirectory, filename);
+    if (!fileUrl.startsWith(prefix) || !filename || filename !== basename(filename)
+      || filename.includes('\\') || dirname(originalPath) !== this.storageDirectory) {
+      throw new Error('Invalid invoice storage URL');
+    }
+    return originalPath;
   }
 }

@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 interface MainButtonProps extends ComponentProps<typeof Button> {
   text?: string;
 }
-export default function MainButton({ text = 'Click Me', icon = null, iconPosition = 'start', onClick, loading = false, type = 'primary', disabled = false , style, ...restProps }: MainButtonProps) {
+export default function MainButton({ text = 'Click Me', icon = null, iconPosition = 'start', onClick, loading = false, type = 'primary', disabled = false, block = false, style, ...restProps }: MainButtonProps) {
   return (
     <Button
       type={type}
@@ -14,7 +14,7 @@ export default function MainButton({ text = 'Click Me', icon = null, iconPositio
       loading={loading}
       disabled={disabled}
       {...restProps}
-      style={{ ...style, width: 'fit-content' }}
+      style={{ ...style, width: block ? '100%' : 'fit-content'  }}
     >
       {text}
     </Button>

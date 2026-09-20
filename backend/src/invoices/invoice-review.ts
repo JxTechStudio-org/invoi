@@ -1,14 +1,19 @@
-import { Invoice, InvoiceStatus } from '@prisma/client';
+import { Invoice, InvoiceStatus, User } from '@prisma/client';
 
 type ReviewInput = Pick<Invoice,
-  'status' | 'extractionConfidence' | 'customerName'
+  'status' | 'extractionConfidence' | 'customerName' | 'totalAmount' | 'taxAmount'
 >;
+
+type ReviewAccount = {
+  businessName: User['businessName'] | null;
+  reviewAmountThreshold: User['reviewAmountThreshold'];
+};
 
 export function normalizeCustomerName(name: string): string {
   return name.normalize('NFC').toLowerCase().replace(/\p{P}/gu, ' ').replace(/\s+/gu, ' ').trim();
 }
 
-export function evaluateInvoiceReview(invoice: ReviewInput, businessName: string | null): {
+export function evaluateInvoiceReview(invoice: ReviewInput, account: ReviewAccount): {
   status: InvoiceStatus;
   needsReviewReason: string | null;
 } {
@@ -20,9 +25,15 @@ export function evaluateInvoiceReview(invoice: ReviewInput, businessName: string
   }
 
   const customer = normalizeCustomerName(invoice.customerName ?? '');
-  const business = normalizeCustomerName(businessName ?? '');
+  const business = normalizeCustomerName(account.businessName ?? '');
   if (customer && business && customer !== business) {
     reasons.push('customer_name_mismatch');
+  }
+
+  const threshold = account.reviewAmountThreshold;
+  if (threshold !== null
+    && (invoice.totalAmount?.greaterThan(threshold) || invoice.taxAmount?.greaterThan(threshold))) {
+    reasons.push('amount_threshold_exceeded');
   }
 
   return {

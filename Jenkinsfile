@@ -17,6 +17,18 @@ pipeline {
       }
     }
 
+    stage('Lint') {
+      steps {
+        echo 'Running backend ESLint validation...'
+        sh '''
+          set -eu
+
+          lint_image="$(docker build --quiet --target backend-build .)"
+          docker run --rm "$lint_image" npm run lint
+        '''
+      }
+    }
+
     stage('Test') {
       steps {
         echo 'Running NestJS API integration tests...'
