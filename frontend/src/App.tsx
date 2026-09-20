@@ -22,9 +22,11 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path='/' element={<LandingPage />} />
-              <Route path='/login' element={<AuthPage/>} />
-              <Route path='/register' element={<AuthPage/>} />
-              <Route path='/forgot-password' element={<ForgotPasswordPage/>}/>
+              <Route path='/auth' >
+                <Route path='login' element={<AuthPage />} />
+                <Route path='register' element={<AuthPage />} />
+                <Route path='forgot-password' element={<ForgotPasswordPage />} />
+              </Route>
               <Route element={<NavBar />}>
                 <Route path='/dashboard' element={<div>Dashboard</div>} />
                 <Route path='/vendors' element={<div>Vendors</div>} />
