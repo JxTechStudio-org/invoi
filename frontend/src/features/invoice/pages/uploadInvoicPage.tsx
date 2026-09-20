@@ -25,7 +25,7 @@ export default function UploadInvoicePage() {
 
     return (
         <>
-            <PageHeader pageIcon={<LiaFileInvoiceDollarSolid />} pagename1='الفواتير' pagename2="اضافه فاتورة " page1path=''/>
+            <PageHeader pageIcon={<LiaFileInvoiceDollarSolid />} pagename1='الفواتير' pagename2="اضافه فاتورة " page1path='/invoices'/>
             <div style={{ padding: 24, maxWidth: 640, margin: '0 auto' }}>
             {alerts.map((alert) => (
                 <MainAlert key={alert.id} alertMessage={alert.message} alertType={alert.type} closeAction={() => removeAlert(alert.id)} />
