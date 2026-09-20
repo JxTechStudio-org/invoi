@@ -8,7 +8,7 @@ import PendingValue from '../../shared/components/PendingValue'
 import MainAlert from '../../shared/components/MainAlert'
 import MainButton from '../../shared/components/MainButton'
 import { useInvoicesList } from '../hooks/useInvoicesList'
-import type { Invoice } from '../api/invoicesListApi'
+import type { Invoice, InvoicesListFilters } from '../api/invoicesListApi'
 import type { TableColumnsType } from 'antd'
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
 import FilterBar from '../../shared/components/FilterBar'
@@ -16,14 +16,29 @@ import PageHeader from '../../shared/components/PageHeader'
 
 const { useBreakpoint } = Grid
 
+const STATUS_LABELS: Record<string, string> = {
+    processing: 'قيد المعالجة',
+    completed: 'مكتملة',
+    needs_review: 'تحتاج مراجعة'
+}
+
 export default function InvoicesListPage() {
-    const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined)
-    const [searchText, setSearchText] = useState('')
-    const { invoices, isLoading, errorMessage } = useInvoicesList()
+    const [filters, setFilters] = useState<InvoicesListFilters>({})
+    const { invoices, isLoading, errorMessage } = useInvoicesList(filters)
     const screens = useBreakpoint()
     const isMobileOrTablet = !screens.lg
     const navigate = useNavigate()
     const { token } = theme.useToken()
+    const [searchText, setSearchText] = useState('')
+
+    const filteredInvoices = useMemo(() => {
+        if (searchText.trim() === '') return invoices
+        return invoices.filter((invoice) =>
+            [invoice.sellerName, invoice.status, String(invoice.amount ?? ''), invoice.invoiceDate]
+                .some((field) => String(field ?? '').toLowerCase().includes(searchText.toLowerCase()))
+        )
+    }, [invoices, searchText])
+
 
     const filterConfig = [
         {
@@ -31,40 +46,24 @@ export default function InvoicesListPage() {
             placeholder: 'حالة الفاتورة',
             options: [
                 { label: 'مكتملة', value: 'completed' },
-                { label: 'قيد المعالجة', value: 'processing' }
+                { label: 'قيد المعالجة', value: 'processing' },
+                { label: 'تحتاج مراجعة', value: 'needs_review' }
             ]
         }
     ]
 
     const handleFilterChange = (key: string, value: string | undefined) => {
         if (key === 'status') {
-            setSelectedStatus(value)
+            setFilters((prev) => ({ ...prev, status: value as InvoicesListFilters['status'] }))
         }
     }
 
-    const handleSearch = (value: string) => {
-        setSearchText(value)
-    }
-
     const handleReset = () => {
-        setSelectedStatus(undefined)
+        setFilters({})
         setSearchText('')
     }
 
-    const filteredInvoices = useMemo(() => {
-        return invoices.filter((invoice) => {
-            const matchesStatus = selectedStatus ? invoice.status === selectedStatus : true
-
-            const matchesSearch = searchText.trim() === '' || [
-                invoice.sellerName,
-                invoice.status,
-                String(invoice.amount ?? ''),
-                invoice.invoiceDate
-            ].some((field) => String(field ?? '').toLowerCase().includes(searchText.toLowerCase()))
-
-            return matchesStatus && matchesSearch
-        })
-    }, [invoices, selectedStatus, searchText])
+    const handleSearch = (value: string) => setSearchText(value)
 
     const columns: TableColumnsType<Invoice> = [
         {
@@ -98,7 +97,8 @@ export default function InvoicesListPage() {
         {
             title: 'الحالة',
             dataIndex: 'status',
-            key: 'status'
+            key: 'status',
+            render: (value: Invoice['status']) => STATUS_LABELS[value] ?? value
         },
         {
             title: 'تاريخ الإنشاء',
@@ -122,7 +122,7 @@ export default function InvoicesListPage() {
     return (
         <>
             <PageHeader pageIcon={<LiaFileInvoiceDollarSolid />} pagename1='الفواتير' page1path='/invoices' />
-            
+
             <FilterBar
                 filters={filterConfig}
                 onFilterChange={handleFilterChange}
@@ -132,22 +132,21 @@ export default function InvoicesListPage() {
             />
 
             {errorMessage ? <MainAlert alertMessage={errorMessage} alertType="error" /> : null}
-            
-            {!isLoading && filteredInvoices.length === 0 ? 
+
+            {!isLoading && (!invoices || filteredInvoices.length === 0) ? (
                 <Flex vertical align="center" justify="center" style={{ height: '60vh' }}>
-                    <Empty description="لا توجد فواتير مطابقة للبحث" />
+                    <Empty description="لا توجد فواتير مطابقة" />
                 </Flex>
-                :
-                isMobileOrTablet ? (
-                    <MobileDataCard<Invoice & Record<string, unknown>>
-                        columns={columns as TableColumnsType<Invoice & Record<string, unknown>>}
-                        dataSource={filteredInvoices as (Invoice & Record<string, unknown>)[]}
-                        loading={isLoading}
-                    />
-                ) : (
-                    <MainTable<Invoice> columns={columns} dataSource={filteredInvoices} loading={isLoading} rowKey="key" />
-                )
-            }
+            ) : isMobileOrTablet ? (
+                <MobileDataCard<Invoice & Record<string, unknown>>
+                    columns={columns as TableColumnsType<Invoice & Record<string, unknown>>}
+                    dataSource={filteredInvoices as (Invoice & Record<string, unknown>)[]}
+                    loading={isLoading}
+                />
+            ) : (
+                <MainTable<Invoice> columns={columns} dataSource={filteredInvoices} loading={isLoading} rowKey="key" />
+            )}
+
         </>
     )
 }
