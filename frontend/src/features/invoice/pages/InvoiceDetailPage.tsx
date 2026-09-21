@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin, Tag, theme } from 'antd';
+import { Spin, Tag, theme, Grid, Form, Input, Select } from 'antd';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import PageHeader from '../../shared/components/PageHeader';
 import MainButton from '../../shared/components/MainButton';
+import MainTable from '../../shared/components/MainTable';
 import MainAlert from '../../shared/components/MainAlert';
+import MainModal from '../../shared/components/MainModal';
 import { apiClient } from '../../../services/api/client';
 import { getErrorMessage } from '../../../errors/errorMassages';
 import MobileDataCard from '../../shared/components/MobileDataCard';
 import { FileTextOutlined } from '@ant-design/icons';
+
 
 const STATUS_LABELS: Record<string, string> = {
   processing: 'قيد المعالجة',
   completed: 'مكتملة',
   needs_review: 'تحتاج مراجعة'
 };
+
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,42 +35,91 @@ export default function InvoiceDetailPage() {
     setAlerts((prev) => prev.filter((a) => a.id !== alertId));
   };
 
-  useEffect(() => {
-    if (!id) return;
+  const { useBreakpoint } = Grid
+  const screens = useBreakpoint()
+  const isMobileOrTablet = !screens.lg
 
-    const fetchInvoice = async () => {
-      try {
-        setLoading(true);
-        const res = await apiClient.get(`/invoices/${id}`);
-        setInvoice(res.data);
-        setLoading(false);
-      } catch (err: any) {
-        setLoading(false);
-        let errorCode = 'UNKNOWN_ERROR';
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [form] = Form.useForm();
 
-        if (err.response) {
-          if (err.response.status === 404) {
-            setIsNotFound(true);
-            const msg = 'الفاتورة غير موجودة';
-            setErrorMsg(msg);
-            setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
-          } else {
-            errorCode = err.response?.data?.error_code || 'SERVER_ERROR';
-            const msg = getErrorMessage(errorCode);
-            setErrorMsg(msg);
-            setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
-          }
-        } else if (err.request) {
-          errorCode = 'NETWORK_ERROR';
+
+  const fetchInvoice = async () => {
+    try {
+      setLoading(true);
+      const res = await apiClient.get(`/invoices/${id}`);
+      setInvoice(res.data);
+      setLoading(false);
+    } catch (err: any) {
+      setLoading(false);
+      let errorCode = 'UNKNOWN_ERROR';
+
+      if (err.response) {
+        if (err.response.status === 404) {
+          setIsNotFound(true);
+          const msg = 'الفاتورة غير موجودة';
+          setErrorMsg(msg);
+          setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
+        } else {
+          errorCode = err.response?.data?.error_code || 'SERVER_ERROR';
           const msg = getErrorMessage(errorCode);
           setErrorMsg(msg);
           setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
         }
+      } else if (err.request) {
+        errorCode = 'NETWORK_ERROR';
+        const msg = getErrorMessage(errorCode);
+        setErrorMsg(msg);
+        setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
+    if (!id) return;
     fetchInvoice();
   }, [id]);
+
+
+  // Edit invoice form
+  const handleUpdateInvoice = async (values: any) => {
+    try {
+      await apiClient.put(`/invoices/${id}`, values);
+      setAlerts((prev) => [
+        ...prev,
+        { id: Date.now(), message: 'تم تعديل الفاتورة بنجاح', type: 'success' },
+      ]);
+      setIsEditModalVisible(false);
+      fetchInvoice();
+    } catch (error: any) {
+      const msg = getErrorMessage(error) || 'فشل تعديل الفاتورة';
+      setAlerts((prev) => [
+        ...prev,
+        { id: Date.now(), message: msg, type: 'error' },
+      ]);
+    }
+  };
+
+
+  // Delete invoice
+  const handleDeleteInvoice = async () => {
+    try {
+      await apiClient.delete(`/invoices/${id}`);
+      setAlerts((prev) => [
+        ...prev,
+        { id: Date.now(), message: 'تم حذف الفاتورة بنجاح', type: 'success' }
+      ]);
+      setTimeout(() => {
+        navigate('/invoices');
+      }, 1000);
+    } catch (error: any) {
+      const msg = getErrorMessage(error) || 'فشل في حذف الفاتورة';
+      setAlerts((prev) => [
+        ...prev,
+        { id: Date.now(), message: msg, type: 'error' }
+      ]);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -105,14 +158,7 @@ export default function InvoiceDetailPage() {
   }
 
   // invoice detail fields
-
   const vendorColumns = [
-    {
-      title: 'بيانات البائع',
-      dataIndex: 'header',
-      key: 'header',
-      render: () => null
-    },
     {
       title: 'اسم البائع',
       dataIndex: 'vendorName',
@@ -135,10 +181,16 @@ export default function InvoiceDetailPage() {
 
   const invoiceInfoColumns = [
     {
-      title: 'بيانات الفاتورة',
-      dataIndex: 'header',
-      key: 'header',
-      render: () => null
+      title: 'معرّف الفاتورة',
+      dataIndex: 'id',
+      key: 'id',
+      render: (val: string | number) => val || '-'
+    },
+    {
+      title: 'حالة الدفع',
+      dataIndex: 'paymentStatus',
+      key: 'paymentStatus',
+      render: (val: string) => val || '-'
     },
     {
       title: 'رقم الفاتورة',
@@ -206,12 +258,6 @@ export default function InvoiceDetailPage() {
 
   const amountColumns = [
     {
-      title: 'المبالغ',
-      dataIndex: 'header',
-      key: 'header',
-      render: () => null,
-    },
-    {
       title: 'المبلغ قبل الضريبة',
       dataIndex: 'subTotal',
       key: 'subTotal',
@@ -226,17 +272,18 @@ export default function InvoiceDetailPage() {
       title: 'قيمة الضريبة 15%',
       dataIndex: 'taxAmount',
       key: 'taxAmount',
-      render: (val: any) => `${Number(val ?? 0).toFixed(2)} SAR`,
+      render: (val: any, record: any) => `${Number(val ?? 0).toFixed(2)} ${record.currency || 'SAR'}`,
     },
     {
       title: 'الإجمالي',
       dataIndex: 'totalAmount',
       key: 'totalAmount',
-      render: (val: any) => `${Number(val ?? 0).toFixed(2)} SAR`,
+      render: (val: any, record: any) => `${Number(val ?? 0).toFixed(2)} ${record.currency || 'SAR'}`,
     },
   ];
 
   const dataSource = invoice ? [invoice] : [];
+
 
   return (
     <div>
@@ -280,7 +327,14 @@ export default function InvoiceDetailPage() {
               <div className="flex flex-col items-end gap-3">
                 <div className="flex items-center gap-2">
                   <MainButton type="primary" text="اعتماد الفاتورة" onClick={() => { }} />
-                  <MainButton type="default" text="تعديل يدوي" onClick={() => { }} />
+                  <MainButton
+                    type="default"
+                    text="تعديل يدوي"
+                    onClick={() => {
+                      form.setFieldsValue(invoice);
+                      setIsEditModalVisible(true);
+                    }}
+                  />
                 </div>
 
                 {/* andtd status tag */}
@@ -309,11 +363,21 @@ export default function InvoiceDetailPage() {
               <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
                 بيانات المورد
               </h3>
-              <MobileDataCard
-                columns={vendorColumns}
-                dataSource={dataSource}
-                loading={loading}
-              />
+              {isMobileOrTablet ? (
+                <MobileDataCard
+                  columns={vendorColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                />
+              ) : (
+                <MainTable
+                  columns={vendorColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                  rowKey="key"
+                  pagination={false}
+                />
+              )}
             </div>
 
             {/* بيانات الفاتورة */}
@@ -321,11 +385,21 @@ export default function InvoiceDetailPage() {
               <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
                 بيانات الفاتورة
               </h3>
-              <MobileDataCard
-                columns={invoiceInfoColumns}
-                dataSource={dataSource}
-                loading={loading}
-              />
+              {isMobileOrTablet ? (
+                <MobileDataCard
+                  columns={invoiceInfoColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                />
+              ) : (
+                <MainTable
+                  columns={invoiceInfoColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                  rowKey="key"
+                  pagination={false}
+                />
+              )}
             </div>
 
             {/* المبالغ */}
@@ -333,21 +407,91 @@ export default function InvoiceDetailPage() {
               <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
                 المبالغ
               </h3>
-              <MobileDataCard
-                columns={amountColumns}
-                dataSource={dataSource}
-                loading={loading}
-              />
+              {isMobileOrTablet ? (
+                <MobileDataCard
+                  columns={amountColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                />
+              ) : (
+                <MainTable
+                  columns={amountColumns}
+                  dataSource={dataSource}
+                  loading={loading}
+                  rowKey="key"
+                  pagination={false}
+                />
+              )}
             </div>
 
-            <div className="flex items-center gap-4 mt-6">
-              <MainButton type="primary" text="اعتماد كل الحقول" onClick={() => { }} />
-              <MainButton type="default" text="رفض / إبلاغ عن خطأ" onClick={() => { }} />
-              <MainButton type="default" text="الرجوع للقائمة" onClick={() => navigate('/invoices')} />
+            <div className="flex items-center justify-between w-full" style={{ marginTop: '32px' }}>
+              <div className="flex items-center gap-4">
+                <MainButton type="primary" text="اعتماد كل الحقول" onClick={() => { }} />
+                <MainButton type="default" text="رفض / إبلاغ عن خطأ" onClick={() => { }} />
+                <MainButton type="default" danger text="حذف الفاتورة" onClick={handleDeleteInvoice} />
+              </div>
+
+              <div>
+                <MainButton type="default" text="الرجوع للقائمة" onClick={() => navigate('/invoices')} />
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/*تعديل الفاتورة */}
+      <MainModal
+        title="تعديل الفاتورة"
+        open={isEditModalVisible}
+        onOpenChange={(isOpen) => setIsEditModalVisible(isOpen)}
+        onConfirm={() => form.submit()}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleUpdateInvoice}
+          initialValues={invoice}
+        >
+          <Form.Item
+            name="vendorName"
+            label="اسم المورد"
+            rules={[{ required: true, message: 'يرجى إدخال اسم المورد' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="invoiceNumber"
+            label="رقم الفاتورة"
+            rules={[{ required: true, message: 'يرجى إدخال رقم الفاتورة' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="totalAmount"
+            label="المبلغ الإجمالي"
+            rules={[{ required: true, message: 'يرجى إدخال المبلغ' }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            name="paymentStatus"
+            label="حالة الدفع"
+            rules={[{ required: true, message: 'يرجى اختيار حالة الدفع' }]}
+          >
+            <Select
+              options={[
+                { value: 'processing', label: 'قيد المعالجة' },
+                { value: 'completed', label: 'مكتملة' },
+                { value: 'needs_review', label: 'تحتاج مراجعة' }
+              ]}
+            />
+          </Form.Item>
+        </Form>
+      </MainModal>
+
     </div>
   );
 }
