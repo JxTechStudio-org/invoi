@@ -47,4 +47,25 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        businessName: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        phone: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return user;
+  }
 }
