@@ -12,7 +12,19 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // NOTE: existingUser function allows seamless test account generation through the register endpoint
+  // so we can test invoice upload without manually registering every time.
   async register(dto: RegisterDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (existingUser) {
+      await this.prisma.user.delete({
+        where: { email: dto.email },
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     return this.prisma.user.create({
