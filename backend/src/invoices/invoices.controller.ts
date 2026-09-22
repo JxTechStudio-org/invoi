@@ -14,6 +14,8 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -21,6 +23,7 @@ import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UploadInvoiceDto } from './dto/upload-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { InvoicesService } from './invoices.service';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 const maxUploadSize = Number(process.env.MAX_UPLOAD_SIZE_BYTES ?? 10485760);
 const invoiceFilePipe = new ParseFilePipe({
@@ -34,6 +37,7 @@ const invoiceFilePipe = new ParseFilePipe({
   ],
 });
 
+@UseGuards(JwtAuthGuard)
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
@@ -48,8 +52,10 @@ export class InvoicesController {
   async upload(
     @UploadedFile(invoiceFilePipe) file: Express.Multer.File,
     @Body() body: UploadInvoiceDto,
+    @Req() req: any,
   ): Promise<{ invoice_id: string }> {
-    const invoice = await this.invoicesService.createFromUpload(file, body.userId);
+    const userId = req.user.userId;
+    const invoice = await this.invoicesService.createFromUpload(file, userId);
     return { invoice_id: invoice.id };
   }
 
