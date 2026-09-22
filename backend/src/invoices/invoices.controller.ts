@@ -14,7 +14,8 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
-  UseGuards
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -51,8 +52,10 @@ export class InvoicesController {
   async upload(
     @UploadedFile(invoiceFilePipe) file: Express.Multer.File,
     @Body() body: UploadInvoiceDto,
+    @Req() req: any,
   ): Promise<{ invoice_id: string }> {
-    const invoice = await this.invoicesService.createFromUpload(file, body.userId);
+    const userId = req.user.userId;
+    const invoice = await this.invoicesService.createFromUpload(file, userId);
     return { invoice_id: invoice.id };
   }
 
