@@ -9,7 +9,7 @@ import InvoiceDetailPage from "./features/invoice/pages/InvoiceDetailPage"
 import AuthPage from './features/auth/pages/AuthPage'
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage'
 import InvoiceListPage from "./features/invoice/pages/InvoicesListPage"
-
+import DashboardPage from './features/dashboard/pages/DashboardPage'
 import './App.css'
 
 const queryClient = new QueryClient()
@@ -28,7 +28,7 @@ function App() {
                 <Route path='forgot-password' element={<ForgotPasswordPage />} />
               </Route>
               <Route element={<NavBar />}>
-                <Route path='/dashboard' element={<div>Dashboard</div>} />
+                <Route path='/dashboard' element={<DashboardPage />} />
                 <Route path='/vendors' element={<div>Vendors</div>} />
                 <Route path='/analytics' element={<div>Analytics</div>} />
                 <Route path='/settings' element={<div>Settings</div>} />
