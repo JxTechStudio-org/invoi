@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -10,7 +10,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   // NOTE: existingUser function allows seamless test account generation through the register endpoint
   // so we can test invoice upload without manually registering every time.
@@ -20,9 +20,8 @@ export class AuthService {
     });
 
     if (existingUser) {
-      await this.prisma.user.delete({
-        where: { email: dto.email },
-      });
+      throw new ConflictException('Email already exists');
+
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -36,6 +35,16 @@ export class AuthService {
         email: dto.email,
         passwordHash: hashedPassword,
         businessName: dto.businessName,
+      },
+      select: {
+        id: true,
+        email: true,
+        businessName: true,
+        firstName: true,
+        lastName: true,
+        username: true,
+        phone: true,
+        createdAt: true,
       },
     });
   }
