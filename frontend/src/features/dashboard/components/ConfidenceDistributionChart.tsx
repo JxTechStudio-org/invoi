@@ -1,9 +1,9 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import { Card, theme, Typography, Empty } from 'antd'
+import { Card, theme, Typography, Empty , Space   } from 'antd'
 import type { ConfidenceDistribution } from './dashboardCalculations'
 
-const { Title } = Typography
+const { Title , Text } = Typography
 
 interface ConfidenceDistributionChartProps {
     data?: ConfidenceDistribution
@@ -24,11 +24,27 @@ export default function ConfidenceDistributionChart({ data, loading }: Confidenc
     return (
         <Card
             loading={loading}
-            style={{ borderRadius: 12, border: `1px solid ${token.colorBorder}`, boxShadow: token.boxShadowTertiary , height:'100%' }}
+            style={{ borderRadius: 24, border: `1px solid ${token.colorBorder}`, boxShadow: token.boxShadowTertiary , height:'100%' }}
         >
-            <Title level={5} style={{ marginBottom: 16 }}>
-                توزيع مستوى الثقة
-            </Title>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <Space size={8}>
+                    <div
+                        style={{
+                            width: 4,
+                            height: 16,
+                            borderRadius: 999,
+                            backgroundColor: token.colorPrimary,
+                        }}
+                    />
+                    <Title level={5} style={{ margin: 0, fontWeight: 700, color: token.colorText, fontSize: 16 }}>
+                        مستوى الثقة
+                    </Title>
+                </Space>
+                <Text style={{ fontSize: 11, fontWeight: 600, color: token.colorTextSecondary }}>
+                   توزيع مستوى الثقة
+                </Text>
+            </div>
+            
             {total === 0 ? (
                 <div style={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Empty description="لا توجد بيانات ثقة كافية بعد" image={Empty.PRESENTED_IMAGE_SIMPLE} />

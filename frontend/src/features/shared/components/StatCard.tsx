@@ -1,4 +1,3 @@
-
 import type { ReactNode } from 'react'
 import { Card, theme } from 'antd'
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons'
@@ -21,25 +20,31 @@ export default function StatCard({ title, value, prefix, icon, trend, illustrati
 
   return (
     <Card
-      styles={{ body: { padding: 20 } }}
+      styles={{ body: { padding: 22 } }}
       style={{
-        borderRadius: 12,
+        borderRadius: 24,
         border: `1px solid ${token.colorBorder}`,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+        backgroundColor: token.colorBgContainer,
+        boxShadow: token.boxShadowTertiary,
+        transition: 'all 0.25s ease',
+        height: '100%'
       }}
+      hoverable
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span style={{ fontSize: 14, color: token.colorTextSecondary, fontWeight: 500 }}>{title}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <span style={{ fontSize: 13, color: token.colorTextSecondary, fontWeight: 600, letterSpacing: '0.2px' }}>{title}</span>
         {icon && (
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
+              width: 38,
+              height: 38,
+              borderRadius: 10,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: token.colorPrimaryBg
+              backgroundColor: token.colorPrimaryBg,
+              color: token.colorPrimary,
+              border: `1px solid ${token.colorPrimaryBorder}`
             }}
           >
             {icon}
@@ -47,29 +52,43 @@ export default function StatCard({ title, value, prefix, icon, trend, illustrati
         )}
       </div>
 
-      <div style={{ marginTop: 8, fontSize: 26, fontWeight: 700, color: token.colorText }}>
-        {prefix && <span style={{ color: token.colorTextTertiary, marginInlineEnd: 4 }}>{prefix}</span>}
+      <div style={{ fontSize: 28, fontWeight: 800, color: token.colorText, letterSpacing: '-0.5px' }}>
+        {prefix && <span style={{ fontSize: 18, color: token.colorTextTertiary, marginInlineEnd: 4, fontWeight: 600 }}>{prefix}</span>}
         {value}
       </div>
 
       {trend && (
         <div
           style={{
-            marginTop: 6,
-            fontSize: 13,
+            marginTop: 10,
+            fontSize: 12,
             display: 'flex',
             alignItems: 'center',
-            gap: 4,
-            color: isPositive ? token.colorSuccess : token.colorError
+            gap: 6,
+            color: isPositive ? token.colorSuccessText : token.colorErrorText,
+            fontWeight: 600
           }}
         >
-          {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-          <span>{Math.abs(trend.value)}%</span>
-          {trend.label && <span style={{ color: token.colorTextTertiary }}>{trend.label}</span>}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2px 6px',
+              borderRadius: 6,
+              backgroundColor: isPositive ? token.colorSuccessBg : token.colorErrorBg,
+              border: `1px solid ${isPositive ? token.colorSuccessText : token.colorErrorText}20`,
+              gap: 4
+            }}
+          >
+            {isPositive ? <ArrowUpOutlined style={{ fontSize: 10 }} /> : <ArrowDownOutlined style={{ fontSize: 10 }} />}
+            <span>{Math.abs(trend.value)}%</span>
+          </span>
+          {trend.label && <span style={{ color: token.colorTextTertiary, fontWeight: 500 }}>{trend.label}</span>}
         </div>
       )}
 
-      {illustration && <div style={{ marginTop: 12 }}>{illustration}</div>}
+      {illustration && <div style={{ marginTop: 14 }}>{illustration}</div>}
     </Card>
   )
 }

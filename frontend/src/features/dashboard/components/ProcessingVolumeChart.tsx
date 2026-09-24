@@ -2,7 +2,7 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Respons
 import { Card, theme, Typography } from 'antd'
 import type { ProcessingVolumePoint } from '../components/dashboardCalculations'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
 interface ProcessingVolumeChartProps {
     data: ProcessingVolumePoint[]
@@ -15,11 +15,26 @@ export default function ProcessingVolumeChart({ data, loading }: ProcessingVolum
     return (
         <Card
             loading={loading}
-            style={{ borderRadius: 12, border: `1px solid ${token.colorBorder}`, boxShadow: token.boxShadowTertiary }}
+            style={{ borderRadius: 24, border: `1px solid ${token.colorBorder}`, boxShadow: token.boxShadowTertiary }}
         >
-            <Title level={5} style={{ marginBottom: 16 }}>
-                حجم المعالجة (آخر 6 أشهر)
-            </Title>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div
+                        style={{
+                            width: 4,
+                            height: 16,
+                            borderRadius: 999,
+                            backgroundColor: token.colorPrimary,
+                        }}
+                    />
+                    <Title level={5} style={{ margin: 0, fontWeight: 700, color: token.colorText, fontSize: 16 }}>
+                        حجم المعالجة (آخر 6 أشهر)
+                    </Title>
+                </div>
+                <Text style={{ fontSize: 11, fontWeight: 600, color: token.colorTextSecondary }}>
+                    الفواتير المعالجة
+                </Text>
+            </div>
             <ResponsiveContainer width="100%" height={280}>
                 <ComposedChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" stroke={token.colorBorderSecondary} vertical={false} />

@@ -1,5 +1,5 @@
 import { Row, Col, theme } from 'antd'
-import { FileTextOutlined, ClockCircleOutlined, CheckCircleOutlined, DollarOutlined } from '@ant-design/icons'
+import { FileTextOutlined, ClockCircleOutlined, CheckCircleOutlined, DollarOutlined, PercentageOutlined } from '@ant-design/icons'
 import StatCard from '../../shared/components/StatCard'
 import ExportButton from '../../shared/components/ExportButton'
 import MainAlert from '../../shared/components/MainAlert'
@@ -32,11 +32,11 @@ export default function DashboardPage() {
 
     return (
         <>
-            <PageHeader  pageIcon={<TbDeviceAnalytics/>} pagename1='لوحة التحكم'/>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <PageHeader pageIcon={<TbDeviceAnalytics />} pagename1='لوحة التحكم' />
+                <ExportButton onClick={exportInvoices} loading={isExporting} />
+            </div>
             <div style={{ padding: 24 }}>
-                <div style={{ display: 'flex', marginBottom: 20 }}>
-                    <ExportButton onClick={exportInvoices} loading={isExporting} />
-                </div>
 
                 {exportError && (
                     <div style={{ marginBottom: 16 }}>
@@ -45,28 +45,35 @@ export default function DashboardPage() {
                 )}
 
                 <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-                    <Col xs={24} sm={12} lg={6}>
+                    <Col xs={24} sm={12} flex="1 1 220px">
                         <StatCard
                             title="إجمالي الفواتير"
                             value={stats.totalInvoices}
                             icon={<FileTextOutlined style={{ color: token.colorPrimary }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} lg={6}>
+                    <Col xs={24} sm={12} flex="1 1 220px">
                         <StatCard
                             title="تحتاج مراجعة"
                             value={stats.needsReviewCount}
                             icon={<ClockCircleOutlined style={{ color: token.colorWarning }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} lg={6}>
+                    <Col xs={24} sm={12} flex="1 1 220px">
+                        <StatCard
+                            title="نسبة الفواتير المكتملة"
+                            value={stats.completionRate !== null ? `${stats.completionRate}%` : '—'}
+                            icon={<PercentageOutlined style={{ color: token.colorInfo }} />}
+                        />
+                    </Col>
+                    <Col xs={24} sm={12} flex="1 1 220px">
                         <StatCard
                             title="معدل الدقة"
                             value={accuracyRate !== undefined ? `${accuracyRate}%` : '—'}
                             icon={<CheckCircleOutlined style={{ color: token.colorSuccess }} />}
                         />
                     </Col>
-                    <Col xs={24} sm={12} lg={6}>
+                    <Col xs={24} sm={12} flex="1 1 220px">
                         <StatCard
                             title="إجمالي المبلغ هذا الشهر"
                             value={stats.totalAmountThisMonth.toLocaleString('ar-SA')}
@@ -97,4 +104,3 @@ export default function DashboardPage() {
         </>
     )
 }
-

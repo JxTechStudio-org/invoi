@@ -6,8 +6,8 @@ export interface DashboardStats {
     processingCount: number
     needsReviewCount: number
     totalAmountThisMonth: number
+    completionRate: number | null
 }
-
 export interface ProcessingVolumePoint {
     month: string
     volume: number
@@ -49,6 +49,11 @@ export function getConfidenceLevel(confidence: number | null): ConfidenceLevel |
     return 'low'
 }
 
+export function calculateCompletionRate(invoices: Invoice[]): number | null {
+    if (invoices.length === 0) return null
+    const completedCount = invoices.filter((inv) => inv.status === 'completed').length
+    return Math.round((completedCount / invoices.length) * 100)
+}
 
 /**
  * الحقول المالية (amount, totalAmount...) تصل كنصوص من الـ API،
@@ -75,7 +80,8 @@ export function calculateStats(invoices: Invoice[]): DashboardStats {
         totalInvoices: invoices.length,
         processingCount: invoices.filter((inv) => inv.status === 'processing').length,
         needsReviewCount: invoices.filter((inv) => inv.status === 'needs_review').length,
-        totalAmountThisMonth
+        totalAmountThisMonth,
+        completionRate: calculateCompletionRate(invoices)
     }
 }
 
@@ -124,7 +130,7 @@ export function calculateConfidenceDistribution(invoices: Invoice[]): Confidence
 }
 
 
-export function calculateRecentInvoices(invoices: Invoice[], limit = 5): RecentInvoiceSummary[] {
+export function calculateRecentInvoices(invoices: Invoice[], limit = 6): RecentInvoiceSummary[] {
     return [...invoices]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, limit)
@@ -152,4 +158,19 @@ export function calculateTopVendors(invoices: Invoice[], limit = 5): TopVendor[]
         .map(([name, invoiceCount]) => ({ name, invoiceCount }))
         .sort((a, b) => b.invoiceCount - a.invoiceCount)
         .slice(0, limit)
+}
+
+
+export function calculateAverageProcessingTime(invoices: Invoice[]): number | null {
+    const completedInvoices = invoices.filter((inv) => inv.status === 'completed')
+    if (completedInvoices.length === 0) return null
+
+    const totalHours = completedInvoices.reduce((sum, invoice) => {
+        const created = new Date(invoice.createdAt).getTime()
+        const updated = new Date(invoice.updatedAt).getTime()
+        const hours = (updated - created) / (1000 * 60 * 60)
+        return sum + hours
+    }, 0)
+
+    return Math.round((totalHours / completedInvoices.length) * 10) / 10
 }
