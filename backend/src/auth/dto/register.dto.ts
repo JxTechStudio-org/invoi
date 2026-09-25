@@ -4,14 +4,14 @@ export class RegisterDto {
   @IsString()
   @IsNotEmpty({ message: 'First name is required' })
   @MinLength(2, { message: 'First name must be at least 2 characters long' })
-  @Matches(/^[\u0621-\u064A\s]+$/, { message: 'First name must contain Arabic letters only' })
+  @Matches(/^[a-zA-Z\u0621-\u064A\s]+$/, { message: 'First name must contain Arabic or English letters' })
   @Matches(/^[^\s].*[^\s]$|^[^\s]$/, { message: 'First name must not start or end with a space' })
   firstName!: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Last name is required' })
   @MinLength(2, { message: 'Last name must be at least 2 characters long' })
-  @Matches(/^[\u0621-\u064A\s]+$/, { message: 'Last name must contain Arabic letters only' })
+  @Matches(/^[a-zA-Z\u0621-\u064A\s]+$/, { message: 'Last name must contain Arabic or English letters' })
   @Matches(/^[^\s].*[^\s]$|^[^\s]$/, { message: 'Last name must not start or end with a space' })
   lastName!: string;
 
