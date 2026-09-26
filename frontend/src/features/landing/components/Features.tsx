@@ -60,7 +60,7 @@ export default function Features() {
                     {featuresList.map((item, index) => (
                         <Col xs={24} sm={12} lg={6} key={index}>
                             <Card
-                                bordered={false}
+                                variant="borderless"
                                 style={{
                                     background: ' var(--bg-container)',
                                     borderRadius: '12px',
@@ -69,7 +69,7 @@ export default function Features() {
                                     border: '1px solid var(-border-color)',
                                     boxSizing: 'border-box',
                                 }}
-                                bodyStyle={{ padding: '32px 24px' }}
+                                styles={{body:{ padding: '32px 24px'} }}
                             >
                                 <div style={{
                                     width: '60px',

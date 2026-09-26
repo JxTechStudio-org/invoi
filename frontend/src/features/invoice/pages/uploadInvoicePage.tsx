@@ -50,7 +50,7 @@ export default function UploadInvoicePage() {
                 <Row gutter={24} justify="center" align="middle">
                     <Col xs={24} lg={22}>
                         <Card
-                            bordered={false}
+                            variant="borderless"
                             style={{
                                 boxShadow: token.boxShadowTertiary || '0 10px 30px rgba(0, 0, 0, 0.04)',
                                 marginBottom: 24,
@@ -73,7 +73,7 @@ export default function UploadInvoicePage() {
                             </div>
                         </Card>
                         <Card
-                            bordered={false}
+                            variant="borderless"
                             style={{
                                 backgroundColor: token.colorBgContainer,
                                 borderRadius: token.borderRadiusLG,

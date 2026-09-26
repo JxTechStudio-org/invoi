@@ -3,10 +3,11 @@ import { Card, theme, Typography, Empty, Flex } from 'antd'
 import PendingValue from '../../shared/components/PendingValue'
 import type { RecentInvoiceSummary } from '../components/dashboardCalculations'
 import ConfidenceBadge from '../../shared/components/ConfidenceBadge'
+import type { GlobalToken } from 'antd'
 
 const { Title, Text } = Typography
 
-const getStatusTokenConfig = (token: any) => ({
+const getStatusTokenConfig = (token: GlobalToken) => ({
     processing: { label: 'قيد المعالجة', colorBg: token.colorWarningBg, colorText: token.colorWarningText },
     completed: { label: 'مكتملة', colorBg: token.colorSuccessBg, colorText: token.colorSuccessText },
     needs_review: { label: 'تحتاج مراجعة', colorBg: token.colorErrorBg, colorText: token.colorErrorText }
@@ -25,7 +26,7 @@ export default function RecentInvoicesList({ data = [], loading }: RecentInvoice
     return (
         <Card
             loading={loading}
-            bordered={false}
+            variant="borderless"
             style={{
                 borderRadius: 24,
                 boxShadow: token.boxShadowTertiary,
@@ -33,7 +34,7 @@ export default function RecentInvoicesList({ data = [], loading }: RecentInvoice
                 background: token.colorBgContainer,
                 border: `1px solid ${token.colorBorder}`,
             }}
-            bodyStyle={{ padding: '22px 24px' }}
+            styles={{ body: { padding: '22px 24px' } }}
         >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -54,11 +55,11 @@ export default function RecentInvoicesList({ data = [], loading }: RecentInvoice
                 </Text>
             </div>
 
-            <div 
-                style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 120px', 
-                    padding: '0 12px 10px 12px', 
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 120px',
+                    padding: '0 12px 10px 12px',
                     borderBottom: `2px solid ${token.colorPrimary}40`,
                     marginBottom: 10,
                     alignItems: 'baseline'
