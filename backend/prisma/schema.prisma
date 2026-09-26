@@ -40,6 +40,10 @@ model User {
   email                 String    @unique
   passwordHash          String
   businessName          String
+  firstName             String
+  lastName              String
+  username              String
+  phone                 String
   reviewAmountThreshold Decimal?  @db.Decimal(12, 2)
   createdAt             DateTime  @default(now())
   invoices              Invoice[]
