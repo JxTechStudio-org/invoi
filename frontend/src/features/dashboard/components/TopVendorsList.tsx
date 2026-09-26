@@ -16,7 +16,7 @@ export default function TopVendorsList({ data = [], loading }: TopVendorsListPro
     return (
         <Card
             loading={loading}
-            bordered={false}
+            variant="borderless"
             style={{
                 borderRadius: 24,
                 boxShadow: token.boxShadowTertiary,
@@ -24,7 +24,7 @@ export default function TopVendorsList({ data = [], loading }: TopVendorsListPro
                 background: token.colorBgContainer,
                 border: `1px solid ${token.colorBorder}`,
             }}
-            bodyStyle={{ padding: '22px 24px' }}
+            styles={{ body: { padding: '22px 24px' } }}
         >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <Space size={8}>

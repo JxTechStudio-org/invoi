@@ -81,7 +81,6 @@ export const FAQ = () => {
 
                 <Collapse
                     accordion
-                    bordered={false}
                     defaultActiveKey={['1']}
                     style={{ background: 'transparent' }}
                     items={faqItems.map(item => ({

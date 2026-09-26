@@ -1,4 +1,3 @@
-// shared/components/PendingValue.tsx
 import { theme } from 'antd'
 
 interface PendingValueProps {
