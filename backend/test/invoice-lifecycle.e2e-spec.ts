@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { Invoice, Prisma } from '@prisma/client';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { JwtAuthGuard } from '../src/auth/jwt.auth.guard';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
 import { invoiceFixture } from './fixtures/invoice';
@@ -79,6 +80,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService).useValue(prisma)
       .overrideProvider(STORAGE_SERVICE).useValue({ stageRemoval })
+      .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
