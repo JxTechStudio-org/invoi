@@ -81,7 +81,9 @@ describeDatabase('Final invoice schema migration (PostgreSQL)', () => {
       WHERE "id" = 'invoice-bank'
     `;
 
-    deploy(join(prismaDirectory, 'schema.prisma'), url.toString());
+    cpSync(join(prismaDirectory, 'migrations', '20260915000000_final_invoice_schema'),
+      join(temporaryDirectory, 'migrations', '20260915000000_final_invoice_schema'), { recursive: true });
+    deploy(join(temporaryDirectory, 'schema.prisma'), url.toString());
   }, 60000);
 
   afterAll(async () => {
@@ -139,7 +141,9 @@ describeDatabase('Final invoice schema migration (PostgreSQL)', () => {
       },
     ]);
 
-    const user = await prisma.user.findUniqueOrThrow({ where: { id: 'migration-owner' } });
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: 'migration-owner' }, select: { id: true, reviewAmountThreshold: true },
+    });
     expect(user.reviewAmountThreshold).toBeNull();
     expect(await prisma.invoice.count({ where: { userId: user.id } })).toBe(6);
 
