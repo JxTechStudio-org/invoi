@@ -53,6 +53,10 @@ describeDatabase('Ownership migration and persistence (PostgreSQL)', () => {
   const account = (email: string) => ({
     email,
     businessName: 'Test Business',
+    firstName: 'Test',
+    lastName: 'User',
+    username: 'test-user',
+    phone: '+10000000000',
     passwordHash: `scrypt:${scryptSync(randomUUID(), 'test-fixture-salt', 64).toString('hex')}`,
   });
 

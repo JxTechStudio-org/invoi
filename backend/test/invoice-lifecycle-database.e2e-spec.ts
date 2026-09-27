@@ -47,6 +47,7 @@ describeDatabase('Invoice lifecycle persistence (PostgreSQL)', () => {
     }
     const user = await prisma.user.create({ data: {
       email: 'lifecycle@example.test', businessName: 'Demo Business',
+      firstName: 'Test', lastName: 'User', username: 'lifecycle', phone: '+10000000000',
       passwordHash: `scrypt:${scryptSync(randomUUID(), 'test-fixture-salt', 64).toString('hex')}`,
     } });
     userId = user.id;
