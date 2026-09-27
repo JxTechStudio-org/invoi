@@ -4,17 +4,19 @@ import type { ComponentProps } from 'react'
 interface MainButtonProps extends ComponentProps<typeof Button> {
   text?: string;
 }
-export default function MainButton({ text = 'Click Me', icon = null, iconPosition = 'start', onClick, loading = false, type = 'primary', disabled = false, block = false, style, ...restProps }: MainButtonProps) {
+export default function MainButton({ text = 'Click Me', icon = null, iconPlacement = 'start', onClick, loading = false, type = 'primary', disabled = false, block = false, style, ...restProps }: MainButtonProps) {
+
   return (
     <Button
       type={type}
       icon={icon}
-      iconPosition={iconPosition}
+      iconPlacement={iconPlacement}
       onClick={onClick}
       loading={loading}
       disabled={disabled}
+      block={block}
       {...restProps}
-      style={{ ...style, width: block ? '100%' : 'fit-content'  }}
+      style={{ ...style, width: block ? '100%' : 'fit-content' }}
     >
       {text}
     </Button>

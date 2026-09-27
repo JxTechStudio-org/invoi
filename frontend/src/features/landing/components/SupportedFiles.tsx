@@ -73,7 +73,7 @@ export const SupportedFiles = () => {
                                     hoverable
                                     onMouseEnter={() => setHoveredIndex(index)}
                                     onMouseLeave={() => setHoveredIndex(null)}
-                                    bordered={false}
+                                    variant="borderless"
                                     style={{
                                         background: ' var(--bg-container)',
                                         borderRadius: '16px',

@@ -26,7 +26,7 @@ export default function MainTable<T extends object>({ columns, dataSource, loadi
                     pagination === false
                         ? false
                         : {
-                            position: ['bottomCenter'],
+                            placement: ['bottomCenter'],
                             pageSize: 9,
                             ...pagination,
                         }

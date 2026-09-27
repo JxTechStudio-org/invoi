@@ -113,7 +113,7 @@ export default function InvoicesListPage() {
                 <MainButton
                     text="عرض التفاصيل"
                     type="dashed"
-                    onClick={() => navigate(`/invoices/${record.key}`)}
+                    onClick={() => navigate(`/invoices/${record.id}`)}
                 />
             )
         }
@@ -144,7 +144,7 @@ export default function InvoicesListPage() {
                     loading={isLoading}
                 />
             ) : (
-                <MainTable<Invoice> columns={columns} dataSource={filteredInvoices} loading={isLoading} rowKey="key" />
+                <MainTable<Invoice> columns={columns} dataSource={filteredInvoices} loading={isLoading} rowKey="id" />
             )}
 
         </>
