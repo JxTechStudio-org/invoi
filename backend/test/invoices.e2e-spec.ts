@@ -1,8 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { InvoiceStatus } from '@prisma/client';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { JwtAuthGuard } from '../src/auth/jwt.auth.guard';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
 
@@ -25,8 +26,10 @@ describe('Invoices API (e2e)', () => {
   let createInvoice: jest.Mock;
   let findUser: jest.Mock;
   let remove: jest.Mock;
+  let authUserId: string;
 
   beforeEach(async () => {
+    authUserId = 'test-owner';
     invoices = [
       {
         id: 'existing-invoice',
@@ -94,6 +97,13 @@ describe('Invoices API (e2e)', () => {
       .useValue(prismaMock)
       .overrideProvider(STORAGE_SERVICE)
       .useValue({ upload, remove })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          context.switchToHttp().getRequest().user = { userId: authUserId, email: 'owner@example.test' };
+          return true;
+        },
+      })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -119,10 +129,10 @@ describe('Invoices API (e2e)', () => {
       .expect({ status: 'ok' });
   });
 
-  it('uploads for an existing user and returns the created invoice id without authentication', async () => {
+  it('uploads for the authenticated user and returns the created invoice id', async () => {
+    authUserId = 'second-test-owner';
     await request(app.getHttpServer())
       .post('/api/invoices/upload')
-      .field('userId', 'second-test-owner')
       .attach('file', Buffer.from('%PDF-1.4'), {
         filename: 'invoice.pdf',
         contentType: 'application/pdf',
@@ -151,9 +161,9 @@ describe('Invoices API (e2e)', () => {
   });
 
   it('rejects an unknown user before storage or invoice creation', async () => {
+    authUserId = 'unknown-user';
     await request(app.getHttpServer())
       .post('/api/invoices/upload')
-      .field('userId', 'unknown-user')
       .attach('file', Buffer.from('%PDF-1.4'), {
         filename: 'invoice.pdf',
         contentType: 'application/pdf',
@@ -166,12 +176,12 @@ describe('Invoices API (e2e)', () => {
   });
 
   it.each([
-    { userId: undefined }, { userId: '' }, { userId: ' \t ' },
+    { userId: '' }, { userId: ' \t ' },
     { userId: ['test-owner', 'second-test-owner'] },
   ])(
-    'rejects missing or invalid userId $userId before lookup or storage', async ({ userId }) => {
+    'rejects invalid userId $userId before lookup or storage', async ({ userId }) => {
       const uploadRequest = request(app.getHttpServer()).post('/api/invoices/upload');
-      if (userId !== undefined) uploadRequest.field('userId', userId);
+      uploadRequest.field('userId', userId);
       await uploadRequest.attach('file', Buffer.from('%PDF-1.4'), {
         filename: 'invoice.pdf', contentType: 'application/pdf',
       }).expect(400);

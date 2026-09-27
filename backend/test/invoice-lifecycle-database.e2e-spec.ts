@@ -1,4 +1,4 @@
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
+import { ExecutionContext, INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Invoice, Prisma, PrismaClient } from '@prisma/client';
 import { execFileSync } from 'node:child_process';
@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { JwtAuthGuard } from '../src/auth/jwt.auth.guard';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { LocalStorageService } from '../src/storage/local-storage.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
@@ -47,12 +48,19 @@ describeDatabase('Invoice lifecycle persistence (PostgreSQL)', () => {
     }
     const user = await prisma.user.create({ data: {
       email: 'lifecycle@example.test', businessName: 'Demo Business',
+      firstName: 'Test', lastName: 'User', username: 'lifecycle', phone: '+10000000000',
       passwordHash: `scrypt:${scryptSync(randomUUID(), 'test-fixture-salt', 64).toString('hex')}`,
     } });
     userId = user.id;
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService).useValue(prisma)
       .overrideProvider(STORAGE_SERVICE).useValue(storage)
+      .overrideGuard(JwtAuthGuard).useValue({
+        canActivate: (context: ExecutionContext) => {
+          context.switchToHttp().getRequest().user = { userId, email: 'lifecycle@example.test' };
+          return true;
+        },
+      })
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
