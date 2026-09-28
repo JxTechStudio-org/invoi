@@ -8,12 +8,10 @@ export interface UploadInvoiceResponse {
 
 export const uploadInvoice = (
     file: File,
-    userId: string,
     onProgress?: (percent: number) => void
 ) => {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('userId', userId)
 
     return apiClient.post<UploadInvoiceResponse>('/invoices/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

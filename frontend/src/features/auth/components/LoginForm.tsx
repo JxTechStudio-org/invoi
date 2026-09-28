@@ -24,7 +24,7 @@ export default function LoginForm() {
 
             <Text style={{ display: 'block', textAlign: 'center', marginTop: 24, fontSize: 14 }}>
                 لا يوجد لديك حساب؟{' '}
-                <Link to="/auth'/register" style={{ color: token.colorPrimary, fontWeight: 600 }}>
+                <Link to="/auth/register" style={{ color: token.colorPrimary, fontWeight: 600 }}>
                     سجل الآن
                 </Link>
             </Text>

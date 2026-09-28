@@ -5,6 +5,7 @@ import AuthLayout from '../components/AuthLayout'
 import LoginForm from '../components/LoginForm'
 import RegisterForm from '../components/RegisterForm'
 import MainAlert from '../../shared/components/MainAlert'
+import { apiClient } from '../../../services/api/client'
 
 export default function AuthPage() {
     const location = useLocation()
@@ -12,12 +13,24 @@ export default function AuthPage() {
     const [form] = Form.useForm()
     const [submitError, setSubmitError] = useState<string | null>(null)
 
-    const isLoginMode = location.pathname === '/login'
+    const isLoginMode = location.pathname.includes('login')
 
-    const onFinish = async (values: unknown) => {
+    const onFinish = async (values: { email?: string; password?: string }) => {
         setSubmitError(null)
-        console.log('Success:', values)
-        navigate(isLoginMode ? '/dashboard' : '/login')
+        try {
+            if (isLoginMode) {
+                const response = await apiClient.post('/auth/login', {
+                    email: values.email,
+                    password: values.password
+                })
+                localStorage.setItem('authToken', response.data.access_token)
+                navigate('/dashboard')
+            } else {
+                navigate('/login')
+            }
+        } catch (error) {
+            setSubmitError('خطأ في تسجيل الدخول')
+        }
     }
 
     return (
