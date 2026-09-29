@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
 import { UserOutlined, MenuOutlined } from '@ant-design/icons';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
@@ -12,6 +13,7 @@ const navLinks = [
 
 export const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <header
@@ -38,17 +40,17 @@ export const Header = () => {
                 }}
             >
                 {/* 1. invoi logo (يمين في الديسكتوب والجوال) */}
-                <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
                     <Image src={logoWordmark} alt="invoi logo" preview={false} width={85} />
                 </div>
 
                 {/* 2. navbar links - Desktop */}
-                <nav 
+                <nav
                     className="desktop-nav"
-                    style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '32px' 
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '32px'
                     }}
                 >
                     {navLinks.map((link) => (
@@ -78,6 +80,7 @@ export const Header = () => {
                         shape="circle"
                         icon={<UserOutlined style={{ fontSize: '16px' }} />}
                         title="تسجيل الدخول"
+                        onClick={() => navigate('/auth/login')}
                         style={{
                             backgroundColor: 'var(--emerald-500)',
                             borderColor: 'var(--emerald-500)',
