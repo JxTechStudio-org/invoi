@@ -53,7 +53,7 @@ export default function RegisterForm({ isMobile }: RegisterFormProps) {
                 />
                 <Text style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: 14 }}>
                     يوجد لديك حساب بالفعل؟{' '}
-                    <Link to="/auth'/login" style={{ color: token.colorPrimary, fontWeight: 600 }}>
+                    <Link to="/auth/login" style={{ color: token.colorPrimary, fontWeight: 600 }}>
                         سجل الدخول
                     </Link>
                 </Text>

@@ -1,21 +1,35 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { Form } from 'antd'
+import { apiClient } from '../../../services/api/client'
+import { ERROR_MESSAGES } from '../../../errors/errorMassages'
 import AuthLayout from '../components/AuthLayout'
 import LoginForm from '../components/LoginForm'
 import RegisterForm from '../components/RegisterForm'
 import MainAlert from '../../shared/components/MainAlert'
-import { apiClient } from '../../../services/api/client'
+
 
 export default function AuthPage() {
     const location = useLocation()
     const navigate = useNavigate()
     const [form] = Form.useForm()
     const [submitError, setSubmitError] = useState<string | null>(null)
+    const [searchParams, setSearchParams] = useSearchParams()
 
     const isLoginMode = location.pathname.includes('login')
 
-    const onFinish = async (values: { email?: string; password?: string }) => {
+    // handle expired session alert from apiClient using URL search params and clean up the query param to prevent duplicate alerts on browser back navigation
+    useEffect(() => {
+        const reason = searchParams.get('reason')
+        if (reason === 'session_expired') {
+            setSubmitError(ERROR_MESSAGES.UNAUTHORIZED)
+
+            searchParams.delete('reason')
+            setSearchParams(searchParams, { replace: true })
+        }
+    }, [searchParams, setSearchParams])
+
+    const onFinish = async (values: any) => {
         setSubmitError(null)
         try {
             if (isLoginMode) {
@@ -26,10 +40,13 @@ export default function AuthPage() {
                 localStorage.setItem('authToken', response.data.access_token)
                 navigate('/dashboard')
             } else {
-                navigate('/login')
+                const { confirm_password, ...registerData } = values
+                await apiClient.post('/auth/register', registerData)
+
+                navigate('/auth/login')
             }
         } catch (error) {
-            setSubmitError('خطأ في تسجيل الدخول')
+            setSubmitError(isLoginMode ? 'خطأ في تسجيل الدخول' : 'خطأ في إنشاء الحساب')
         }
     }
 

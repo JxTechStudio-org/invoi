@@ -5,6 +5,7 @@ export default function BusinessNameField({ isMobile }: { isMobile: boolean }) {
 
     return (
         <Form.Item
+            name="businessName"
             label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>اسم المنشأة</span>}
             style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}
             validateTrigger="onChange"
