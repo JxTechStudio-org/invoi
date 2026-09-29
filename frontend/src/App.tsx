@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AppThemeProvider } from './features/shared/context/themContext'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from './services/api/queryClient'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import NavBar from './features/shared/components/NavBar'
 import PageLoader from './features/shared/components/PageLoader'
@@ -17,7 +18,6 @@ const ForgotPasswordPage = lazy(() => import('./features/auth/pages/ForgotPasswo
 const InvoiceListPage = lazy(() => import('./features/invoice/pages/InvoicesListPage'))
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'))
 
-const queryClient = new QueryClient()
 
 function App() {
   return (

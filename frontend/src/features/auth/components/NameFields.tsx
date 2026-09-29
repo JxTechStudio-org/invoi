@@ -22,11 +22,11 @@ export default function NameFields({ isMobile }: { isMobile: boolean }) {
 
     return (
         <>
-            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>الاسم الأول</span>} name="first_name" validateTrigger="onChange" rules={nameRules('الاسم الأول')} hasFeedback>
+            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>الاسم الأول</span>} name="firstName" validateTrigger="onChange" rules={nameRules('الاسم الأول')} hasFeedback>
                 <Input placeholder="مثال: أحمد" style={{ height: 42, borderRadius: 10, backgroundColor: token.colorFillQuaternary, border: `1px solid ${token.colorBorderSecondary}` }} />
             </Form.Item>
 
-            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>الاسم الأخير</span>} name="last_name" validateTrigger="onChange" rules={nameRules('الاسم الأخير')} hasFeedback>
+            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>الاسم الأخير</span>} name="lastName" validateTrigger="onChange" rules={nameRules('الاسم الأخير')} hasFeedback>
                 <Input placeholder="مثال: العتيبي" style={{ height: 42, borderRadius: 10, backgroundColor: token.colorFillQuaternary, border: `1px solid ${token.colorBorderSecondary}` }} />
             </Form.Item>
         </>
