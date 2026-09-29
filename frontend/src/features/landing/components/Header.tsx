@@ -79,7 +79,7 @@ export const Header = () => {
                         type="primary"
                         shape="circle"
                         icon={<UserOutlined style={{ fontSize: '16px' }} />}
-                        title="تسجيل الدخول"
+                        title={Boolean(localStorage.getItem('authToken')) ? "لوحة التحكم" : "تسجيل الدخول"}
                         onClick={() => navigate('/auth/login')}
                         style={{
                             backgroundColor: 'var(--emerald-500)',

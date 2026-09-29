@@ -18,6 +18,14 @@ export default function AuthPage() {
 
     const isLoginMode = location.pathname.includes('login')
 
+    // redirect to dashboard if user is already logged in
+    useEffect(() => {
+        const token = localStorage.getItem('authToken')
+        if (token) {
+            navigate('/dashboard', { replace: true })
+        }
+    }, [navigate])
+
     // handle expired session alert from apiClient using URL search params and clean up the query param to prevent duplicate alerts on browser back navigation
     useEffect(() => {
         const reason = searchParams.get('reason')
