@@ -29,7 +29,7 @@ export default function AuthPage() {
         }
     }, [searchParams, setSearchParams])
 
-    const onFinish = async (values: { email?: string; password?: string }) => {
+    const onFinish = async (values: any) => {
         setSubmitError(null)
         try {
             if (isLoginMode) {
@@ -40,10 +40,13 @@ export default function AuthPage() {
                 localStorage.setItem('authToken', response.data.access_token)
                 navigate('/dashboard')
             } else {
-                navigate('/login')
+                const { confirm_password, ...registerData } = values
+                await apiClient.post('/auth/register', registerData)
+
+                navigate('/auth/login')
             }
         } catch (error) {
-            setSubmitError('خطأ في تسجيل الدخول')
+            setSubmitError(isLoginMode ? 'خطأ في تسجيل الدخول' : 'خطأ في إنشاء الحساب')
         }
     }
 
