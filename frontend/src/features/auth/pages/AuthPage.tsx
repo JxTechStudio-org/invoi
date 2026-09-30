@@ -46,7 +46,10 @@ export default function AuthPage() {
                     password: values.password
                 })
                 localStorage.setItem('authToken', response.data.access_token)
-                navigate('/dashboard')
+
+                const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard'
+                navigate(redirectTo, { replace: true })
+
             } else {
                 const { confirm_password, ...registerData } = values
                 await apiClient.post('/auth/register', registerData)
