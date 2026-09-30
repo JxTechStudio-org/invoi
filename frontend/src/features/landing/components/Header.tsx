@@ -14,6 +14,11 @@ const navLinks = [
 export const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
+    const isLoggedIn = Boolean(localStorage.getItem('authToken'));
+
+    const handleUserAction = () => {
+        navigate(isLoggedIn ? '/dashboard' : '/auth/login');
+    };
 
     return (
         <header
@@ -79,8 +84,8 @@ export const Header = () => {
                         type="primary"
                         shape="circle"
                         icon={<UserOutlined style={{ fontSize: '16px' }} />}
-                        title={Boolean(localStorage.getItem('authToken')) ? "لوحة التحكم" : "تسجيل الدخول"}
-                        onClick={() => navigate('/auth/login')}
+                        title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                        onClick={handleUserAction}
                         style={{
                             backgroundColor: 'var(--emerald-500)',
                             borderColor: 'var(--emerald-500)',
