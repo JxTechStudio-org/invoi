@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined, CheckOutlined } from '@ant-design/icons';
 
@@ -12,6 +13,8 @@ const defaultFeatures = [
 ];
 
 export const CTABanner: React.FC = () => {
+    const navigate = useNavigate();
+
     return (
         <section style={{ padding: '80px 24px', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
@@ -62,6 +65,7 @@ export const CTABanner: React.FC = () => {
                                     type="primary"
                                     size="large"
                                     icon={<ArrowLeftOutlined />}
+                                    onClick={() => navigate('/auth/register')}
                                     style={{
                                         height: '40px',
                                         paddingInline: '24px',

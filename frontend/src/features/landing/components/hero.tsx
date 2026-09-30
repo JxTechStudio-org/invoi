@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Typography, Space, Image } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import logoIcon from '../../../assets/invoi-logo-icon_(2).svg';
@@ -7,6 +8,8 @@ import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
 const { Title, Paragraph } = Typography;
 
 export const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <>
       <style>
@@ -162,6 +165,7 @@ export const Hero = () => {
                 type="primary"
                 size="large"
                 icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/auth/register')}
                 style={{
                   height: '40px',
                   paddingInline: '24px',

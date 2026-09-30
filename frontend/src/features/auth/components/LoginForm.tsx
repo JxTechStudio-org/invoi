@@ -15,7 +15,7 @@ export default function LoginForm() {
             <PasswordField placeholder="Ex: Password@12" />
 
             <div style={{ textAlign: 'left', marginBottom: 24 }}>
-                <Link to="/auth'/forgot-password" style={{ color: token.colorPrimary, fontSize: 14, fontWeight: 500 }}>
+                <Link to="/auth/forgot-password" style={{ color: token.colorPrimary, fontSize: 14, fontWeight: 500 }}>
                     نسيت كلمة المرور؟
                 </Link>
             </div>
