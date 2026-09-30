@@ -35,7 +35,7 @@ export class InvoicesService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async createFromUpload(file: Express.Multer.File, userId: string): Promise<Invoice> {
     if (typeof userId !== 'string' || !userId.trim()) {
@@ -82,6 +82,14 @@ export class InvoicesService {
       const end = new Date(start);
       end.setUTCDate(end.getUTCDate() + 1);
       where.invoiceDate = { gte: start, lt: end };
+    }
+
+    if (query.search) {
+      where.OR = [
+        { vendorName: { contains: query.search, mode: 'insensitive' } },
+        { invoiceNumber: { contains: query.search, mode: 'insensitive' } },
+        { customerName: { contains: query.search, mode: 'insensitive' } },
+      ];
     }
 
     const invoices = await this.prisma.invoice.findMany({
@@ -134,9 +142,13 @@ export class InvoicesService {
     }
 
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id }, include: { user: { select: {
-        businessName: true, reviewAmountThreshold: true,
-      } } },
+      where: { id }, include: {
+        user: {
+          select: {
+            businessName: true, reviewAmountThreshold: true,
+          }
+        }
+      },
     });
     if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
 
