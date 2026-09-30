@@ -43,9 +43,11 @@ function App() {
                     <Route path='/upload-invoice' element={<UploadInvoicePage />} />
                     <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
 
-                    <Route path='*' element={<NotFoundPage />} />
                   </Route>
                 </Route>
+
+                <Route path='*' element={<NotFoundPage />} />
+
               </Routes>
             </Suspense>
           </BrowserRouter>
