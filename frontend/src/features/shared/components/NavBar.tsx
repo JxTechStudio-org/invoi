@@ -1,7 +1,7 @@
 import { Layout, Flex, theme, Switch, Drawer, Button } from 'antd'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { SunOutlined, MoonOutlined, MenuOutlined } from '@ant-design/icons'
+import { SunOutlined, MoonOutlined, MenuOutlined, LogoutOutlined } from '@ant-design/icons'
 import { useThemeMode } from '../context/themContext'
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg'
 import MainButton from './MainButton'
@@ -25,6 +25,7 @@ const navLinks: NavLinkItem[] = [
 export default function NavBar() {
     const { token } = useToken()
     const { mode, toggleTheme } = useThemeMode()
+    const navigate = useNavigate()
     // Changed from 768 to 1024 so it covers both phones and tablets
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -36,6 +37,11 @@ export default function NavBar() {
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
     }, [])
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken')
+        navigate('/auth/login')
+    }
 
     return (
         <Layout style={{ minHeight: '100vh', background: token.colorBgLayout, width: '100%', margin: 0, padding: 0 }}>
@@ -97,7 +103,31 @@ export default function NavBar() {
                             unCheckedChildren={<SunOutlined />}
                         />
                         <MainButton text="+ رفع فاتورة" type="primary" />
+
+                        {/* logout NavLink: desktop */}
+                        <NavLink
+                            to="/auth/login"
+                            onClick={(e) => {
+                                e.preventDefault()
+                                handleLogout()
+                            }}
+                            style={{
+                                fontSize: 15,
+                                fontWeight: 500,
+                                color: token.colorError,
+                                textDecoration: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                transition: 'opacity 0.2s'
+                            }}
+                        >
+                            <LogoutOutlined /> تسجيل الخروج
+                        </NavLink>
+
                     </Flex>
+
+
                 ) : (
                     /* تحسين أفضل الممارسات للجوال: وضع الـ Switch بجانب زر القائمة أو ترتيبها بمنطقة Header بشكل مريح */
                     <Flex align="center" gap={12}>
@@ -145,6 +175,29 @@ export default function NavBar() {
                             {link.label}
                         </NavLink>
                     ))}
+
+                    {/* logout NavLink: mobile */}
+                    <NavLink
+                        to="/auth/login"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            setDrawerOpen(false)
+                            handleLogout()
+                        }}
+                        style={{
+                            fontSize: 16,
+                            fontWeight: 500,
+                            color: token.colorError,
+                            textDecoration: 'none',
+                            padding: '8px 0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            marginTop: 10
+                        }}
+                    >
+                        <LogoutOutlined /> تسجيل الخروج
+                    </NavLink>
                 </Flex>
             </Drawer>
 
