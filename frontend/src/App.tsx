@@ -6,9 +6,10 @@ import { queryClient } from './services/api/queryClient'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import NavBar from './features/shared/components/NavBar'
 import PageLoader from './features/shared/components/PageLoader'
+import VendorsPage from './features/vendors/pages/VendorsPage'
 import './App.css'
 
-// كل الصفحات تصير Lazy — تتحمّل بس وقت الحاجة
+
 const LandingPage = lazy(() => import('./features/landing/pages/landingPage'))
 const NotFoundPage = lazy(() => import('./features/shared/pages/NotFoundPage'))
 const UploadInvoicePage = lazy(() => import('./features/invoice/pages/uploadInvoicePage'))
@@ -17,6 +18,8 @@ const AuthPage = lazy(() => import('./features/auth/pages/AuthPage'))
 const ForgotPasswordPage = lazy(() => import('./features/auth/pages/ForgotPasswordPage'))
 const InvoiceListPage = lazy(() => import('./features/invoice/pages/InvoicesListPage'))
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'))
+const AllVendorsPage = lazy(() => import('./features/vendors/pages/VendorsPage'))
+
 
 
 function App() {
@@ -36,7 +39,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route element={<NavBar />}>
                     <Route path='/dashboard' element={<DashboardPage />} />
-                    <Route path='/vendors' element={<div>Vendors</div>} />
+                    <Route path='/vendors' element={<AllVendorsPage />} />
                     <Route path='/analytics' element={<div>Analytics</div>} />
                     <Route path='/settings' element={<div>Settings</div>} />
                     <Route path='/invoices' element={<InvoiceListPage />} />

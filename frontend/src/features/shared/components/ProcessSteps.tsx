@@ -9,6 +9,8 @@ interface ProcessStepsProps {
 }
 
 export default function ProcessSteps({ items, current, size = 'default', percent }: ProcessStepsProps) {
+    const isAllCompleted = items ? current >= items.length - 1 : false
+
     return (
         <Steps
             current={current}
@@ -16,6 +18,7 @@ export default function ProcessSteps({ items, current, size = 'default', percent
             size={size}
             titlePlacement="vertical"
             percent={percent}
+            status={isAllCompleted ? 'finish' : undefined}
         />
     )
 }
