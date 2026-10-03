@@ -6,6 +6,7 @@ import { queryClient } from './services/api/queryClient'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import NavBar from './features/shared/components/NavBar'
 import PageLoader from './features/shared/components/PageLoader'
+import { NotificationsProvider } from './features/shared/context/notificationsContext'
 import './App.css'
 
 // كل الصفحات تصير Lazy — تتحمّل بس وقت الحاجة
@@ -24,33 +25,35 @@ function App() {
     <>
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider >
-          <BrowserRouter>
-            <Suspense fallback={<PageLoader />}>
-              <Routes>
-                <Route path='/' element={<LandingPage />} />
-                <Route path='/auth' >
-                  <Route path='login' element={<AuthPage />} />
-                  <Route path='register' element={<AuthPage />} />
-                  <Route path='forgot-password' element={<ForgotPasswordPage />} />
-                </Route>
-                <Route element={<ProtectedRoute />}>
-                  <Route element={<NavBar />}>
-                    <Route path='/dashboard' element={<DashboardPage />} />
-                    <Route path='/vendors' element={<div>Vendors</div>} />
-                    <Route path='/analytics' element={<div>Analytics</div>} />
-                    <Route path='/settings' element={<div>Settings</div>} />
-                    <Route path='/invoices' element={<InvoiceListPage />} />
-                    <Route path='/upload-invoice' element={<UploadInvoicePage />} />
-                    <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
-
+          <NotificationsProvider>
+            <BrowserRouter>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path='/' element={<LandingPage />} />
+                  <Route path='/auth' >
+                    <Route path='login' element={<AuthPage />} />
+                    <Route path='register' element={<AuthPage />} />
+                    <Route path='forgot-password' element={<ForgotPasswordPage />} />
                   </Route>
-                </Route>
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<NavBar />}>
+                      <Route path='/dashboard' element={<DashboardPage />} />
+                      <Route path='/vendors' element={<div>Vendors</div>} />
+                      <Route path='/analytics' element={<div>Analytics</div>} />
+                      <Route path='/settings' element={<div>Settings</div>} />
+                      <Route path='/invoices' element={<InvoiceListPage />} />
+                      <Route path='/upload-invoice' element={<UploadInvoicePage />} />
+                      <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
 
-                <Route path='*' element={<NotFoundPage />} />
+                    </Route>
+                  </Route>
 
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+                  <Route path='*' element={<NotFoundPage />} />
+
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </NotificationsProvider>
         </AppThemeProvider>
       </QueryClientProvider>
     </>
