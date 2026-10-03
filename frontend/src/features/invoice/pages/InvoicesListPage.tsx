@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, theme, Empty, Flex } from 'antd'
 import { FileTextOutlined } from '@ant-design/icons'
@@ -29,16 +29,6 @@ export default function InvoicesListPage() {
     const isMobileOrTablet = !screens.lg
     const navigate = useNavigate()
     const { token } = theme.useToken()
-    const [searchText, setSearchText] = useState('')
-
-    const filteredInvoices = useMemo(() => {
-        if (searchText.trim() === '') return invoices
-        return invoices.filter((invoice) =>
-            [invoice.sellerName, invoice.status, String(invoice.amount ?? ''), invoice.invoiceDate]
-                .some((field) => String(field ?? '').toLowerCase().includes(searchText.toLowerCase()))
-        )
-    }, [invoices, searchText])
-
 
     const filterConfig = [
         {
@@ -60,10 +50,11 @@ export default function InvoicesListPage() {
 
     const handleReset = () => {
         setFilters({})
-        setSearchText('')
     }
 
-    const handleSearch = (value: string) => setSearchText(value)
+    const handleSearch = (value: string) => {
+        setFilters((prev) => ({ ...prev, search: value.trim() === '' ? undefined : value }))
+    }
 
     const columns: TableColumnsType<Invoice> = [
         {
@@ -133,18 +124,18 @@ export default function InvoicesListPage() {
 
             {errorMessage ? <MainAlert alertMessage={errorMessage} alertType="error" /> : null}
 
-            {!isLoading && (!invoices || filteredInvoices.length === 0) ? (
+            {!isLoading && invoices.length === 0 ? (
                 <Flex vertical align="center" justify="center" style={{ height: '60vh' }}>
                     <Empty description="لا توجد فواتير مطابقة" />
                 </Flex>
             ) : isMobileOrTablet ? (
                 <MobileDataCard<Invoice & Record<string, unknown>>
                     columns={columns as TableColumnsType<Invoice & Record<string, unknown>>}
-                    dataSource={filteredInvoices as (Invoice & Record<string, unknown>)[]}
+                    dataSource={invoices as (Invoice & Record<string, unknown>)[]}
                     loading={isLoading}
                 />
             ) : (
-                <MainTable<Invoice> columns={columns} dataSource={filteredInvoices} loading={isLoading} rowKey="id" />
+                <MainTable<Invoice> columns={columns} dataSource={invoices} loading={isLoading} rowKey="id" />
             )}
 
         </>

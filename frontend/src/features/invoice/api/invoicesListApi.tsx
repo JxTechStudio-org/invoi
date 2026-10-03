@@ -28,6 +28,7 @@ export interface Invoice {
 
 export interface InvoicesListFilters {
     status?: 'processing' | 'completed' | 'needs_review'
+    search?: string
 }
 
 export const invoicesListApi = {
