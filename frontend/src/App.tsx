@@ -8,7 +8,6 @@ import NavBar from './features/shared/components/NavBar'
 import PageLoader from './features/shared/components/PageLoader'
 import './App.css'
 
-// كل الصفحات تصير Lazy — تتحمّل بس وقت الحاجة
 const LandingPage = lazy(() => import('./features/landing/pages/landingPage'))
 const NotFoundPage = lazy(() => import('./features/shared/pages/NotFoundPage'))
 const UploadInvoicePage = lazy(() => import('./features/invoice/pages/uploadInvoicePage'))
