@@ -70,7 +70,7 @@ export default function MainModal({
                 open={isOpen}
                 onCancel={() => setOpen(false)}
                 centered
-                destroyOnClose
+                destroyOnHidden={true}
                 width={480}
                 styles={{
                     mask: {
