@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'antd';
+import { Alert, theme } from 'antd';
 
 type AlertType = 'success' | 'info' | 'warning' | 'error';
 
@@ -10,13 +10,6 @@ interface MainAlertProps {
     duration?: number
 }
 
-const ALERT_COLORS: Record<AlertType, { bg: string; border: string }> = {
-    success: { bg: '#F6FFED', border: '#10B981' },
-    info: { bg: '#E6F4FF', border: '#3B82F6' },
-    warning: { bg: '#FFFBE6', border: '#F59E0B' },
-    error: { bg: '#FFF1F0', border: '#EF4444' },
-};
-
 export default function MainAlert({
     alertMessage,
     alertType = 'info',
@@ -24,6 +17,7 @@ export default function MainAlert({
     duration = 3000,
 }: MainAlertProps) {
     const [visible, setVisible] = useState(true);
+    const { token } = theme.useToken();
 
     useEffect(() => {
         setVisible(true);
@@ -41,11 +35,18 @@ export default function MainAlert({
         closeAction?.()
     };
 
+    const ALERT_COLORS: Record<AlertType, { bg: string; border: string }> = {
+        success: { bg: token.colorSuccessBg, border: token.colorSuccess },
+        info: { bg: token.colorInfoBg, border: token.colorInfo },
+        warning: { bg: token.colorWarningBg, border: token.colorWarning },
+        error: { bg: token.colorErrorBg, border: token.colorError },
+    };
+
     const colors = ALERT_COLORS[alertType];
 
     return (
         <Alert
-            message={alertMessage}
+            title={alertMessage}
             type={alertType}
             onClose={handleClose}
             showIcon
@@ -58,8 +59,8 @@ export default function MainAlert({
                 zIndex: 10000,
                 width: 'calc(100% - 40px)',
                 maxWidth: 500,
-                boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-                borderRadius: 12,
+                boxShadow: token.boxShadowSecondary,
+                borderRadius: token.borderRadiusLG,
                 backgroundColor: colors.bg,
                 border: `1px solid ${colors.border}`,
             }}
