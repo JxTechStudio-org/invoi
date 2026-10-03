@@ -3,8 +3,10 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { SunOutlined, MoonOutlined, MenuOutlined, LogoutOutlined } from '@ant-design/icons'
 import { useThemeMode } from '../context/themContext'
+import { useNotifications } from '../context/notificationsContext'
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg'
 import MainButton from './MainButton'
+import NotificationBell from './NotificationBell'
 
 const { Header, Content } = Layout
 const { useToken } = theme
@@ -26,6 +28,7 @@ export default function NavBar() {
     const { token } = useToken()
     const { mode, toggleTheme } = useThemeMode()
     const navigate = useNavigate()
+    const { notifications, markAsRead } = useNotifications()
     // Changed from 768 to 1024 so it covers both phones and tablets
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -102,7 +105,8 @@ export default function NavBar() {
                             checkedChildren={<MoonOutlined />}
                             unCheckedChildren={<SunOutlined />}
                         />
-                        <MainButton text="+ رفع فاتورة" type="primary" />
+                        <NotificationBell notifications={notifications} onNotificationClick={markAsRead} />
+                        <MainButton text="+ رفع فاتورة" type="primary" onClick={() => navigate('/upload-invoice')} />
 
                         {/* logout NavLink: desktop */}
                         <NavLink
@@ -131,6 +135,7 @@ export default function NavBar() {
                 ) : (
                     /* تحسين أفضل الممارسات للجوال: وضع الـ Switch بجانب زر القائمة أو ترتيبها بمنطقة Header بشكل مريح */
                     <Flex align="center" gap={12}>
+                        <NotificationBell notifications={notifications} onNotificationClick={markAsRead} />
                         <Switch
                             checked={mode === 'dark'}
                             onChange={toggleTheme}
@@ -156,7 +161,14 @@ export default function NavBar() {
                 <Flex vertical gap={16}>
                     {/* في وضع الجوال، وضع زر "رفع فاتورة" في أعلى القائمة الجانبية يمنح تجربة استخدام أفضل (UX) لأنه إجراء رئيسي */}
                     <div style={{ marginBottom: 10 }}>
-                        <MainButton text="+ رفع فاتورة" type="primary" />
+                        <MainButton
+                            text="+ رفع فاتورة"
+                            type="primary"
+                            onClick={() => {
+                                setDrawerOpen(false)
+                                navigate('/upload-invoice')
+                            }}
+                        />
                     </div>
 
                     {navLinks.map((link) => (
