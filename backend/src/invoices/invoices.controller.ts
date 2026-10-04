@@ -48,7 +48,7 @@ const invoiceFilePipe = new ParseFilePipe({
 @UseGuards(JwtAuthGuard)
 @Controller('invoices')
 export class InvoicesController {
-  constructor(private readonly invoicesService: InvoicesService) {}
+  constructor(private readonly invoicesService: InvoicesService) { }
 
   @Post('upload')
   @UseInterceptors(
@@ -68,35 +68,58 @@ export class InvoicesController {
   }
 
   @Get()
-  list(@Query() query: ListInvoicesQueryDto) {
-    return this.invoicesService.list(query);
+  list(@Query() query: ListInvoicesQueryDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.list(query, userId);
   }
 
   @Get('export')
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="invoices.csv"')
-  export(@Query() query: ListInvoicesQueryDto) {
-    return this.invoicesService.export(query);
+  export(
+    @Query() query: ListInvoicesQueryDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.export(query, userId);
   }
 
   @Get(':id/status')
-  getStatus(@Param('id') id: string) {
-    return this.invoicesService.getStatus(id);
+  getStatus(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.getStatus(id, userId);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: UpdateInvoiceDto) {
-    return this.invoicesService.update(id, body);
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateInvoiceDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.update(id, body, userId);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async delete(@Param('id') id: string): Promise<void> {
-    await this.invoicesService.delete(id);
+  async delete(@Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<void> {
+    const userId = req.user.userId;
+    await this.invoicesService.delete(id, userId);
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.invoicesService.getById(id);
+  getById(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.getById(id, userId);
   }
 }
