@@ -7,7 +7,19 @@ import AuthLayout from '../components/AuthLayout'
 import LoginForm from '../components/LoginForm'
 import RegisterForm from '../components/RegisterForm'
 import MainAlert from '../../shared/components/MainAlert'
+import axios from 'axios'
 
+interface AuthFormValues {
+    email: string
+    password: string
+    businessName?: string
+    firstName?: string
+    lastName?: string
+    username?: string
+    phone?: string
+    confirm_password?: string
+    [key: string]: unknown
+}
 
 export default function AuthPage() {
     const location = useLocation()
@@ -16,6 +28,7 @@ export default function AuthPage() {
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [searchParams, setSearchParams] = useSearchParams()
 
+    const [loading, setLoading] = useState(false)
     const isLoginMode = location.pathname.includes('login')
 
     // redirect to dashboard if user is already logged in
@@ -37,8 +50,9 @@ export default function AuthPage() {
         }
     }, [searchParams, setSearchParams])
 
-    const onFinish = async (values: any) => {
+    const onFinish = async (values: AuthFormValues) => {
         setSubmitError(null)
+        setLoading(true)
         try {
             if (isLoginMode) {
                 const response = await apiClient.post('/auth/login', {
@@ -57,7 +71,32 @@ export default function AuthPage() {
                 navigate('/auth/login')
             }
         } catch (error) {
-            setSubmitError(isLoginMode ? 'خطأ في تسجيل الدخول' : 'خطأ في إنشاء الحساب')
+            if (axios.isAxiosError(error)) {
+                const errData = error.response?.data as { message?: string; detail?: string; email?: string[]; non_field_errors?: string[] }
+
+                const rawMsg =
+                    errData?.message ||
+                    errData?.detail ||
+                    (Array.isArray(errData?.email) ? errData.email[0] : '') ||
+                    (Array.isArray(errData?.non_field_errors) ? errData.non_field_errors[0] : '')
+
+                if (isLoginMode) {
+                    setSubmitError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+                    return
+                }
+
+                const isEmailDuplicate = rawMsg.toLowerCase().includes('email') || rawMsg.toLowerCase().includes('exist')
+
+                setSubmitError(
+                    isEmailDuplicate
+                        ? 'البريد الإلكتروني مستخدم مسبقاً، يرجى تسجيل الدخول'
+                        : (rawMsg || ERROR_MESSAGES.SERVER_ERROR)
+                )
+            } else {
+                setSubmitError(ERROR_MESSAGES.UNKNOWN_ERROR)
+            }
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -73,7 +112,7 @@ export default function AuthPage() {
                 </div>
             )}
             <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off" requiredMark={false}>
-                {isLoginMode ? <LoginForm /> : <RegisterForm isMobile={window.innerWidth < 768} />}
+                {isLoginMode ? <LoginForm loading={loading} /> : <RegisterForm isMobile={window.innerWidth < 768} />}
             </Form>
         </AuthLayout>
     )

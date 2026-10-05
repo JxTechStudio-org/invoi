@@ -6,7 +6,11 @@ import PasswordField from './PasswordField'
 
 const { Text } = Typography
 
-export default function LoginForm() {
+interface LoginFormProps {
+    loading?: boolean;
+}
+
+export default function LoginForm({ loading = false }: LoginFormProps) {
     const { token } = theme.useToken()
 
     return (
@@ -20,7 +24,7 @@ export default function LoginForm() {
                 </Link>
             </div>
 
-            <MainButton text="تسجيل الدخول" type="primary" htmlType="submit" block style={{ height: 46, fontSize: 16, borderRadius: 10, fontWeight: 600 }} />
+            <MainButton text="تسجيل الدخول" type="primary" htmlType="submit" block loading={loading} style={{ height: 46, fontSize: 16, borderRadius: 10, fontWeight: 600 }} />
 
             <Text style={{ display: 'block', textAlign: 'center', marginTop: 24, fontSize: 14 }}>
                 لا يوجد لديك حساب؟{' '}
