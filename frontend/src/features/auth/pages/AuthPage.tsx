@@ -112,7 +112,7 @@ export default function AuthPage() {
                 </div>
             )}
             <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off" requiredMark={false}>
-                {isLoginMode ? <LoginForm loading={loading} /> : <RegisterForm isMobile={window.innerWidth < 768} />}
+                {isLoginMode ? <LoginForm loading={loading} /> : <RegisterForm isMobile={window.innerWidth < 768} loading={loading} />}
             </Form>
         </AuthLayout>
     )
