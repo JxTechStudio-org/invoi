@@ -72,17 +72,21 @@ export default function AuthPage() {
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
+                if (!error.response) {
+                    setSubmitError(ERROR_MESSAGES.NETWORK_ERROR)
+                    return
+                }
+
                 const responseStatus = error.response?.status
                 const errData = error.response?.data as { message?: string; detail?: string; email?: string[]; non_field_errors?: string[] }
 
-                const rawMsg =
-                    errData?.message ||
-                    errData?.detail ||
-                    (Array.isArray(errData?.email) ? errData.email[0] : '') ||
-                    (Array.isArray(errData?.non_field_errors) ? errData.non_field_errors[0] : '')
-
                 if (responseStatus === 429) {
                     setSubmitError(ERROR_MESSAGES.TOO_MANY_REQUESTS)
+                    return
+                }
+
+                if (responseStatus >= 500) {
+                    setSubmitError(ERROR_MESSAGES.SERVER_ERROR)
                     return
                 }
 
@@ -90,6 +94,12 @@ export default function AuthPage() {
                     setSubmitError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
                     return
                 }
+
+                const rawMsg =
+                    errData?.message ||
+                    errData?.detail ||
+                    (Array.isArray(errData?.email) ? errData.email[0] : '') ||
+                    (Array.isArray(errData?.non_field_errors) ? errData.non_field_errors[0] : '')
 
                 const isEmailDuplicate = rawMsg.toLowerCase().includes('email') || rawMsg.toLowerCase().includes('exist')
 
