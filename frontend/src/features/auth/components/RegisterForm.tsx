@@ -13,9 +13,10 @@ const { Text } = Typography
 
 interface RegisterFormProps {
     isMobile: boolean
+    loading?: boolean
 }
 
-export default function RegisterForm({ isMobile }: RegisterFormProps) {
+export default function RegisterForm({ isMobile, loading = false }: RegisterFormProps) {
     const { token } = theme.useToken()
 
     return (
@@ -49,6 +50,7 @@ export default function RegisterForm({ isMobile }: RegisterFormProps) {
                     type="primary"
                     htmlType="submit"
                     block
+                    loading={loading}
                     style={{ height: 46, fontSize: 16, borderRadius: 10, fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center ' }}
                 />
                 <Text style={{ display: 'block', textAlign: 'center', marginTop: 20, fontSize: 14 }}>
