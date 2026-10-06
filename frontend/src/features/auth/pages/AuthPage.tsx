@@ -72,6 +72,7 @@ export default function AuthPage() {
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
+                const responseStatus = error.response?.status
                 const errData = error.response?.data as { message?: string; detail?: string; email?: string[]; non_field_errors?: string[] }
 
                 const rawMsg =
@@ -79,6 +80,11 @@ export default function AuthPage() {
                     errData?.detail ||
                     (Array.isArray(errData?.email) ? errData.email[0] : '') ||
                     (Array.isArray(errData?.non_field_errors) ? errData.non_field_errors[0] : '')
+
+                if (responseStatus === 429) {
+                    setSubmitError(ERROR_MESSAGES.TOO_MANY_REQUESTS)
+                    return
+                }
 
                 if (isLoginMode) {
                     setSubmitError('البريد الإلكتروني أو كلمة المرور غير صحيحة')
