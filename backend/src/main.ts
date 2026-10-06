@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { corsOptions } from './cors.config';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -14,6 +15,8 @@ async function bootstrap() {
   const frontendIndexPath = join(frontendDistPath, 'index.html');
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new AllExceptionsFilter());
+  
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
