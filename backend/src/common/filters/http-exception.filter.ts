@@ -7,6 +7,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 
+interface ErrorResponseObject {
+  message?: string | string[];
+  error?: string;
+  [key: string]: unknown;
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
@@ -25,15 +31,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const message =
       typeof errorResponse === 'object' && errorResponse !== null && 'message' in errorResponse
-        ? (errorResponse as any).message
+        ? (errorResponse as ErrorResponseObject).message
         : errorResponse;
 
     const error =
       typeof errorResponse === 'object' && errorResponse !== null && 'error' in errorResponse
-        ? (errorResponse as any).error
+        ? (errorResponse as ErrorResponseObject).error
         : exception instanceof HttpException
-        ? exception.name
-        : 'Internal Server Error';
+          ? exception.name
+          : 'Internal Server Error';
 
     response.status(status).json({
       statusCode: status,
