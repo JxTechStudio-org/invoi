@@ -6,14 +6,19 @@ import { join } from 'node:path';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { corsOptions } from './cors.config';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // for rate limiting: enable trust proxy for accurate rate limiting behind reverse proxies
+  app.getHttpAdapter().getInstance().set('trust proxy', true);
   app.enableCors(corsOptions(process.env.CORS_ALLOWED_ORIGINS));
   const frontendDistPath = join(__dirname, '..', '..', 'frontend', 'dist');
   const frontendIndexPath = join(frontendDistPath, 'index.html');
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new AllExceptionsFilter());
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

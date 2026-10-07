@@ -9,6 +9,7 @@ import { FiInfo, FiClock, FiFileText } from "react-icons/fi"
 import { useAlert } from '../../shared/hooks/useAlert'
 import { useUploadInvoice } from '../hooks/useUploadInvoice'
 import InfoFeatureItem from '../components/InfoFeatureItem'
+import { useNotifications } from '../../shared/context/notificationsContext'
 
 const { Title, Text } = Typography
 const MAX_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB) || 10
@@ -20,6 +21,7 @@ const UPLOAD_STEPS = [
 ]
 
 export default function UploadInvoicePage() {
+    const { addNotification } = useNotifications()
     const { alerts, showAlert, removeAlert } = useAlert()
     const { upload, errorMessage } = useUploadInvoice()
     const [currentStep, setCurrentStep] = useState(0)
@@ -31,6 +33,7 @@ export default function UploadInvoicePage() {
             const result = await upload(file)
             setCurrentStep(2)
             showAlert(`تم استلام الفاتورة بنجاح وهي الآن قيد المعالجة — رقم الفاتورة: ${result.invoice_id}`, 'success')
+            addNotification(`تم رفع الفاتورة ${result.invoice_id} وهي الآن قيد المعالجة`)
         } catch {
             setCurrentStep(0)
             showAlert(errorMessage || 'حدث خطأ أثناء رفع الفاتورة. تأكد من نوع الملف وحجمه وحاول مرة أخرى.', 'error')

@@ -70,8 +70,8 @@ export class InvoicesService {
     }
   }
 
-  async list(query: ListInvoicesQueryDto): Promise<InvoiceResponse[]> {
-    const where: Prisma.InvoiceWhereInput = {};
+  async list(query: ListInvoicesQueryDto, userId: string): Promise<InvoiceResponse[]> {
+    const where: Prisma.InvoiceWhereInput = { userId };
 
     if (query.status) {
       where.status = query.status;
@@ -99,8 +99,8 @@ export class InvoicesService {
     return invoices.map((invoice) => this.toResponse(invoice));
   }
 
-  async getById(id: string): Promise<InvoiceResponse> {
-    const invoice = await this.prisma.invoice.findUnique({ where: { id } });
+  async getById(id: string, userId: string): Promise<InvoiceResponse> {
+    const invoice = await this.prisma.invoice.findUnique({ where: { id, userId } });
 
     if (!invoice) {
       throw new NotFoundException(`Invoice ${id} was not found`);
@@ -109,19 +109,19 @@ export class InvoicesService {
     return this.toResponse(invoice);
   }
 
-  async export(query: ListInvoicesQueryDto): Promise<string> {
-    return invoicesToCsv(await this.list(query));
+  async export(query: ListInvoicesQueryDto, userId: string): Promise<string> {
+    return invoicesToCsv(await this.list(query, userId));
   }
 
-  async getStatus(id: string): Promise<{ invoiceId: string; status: InvoiceStatus }> {
+  async getStatus(id: string, userId: string): Promise<{ invoiceId: string; status: InvoiceStatus }> {
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id }, select: { id: true, status: true },
+      where: { id, userId }, select: { id: true, status: true },
     });
     if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
     return { invoiceId: invoice.id, status: invoice.status };
   }
 
-  async update(id: string, body: UpdateInvoiceDto): Promise<InvoiceResponse> {
+  async update(id: string, body: UpdateInvoiceDto, userId: string): Promise<InvoiceResponse> {
     const changes: Partial<EditableInvoice> = {};
     for (const field of editableTextFields) {
       if (body[field] !== undefined) changes[field] = body[field];
@@ -142,7 +142,7 @@ export class InvoicesService {
     }
 
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id }, include: {
+      where: { id, userId }, include: {
         user: {
           select: {
             businessName: true, reviewAmountThreshold: true,
@@ -161,11 +161,11 @@ export class InvoicesService {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId: string): Promise<void> {
     let removal: PendingFileRemoval | undefined;
     try {
       await this.prisma.$transaction(async transaction => {
-        const invoice = await transaction.invoice.delete({ where: { id }, select: { fileUrl: true } });
+        const invoice = await transaction.invoice.delete({ where: { id, userId }, select: { fileUrl: true } });
         removal = await this.storageService.stageRemoval(invoice.fileUrl);
       });
     } catch (error) {
