@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
 import { UserOutlined, MenuOutlined } from '@ant-design/icons';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
+import MainButton from '../../shared/components/MainButton';
 
 const navLinks = [
     { name: 'الرئيسية', href: '#home' },
@@ -80,24 +81,46 @@ export const Header = () => {
 
                 {/* 3. Actions & Hamburger (يسار في الديسكتوب والجوال) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        icon={<UserOutlined style={{ fontSize: '16px' }} />}
-                        title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
-                        onClick={handleUserAction}
-                        style={{
-                            backgroundColor: 'var(--emerald-500)',
-                            borderColor: 'var(--emerald-500)',
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.3s ease'
-                        }}
-                    />
+                    <div className="desktop-user-btn">
+                        <MainButton
+                            text={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                            type="primary"
+                            icon={<UserOutlined style={{ fontSize: '16px' }} />}
+                            onClick={handleUserAction}
+                            style={{
+                                height: '40px',
+                                paddingInline: '16px',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                            }}
+                        />
+                    </div>
+
+                    <div className="mobile-user-btn">
+                        <Button
+                            type="primary"
+                            shape="circle"
+                            icon={<UserOutlined style={{ fontSize: '16px' }} />}
+                            title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                            onClick={handleUserAction}
+                            style={{
+                                backgroundColor: 'var(--emerald-500)',
+                                borderColor: 'var(--emerald-500)',
+                                width: '40px',
+                                height: '40px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                            }}
+                        />
+                    </div>
 
                     {/* Hamburger Button for Mobile */}
                     <Button
@@ -138,16 +161,22 @@ export const Header = () => {
                 </div>
             </Drawer>
 
-            {/* CSS لتنظيم ظهور وإخفاء القائمة في الموبايل */}
             <style>{`
-                .mobile-menu-btn {
-                    display: none;
+                .mobile-menu-btn,
+                .mobile-user-btn {
+                    display: none !important;
                 }
+                .desktop-user-btn {
+                    display: block;
+                }
+
                 @media (max-width: 768px) {
-                    .desktop-nav {
+                    .desktop-nav,
+                    .desktop-user-btn {
                         display: none !important;
                     }
-                    .mobile-menu-btn {
+                    .mobile-menu-btn,
+                    .mobile-user-btn {
                         display: flex !important;
                     }
                 }
