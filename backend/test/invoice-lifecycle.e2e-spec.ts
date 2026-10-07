@@ -80,7 +80,6 @@ describe('Invoice lifecycle API (e2e)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService).useValue(prisma)
       .overrideProvider(STORAGE_SERVICE).useValue({ stageRemoval })
-      // .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
       .overrideGuard(JwtAuthGuard)
       .useValue({
         canActivate: (context: ExecutionContext) => {
