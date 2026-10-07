@@ -29,7 +29,6 @@ body {
   margin: 0;
   padding: 0;
   font-family: var(--sans);
-  direction: rtl;
   /* جعل الـ body بالكامل يحمل التدرج ليمتد على الشاشة */
   background: linear-gradient(180deg, var(--emerald-700) 0%, var(--emerald-600) 50%, var(--emerald-500) 100%) !important;
   min-height: 100vh;

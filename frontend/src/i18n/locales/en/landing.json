@@ -1,0 +1,13 @@
+{
+  "header": {
+    "nav": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How it works",
+      "faq": "FAQ"
+    },
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "login": "Log in"
+  }
+}

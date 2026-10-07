@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
-import { UserOutlined, MenuOutlined } from '@ant-design/icons';
+import { UserOutlined, MenuOutlined, TranslationOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
 import MainButton from '../../shared/components/MainButton';
 
 const navLinks = [
-    { name: 'الرئيسية', href: '#home' },
-    { name: 'المميزات', href: '#features' },
-    { name: 'كيف يعمل', href: '#how-it-works' },
-    { name: 'الأسئلة الشائعة', href: '#faq' },
+    { key: 'home', href: '#home' },
+    { key: 'features', href: '#features' },
+    { key: 'howItWorks', href: '#how-it-works' },
+    { key: 'faq', href: '#faq' },
 ];
 
 export const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
     const isLoggedIn = Boolean(localStorage.getItem('authToken'));
+
+    const { t, i18n } = useTranslation('landing', { keyPrefix: 'header' });
+    const isRtl = i18n.language === 'ar';
+    const toggleLang = () => i18n.changeLanguage(isRtl ? 'en' : 'ar');
 
     const handleUserAction = () => {
         navigate(isLoggedIn ? '/dashboard' : '/auth/login');
@@ -42,7 +47,6 @@ export const Header = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     boxSizing: 'border-box',
-                    direction: 'rtl' // ضمان اتجاه العناصر يمين ويسار بشكل صحيح
                 }}
             >
                 {/* 1. invoi logo (يمين في الديسكتوب والجوال) */}
@@ -61,7 +65,7 @@ export const Header = () => {
                 >
                     {navLinks.map((link) => (
                         <a
-                            key={link.name}
+                            key={link.key}
                             href={link.href}
                             style={{
                                 color: 'var(--text-secondary)',
@@ -74,16 +78,26 @@ export const Header = () => {
                             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--emerald-500)')}
                             onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
                         >
-                            {link.name}
+                            {t(`nav.${link.key}`)}
                         </a>
                     ))}
                 </nav>
 
                 {/* 3. Actions & Hamburger (يسار في الديسكتوب والجوال) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Button
+                        className="desktop-lang-btn"
+                        type="text"
+                        icon={<TranslationOutlined />}
+                        onClick={toggleLang}
+                        style={{ fontWeight: 600, color: 'var(--emerald-600)' }}
+                    >
+                        {isRtl ? 'EN' : 'عربي'}
+                    </Button>
+
                     <div className="desktop-user-btn">
                         <MainButton
-                            text={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                            text={isLoggedIn ? t('dashboard') : t('login')}
                             type="primary"
                             icon={<UserOutlined style={{ fontSize: '16px' }} />}
                             onClick={handleUserAction}
@@ -107,7 +121,7 @@ export const Header = () => {
                             type="primary"
                             shape="circle"
                             icon={<UserOutlined style={{ fontSize: '16px' }} />}
-                            title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                            title={isLoggedIn ? t('dashboard') : t('login')}
                             onClick={handleUserAction}
                             style={{
                                 backgroundColor: 'var(--emerald-500)',
@@ -135,8 +149,8 @@ export const Header = () => {
 
             {/* Mobile Drawer Menu */}
             <Drawer
-                title="القائمة"
-                placement="right"
+                title={t('menu')}
+                placement={isRtl ? 'right' : 'left'}
                 onClose={() => setMobileMenuOpen(false)}
                 open={mobileMenuOpen}
                 styles={{ body: { padding: '24px' } }}
@@ -144,7 +158,7 @@ export const Header = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {navLinks.map((link) => (
                         <a
-                            key={link.name}
+                            key={link.key}
                             href={link.href}
                             onClick={() => setMobileMenuOpen(false)}
                             style={{
@@ -155,13 +169,32 @@ export const Header = () => {
                                 fontFamily: 'var(--sans)'
                             }}
                         >
-                            {link.name}
+                            {t(`nav.${link.key}`)}
                         </a>
                     ))}
+
+                    <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '12px 0' }} />
+                    <div
+                        onClick={toggleLang}
+                        className="mobile-lang-btn"
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            padding: '8px 0',
+                            color: 'var(--emerald-600)',
+                            fontWeight: 600,
+                            fontSize: '16px'
+                        }}
+                    >
+                        <TranslationOutlined style={{ fontSize: '18px' }} />
+                        <span>{isRtl ? 'ENG' : 'عربي'}</span>
+                    </div>
                 </div>
             </Drawer>
 
-            <style>{`
+            <style>{`  
                 .mobile-menu-btn,
                 .mobile-user-btn {
                     display: none !important;
@@ -169,18 +202,31 @@ export const Header = () => {
                 .desktop-user-btn {
                     display: block;
                 }
+                .mobile-lang-btn {                     
+                    display: none !important;           
+                }    
+                .desktop-lang-btn:hover,
+                .mobile-lang-btn:hover{
+                  color: var(--emerald-700) !important;
+                }                                      
 
-                @media (max-width: 768px) {
+                 @media (max-width: 768px) {
                     .desktop-nav,
                     .desktop-user-btn {
                         display: none !important;
-                    }
+                }
                     .mobile-menu-btn,
                     .mobile-user-btn {
                         display: flex !important;
-                    }
                 }
-            `}</style>
+                   .desktop-lang-btn {                 
+                       display: none !important;       
+                }                                 
+                   .mobile-lang-btn {                 
+                       display: inline-flex !important;
+                }                               
+             } 
+          `}</style>
         </header>
     );
 };
