@@ -6,6 +6,7 @@ import { queryClient } from './services/api/queryClient'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import NavBar from './features/shared/components/NavBar'
 import PageLoader from './features/shared/components/PageLoader'
+import { NotificationsProvider } from './features/shared/context/notificationsContext'
 import VendorsPage from './features/vendors/pages/VendorsPage'
 import './App.css'
 
@@ -27,7 +28,8 @@ function App() {
     <>
       <QueryClientProvider client={queryClient}>
         <AppThemeProvider >
-          <BrowserRouter>
+          <NotificationsProvider>
+            <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path='/' element={<LandingPage />} />
@@ -46,14 +48,15 @@ function App() {
                     <Route path='/upload-invoice' element={<UploadInvoicePage />} />
                     <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
 
+                    </Route>
                   </Route>
-                </Route>
 
-                <Route path='*' element={<NotFoundPage />} />
+                  <Route path='*' element={<NotFoundPage />} />
 
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </NotificationsProvider>
         </AppThemeProvider>
       </QueryClientProvider>
     </>
