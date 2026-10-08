@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography, Space, Image } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 import logoIcon from '../../../assets/invoi-logo-icon_(2).svg';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
 
@@ -9,6 +10,7 @@ const { Title, Paragraph } = Typography;
 
 export const Hero = () => {
   const navigate = useNavigate();
+  const { t, isRtl } = useAppTranslation('landing', 'hero');
 
   return (
     <>
@@ -112,10 +114,10 @@ export const Hero = () => {
                   <Image src={logoWordmark} alt="invoi logo" preview={false} width={65} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '10px', fontWeight: 600 }}>
-                  <span>التاريخ</span>
-                  <span>المورد</span>
-                  <span>المبلغ</span>
-                  <span>الحالة</span>
+                  <span>{t('table.date')}</span>
+                  <span>{t('table.supplier')}</span>
+                  <span>{t('table.amount')}</span>
+                  <span>{t('table.status')}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -136,7 +138,7 @@ export const Hero = () => {
           </div>
 
           {/* Text Content */}
-          <div style={{ flex: '1', minWidth: '320px', textAlign: 'right', order: 2 }}>
+          <div style={{ flex: '1', minWidth: '320px', textAlign: isRtl ? 'right' : 'left', order: 2 }}>
             <Title
               level={1}
               style={{
@@ -147,7 +149,7 @@ export const Hero = () => {
                 lineHeight: 1.4
               }}
             >
-              استخرج بيانات الفواتير بسهولة وبدون مجهود
+              {t('title')}
             </Title>
             <Paragraph
               style={{
@@ -158,13 +160,13 @@ export const Hero = () => {
                 maxWidth: '460px'
               }}
             >
-              invoi يساعدك في استخراج بيانات الفواتير تلقائياً من الملفات المرفوعة، بطريقة سريعة ودقيقة.
+              {t('description')}
             </Paragraph>
             <Space>
               <Button
                 type="primary"
                 size="large"
-                icon={<ArrowLeftOutlined />}
+                icon={isRtl ? <ArrowLeftOutlined /> : <ArrowRightOutlined />}
                 onClick={() => navigate('/auth/register')}
                 style={{
                   height: '40px',
@@ -177,7 +179,7 @@ export const Hero = () => {
                   boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 }}
               >
-                ابدأ الآن
+                {t('ctaButton')}
               </Button>
             </Space>
           </div>

@@ -2,10 +2,13 @@ import React from 'react';
 import { Layout, Image } from 'antd';
 import { motion } from 'framer-motion';
 import logoSvg from '../../../assets/invoi-logo-wordmark.svg';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Footer: AntFooter } = Layout;
 
 export const Footer = () => {
+  const { t, isRtl } = useAppTranslation('landing', 'footer');
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -22,7 +25,7 @@ export const Footer = () => {
           boxSizing: 'border-box',
           margin: 0,
           padding: 'clamp(24px, 4vw, 40px) clamp(20px, 5vw, 64px)',
-          direction: 'rtl',
+          direction: isRtl ? 'rtl' : 'ltr',
         }}
       >
         <div
@@ -70,15 +73,15 @@ export const Footer = () => {
               alignItems: 'center',
             }}
           >
-            <li><a href="#home" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الرئيسية</a></li>
-            <li><a href="#features" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>المميزات</a></li>
-            <li><a href="#how-it-works" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>كيف يعمل</a></li>
-            <li><a href="#faq" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الأسئلة الشائعة</a></li>
+            <li><a href="#home" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'var(--sans)' }}>{t('home')}</a></li>
+            <li><a href="#features" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'var(--sans)' }}>{t('features')}</a></li>
+            <li><a href="#how-it-works" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'var(--sans)' }}>{t('howItWorks')}</a></li>
+            <li><a href="#faq" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'var(--sans)' }}>{t('faq')}</a></li>
           </ul>
         </div>
 
         <div style={{ width: '100%', maxWidth: '1440px', margin: '20px auto 0 auto', textAlign: 'center' }}>
-          <p style={{ fontSize: '13px', color: 'var(--footer-text, rgba(255, 255, 255, 0.7))', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>© 2026 invoi جميع الحقوق محفوظة.</p>
+          <p style={{ fontSize: '13px', color: 'var(--footer-text, rgba(255, 255, 255, 0.7))', margin: 0, fontFamily: 'var(--sans)' }}>{t('rights')}</p>
         </div>
       </AntFooter>
     </motion.div>

@@ -1,43 +1,45 @@
 import React from 'react';
 import { Typography, Collapse } from 'antd';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Title, Paragraph } = Typography;
 
 export const FAQ = () => {
+    const { t, isRtl } = useAppTranslation('landing', 'faq');
     const faqItems = [
         {
             key: '1',
-            label: 'ما هي أنواع الفواتير التي يدعمها النظام؟',
+            label: t('q1Title'),
             children: (
                 <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
-                    يوفر النظام حالياً دعماً كاملاً للفواتير الواردة فقط التي تتلقاها من الموردين والمصروفات.
+                    {t('q1Desc')}
                 </Paragraph>
             ),
         },
         {
             key: '2',
-            label: 'ما هي صيغ الملفات المدعومة لرفع الفواتير؟',
+            label: t('q2Title'),
             children: (
                 <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
-                    يمكنك رفع الفواتير بكل سهولة إما على شكل صور (JPG / PNG) أو ملفات (PDF) لبدء عملية الاستخراج التلقائي.
+                    {t('q2Desc')}
                 </Paragraph>
             ),
         },
         {
             key: '3',
-            label: 'هل يدعم النظام الفواتير باللغة العربية؟',
+            label: t('q3Title'),
             children: (
                 <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
-                    نعم، يدعم النظام الفواتير باللغتين العربية والإنجليزية بشكل كامل ومتساوٍ من اليوم الأول دون أي فرق في مستوى المعالجة.
+                    {t('q3Desc')}
                 </Paragraph>
             ),
         },
         {
             key: '4',
-            label: 'كيف يضمن النظام دقة البيانات وأمانها؟',
+            label: t('q4Title'),
             children: (
                 <Paragraph style={{ color: 'var(--text-secondary)', margin: 0, fontFamily: 'var(--sans)', lineHeight: 1.7 }}>
-                    يقوم الذكاء الاصطناعي باستخراج البيانات تلقائياً، مع وجود نظام مراجعة يضع علامات وتنبيهات على أي حقل لضمان المراجعة اليدوية والتحكم الكامل قبل الاعتماد.
+                    {t('q4Desc')}
                 </Paragraph>
             ),
         },
@@ -49,8 +51,8 @@ export const FAQ = () => {
             style={{
                 backgroundColor: 'var(--bg-main)',
                 padding: '80px 24px',
-                direction: 'rtl',
-                borderTop: '1px solid var(-border-color)'
+                direction: isRtl ? 'rtl' : 'ltr',
+                borderTop: '1px solid var(--border-color)'
             }}
         >
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -65,7 +67,7 @@ export const FAQ = () => {
                             fontFamily: 'var(--sans)'
                         }}
                     >
-                        الأسئلة الشائعة
+                        {t('title')}
                     </Title>
                     <Paragraph
                         style={{
@@ -75,7 +77,7 @@ export const FAQ = () => {
                             margin: 0
                         }}
                     >
-                        كل ما تحتاج لمعرفته حول منصة invoi وكيفية عملها.
+                        {t('subtitle')}
                     </Paragraph>
                 </div>
 
@@ -95,7 +97,7 @@ export const FAQ = () => {
                             background: 'var(--bg-main)',
                             borderRadius: '12px',
                             marginBottom: '16px',
-                            border: '1px solid var(-border-color)',
+                            border: '1px solid var(--border-color)',
                             overflow: 'hidden',
                         }
                     }))}

@@ -9,5 +9,81 @@
     "menu": "Menu",
     "dashboard": "Dashboard",
     "login": "Log in"
+  },
+  "hero": {
+    "title": "Extract Invoice Data Easily and Effortlessly",
+    "description": "invoi helps you automatically extract invoice data from uploaded files, quickly and accurately.",
+    "ctaButton": "Get Started",
+    "table": {
+      "date": "Date",
+      "supplier": "Supplier",
+      "amount": "Amount",
+      "status": "Status"
+    }
+  },
+  "targetUsers": {
+    "title": "Who is this product for?",
+    "card1": {
+      "title": "Small Business Owners",
+      "description": "For those who don't have deep accounting experience or a dedicated finance team, and need an easy way to manage their incoming invoices and save time instead of handling them manually."
+    },
+    "card2": {
+      "title": "Accountants",
+      "description": "Helps accountants speed up the process of handling incoming invoices and organizing them automatically and simply without the need for manual processing of each invoice individually."
+    }
+  },
+  "supportedFiles": {
+    "title": "Supported File Formats",
+    "subtitle": "Upload your invoices easily in any of the following formats to start automatic extraction"
+  },
+  "features": {
+    "title": "invoi Features",
+    "subtitle": "Everything you need to extract invoice data easily and efficiently",
+    "smartExtractionTitle": "Smart & Fast Extraction",
+    "smartExtractionDesc": "No human errors or manual data entry.",
+    "fullControlTitle": "Full Control",
+    "fullControlDesc": "Review and edit any details with full flexibility.",
+    "bulkProcessingTitle": "Bulk Processing",
+    "bulkProcessingDesc": "Ideal for businesses handling hundreds of invoices daily.",
+    "supportReliabilityTitle": "Support & Reliability",
+    "supportReliabilityDesc": "High security and full support for all file types."
+  },
+  "howItWorks": {
+    "title": "How does invoi Work?",
+    "subtitle": "Three simple steps to extract invoice data",
+    "step1Title": "Upload Invoice",
+    "step1Desc": "Upload your invoice file as a PDF or image.",
+    "step2Title": "Automatic Extraction",
+    "step2Desc": "The system automatically extracts data with high accuracy.",
+    "step3Title": "Export Data",
+    "step3Desc": "Save the data in your preferred format (like Excel or CSV)."
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about the invoi platform and how it works.",
+    "q1Title": "What types of invoices does the system support?",
+    "q1Desc": "The system currently provides full support for incoming invoices received from suppliers and expenses only.",
+    "q2Title": "What file formats are supported for uploading invoices?",
+    "q2Desc": "You can easily upload invoices either as images (JPG / PNG) or PDF files to start the automatic extraction process.",
+    "q3Title": "Does the system support Arabic invoices?",
+    "q3Desc": "Yes, the system fully and equally supports invoices in both Arabic and English from day one without any difference in processing quality.",
+    "q4Title": "How does the system ensure data accuracy and security?",
+    "q4Desc": "AI automatically extracts data, with a review system that flags and alerts on any field to ensure manual review and full control before approval."
+  },
+  "cta": {
+    "title": "Ready to experience smart invoice extraction?",
+    "subtitle": "Join us today and start automating your invoice management with high accuracy and blazing speed.",
+    "buttonText": "Get Started",
+    "feature1": "Smart & fast invoice extraction",
+    "feature2": "Full control",
+    "feature3": "High security",
+    "feature4": "Supports both Arabic & English"
+  },
+  "footer": {
+    "home": "Home",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "faq": "FAQ",
+    "rights": "© 2026 invoi All rights reserved."
   }
 }

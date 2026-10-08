@@ -1,20 +1,22 @@
 import React from 'react';
 import { Row, Col, Typography } from 'antd';
 import { ShopOutlined, CalculatorOutlined } from '@ant-design/icons';
-
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 import meeting from '../../../assets/landing-assets/meeting.jpeg';
 import accountant from '../../../assets/landing-assets/accountant.jpeg';
 
 const { Title, Paragraph } = Typography;
 
 export default function TargetUsers() {
+    const { t, isRtl } = useAppTranslation('landing', 'targetUsers');
+
     return (
         <section style={{ backgroundColor: 'var(--bg-main)', padding: 'clamp(48px, 8vw, 88px) clamp(16px, 4vw, 24px)' }}>
             <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
 
                 {/* section title */}
                 <Title level={2} style={{ color: 'var(--text-primary)', fontSize: 'clamp(26px, 4vw, 32px)', textAlign: 'center', marginBottom: 'clamp(32px, 5vw, 48px)' }}>
-                    لمن هذا المنتج؟
+                    {t('title')}
                 </Title>
 
                 {/* cards */}
@@ -37,7 +39,7 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={meeting}
-                                    alt="أصحاب الأعمال الصغيرة"
+                                    alt={t('card1.title')}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />
                             </div>
@@ -47,7 +49,7 @@ export default function TargetUsers() {
                                 <div style={{
                                     position: 'absolute',
                                     top: '-28px',
-                                    right: '24px',
+                                    [isRtl ? 'right' : 'left']: '24px',
                                     backgroundColor: 'rgba(255, 255, 255, 0.9)',
                                     backdropFilter: 'blur(8px)',
                                     padding: '10px',
@@ -62,9 +64,9 @@ export default function TargetUsers() {
                                 </div>
 
                                 <div style={{ marginTop: '0px' }}>
-                                    <Title level={4} style={{ marginTop: '4px', marginBottom: '8px' }}>أصحاب الأعمال الصغيرة</Title>
+                                    <Title level={4} style={{ marginTop: '4px', marginBottom: '8px' }}>{t('card1.title')}</Title>
                                     <Paragraph style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>
-                                        لمن لا يمتلكون خبرة محاسبية عميقة أو فريق مالية مخصص، ويحتاجون إلى طريقة سهلة لإدارة فواتيرهم الواردة وتوفير الوقت بدلاً من إدارتها يدويّاً.
+                                        {t('card1.description')}
                                     </Paragraph>
                                 </div>
                             </div>
@@ -88,7 +90,7 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={accountant}
-                                    alt="المحاسبون"
+                                    alt={t('card2.title')}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />
                             </div>
@@ -98,7 +100,7 @@ export default function TargetUsers() {
                                 <div style={{
                                     position: 'absolute',
                                     top: '-28px',
-                                    right: '24px',
+                                    [isRtl ? 'right' : 'left']: '24px',
                                     backgroundColor: 'rgba(255, 255, 255, 0.9)',
                                     backdropFilter: 'blur(8px)',
                                     padding: '10px',
@@ -113,9 +115,9 @@ export default function TargetUsers() {
                                 </div>
 
                                 <div style={{ marginTop: '0px' }}>
-                                    <Title level={4} style={{ marginTop: '4px', marginBottom: '8px' }}>المحاسبون</Title>
+                                    <Title level={4} style={{ marginTop: '4px', marginBottom: '8px' }}>{t('card2.title')}</Title>
                                     <Paragraph style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>
-                                        يساعد المحاسبين في تسريع عملية التعامل مع الفواتير الواردة وتنظيمها بشكل آلي ومبسط دون الحاجة للمعالجة اليدوية لكل فاتورة على حدة.
+                                        {t('card2.description')}
                                     </Paragraph>
                                 </div>
                             </div>

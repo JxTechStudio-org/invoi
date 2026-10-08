@@ -1,33 +1,35 @@
 import React from 'react';
 import { Typography, Row, Col } from 'antd';
 import { CloudUploadOutlined, ThunderboltOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Title, Paragraph } = Typography;
 
 export default function HowItWorks() {
+    const { t, isRtl } = useAppTranslation('landing', 'howItWorks');
     const steps = [
         {
             stepNumber: '1',
             icon: <CloudUploadOutlined style={{ fontSize: '24px', color: 'var(--emerald-500)' }} />,
-            title: 'ارفع الفاتورة',
-            description: 'قم برفع ملف الفاتورة بصيغة PDF أو صورة.',
+            title: t('step1Title'),
+            description: t('step1Desc'),
         },
         {
             stepNumber: '2',
             icon: <ThunderboltOutlined style={{ fontSize: '24px', color: 'var(--emerald-500)' }} />,
-            title: 'استخراج تلقائي',
-            description: 'يقوم النظام باستخراج البيانات بشكل تلقائي وبدقة عالية.',
+            title: t('step2Title'),
+            description: t('step2Desc'),
         },
         {
             stepNumber: '3',
             icon: <CheckCircleOutlined style={{ fontSize: '24px', color: 'var(--emerald-500)' }} />,
-            title: 'تصدير البيانات',
-            description: 'احفظ البيانات بصيغة تناسبك (مثل Excel أو CSV).',
+            title: t('step3Title'),
+            description: t('step3Desc'),
         },
     ];
 
     return (
-        <section id="how-it-works" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: 'rtl' }}>
+        <section id="how-it-works" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: isRtl ? 'rtl' : 'ltr' }}>
             <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
 
                 <div style={{ textAlign: 'center', marginBottom: '56px' }}>
@@ -41,7 +43,7 @@ export default function HowItWorks() {
                             fontFamily: 'var(--sans)',
                         }}
                     >
-                        كيف يعمل invoi ؟
+                        {t('title')}
                     </Title>
                     <Paragraph
                         style={{
@@ -50,7 +52,7 @@ export default function HowItWorks() {
                             fontFamily: 'var(--sans)',
                         }}
                     >
-                        ثلاث خطوات بسيطة لاستخراج بيانات الفواتير
+                        {t('subtitle')}
                     </Paragraph>
                 </div>
 
@@ -59,11 +61,11 @@ export default function HowItWorks() {
                         <Col xs={24} md={8} key={index}>
                             <div
                                 style={{
-                                    background: ' var(--bg-container)',
+                                    background: 'var(--bg-container)',
                                     borderRadius: '12px',
                                     padding: '32px 24px',
                                     textAlign: 'center',
-                                    border: '1px solid var(-border-color)',
+                                    border: '1px solid var(--border-color)',
                                     height: '100%',
                                     boxSizing: 'border-box',
                                 }}
@@ -88,7 +90,7 @@ export default function HowItWorks() {
                                     marginBottom: '8px',
                                     fontFamily: 'var(--sans)',
                                 }}>
-                                    الخطوة {item.stepNumber}
+                                    {isRtl ? `الخطوة ${item.stepNumber}` : `Step ${item.stepNumber}`}
                                 </div>
 
                                 <Title
@@ -107,7 +109,7 @@ export default function HowItWorks() {
                                 <Paragraph
                                     style={{
                                         fontSize: '14px',
-                                        color: 'var(--var(--text-secondary))',
+                                        color: 'var(--text-secondary)',
                                         margin: 0,
                                         lineHeight: 1.5,
                                         fontFamily: 'var(--sans)',

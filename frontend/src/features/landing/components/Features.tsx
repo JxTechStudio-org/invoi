@@ -1,35 +1,37 @@
 import React from 'react';
 import { Typography, Card, Row, Col } from 'antd';
 import { ThunderboltOutlined, LockOutlined, AppstoreOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Title, Paragraph } = Typography;
 
 export default function Features() {
+    const { t, isRtl } = useAppTranslation('landing', 'features');
     const featuresList = [
         {
             icon: <ThunderboltOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'استخراج ذكي وسريع',
-            description: 'تخلص من الأخطاء البشرية والإدخال اليدوي.',
+            title: t('smartExtractionTitle'),
+            description: t('smartExtractionDesc'),
         },
         {
             icon: <LockOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'تحكم كامل',
-            description: 'راجع وعدل أي تفاصيل بكل مرونة.',
+            title: t('fullControlTitle'),
+            description: t('fullControlDesc'),
         },
         {
             icon: <AppstoreOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'معالجة كميات كبيرة',
-            description: 'مثالية للشركات التي تتعامل مع مئات الفواتير يومياً.',
+            title: t('bulkProcessingTitle'),
+            description: t('bulkProcessingDesc'),
         },
         {
             icon: <SafetyCertificateOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'دعم وموثوقية',
-            description: 'أمان عالي ودعم كامل لكافة أنواع الملفات.',
+            title: t('supportReliabilityTitle'),
+            description: t('supportReliabilityDesc'),
         },
     ];
 
     return (
-        <section id="features" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: 'rtl' }}>
+        <section id="features" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: isRtl ? 'rtl' : 'ltr' }}>
             <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
 
                 <div style={{ textAlign: 'center', marginBottom: '56px' }}>
@@ -43,7 +45,7 @@ export default function Features() {
                             fontFamily: 'var(--sans)',
                         }}
                     >
-                        مميزات invoi
+                        {t('title')}
                     </Title>
                     <Paragraph
                         style={{
@@ -52,7 +54,7 @@ export default function Features() {
                             fontFamily: 'var(--sans)',
                         }}
                     >
-                        كل ما تحتاجه لاستخراج بيانات الفواتير بسهولة وكفاءة
+                        {t('subtitle')}
                     </Paragraph>
                 </div>
 
@@ -69,7 +71,7 @@ export default function Features() {
                                     border: '1px solid var(-border-color)',
                                     boxSizing: 'border-box',
                                 }}
-                                styles={{body:{ padding: '32px 24px'} }}
+                                styles={{ body: { padding: '32px 24px' } }}
                             >
                                 <div style={{
                                     width: '60px',

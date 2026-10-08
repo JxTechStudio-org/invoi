@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
 import { UserOutlined, MenuOutlined, TranslationOutlined } from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
 import MainButton from '../../shared/components/MainButton';
 
@@ -18,8 +18,7 @@ export const Header = () => {
     const navigate = useNavigate();
     const isLoggedIn = Boolean(localStorage.getItem('authToken'));
 
-    const { t, i18n } = useTranslation('landing', { keyPrefix: 'header' });
-    const isRtl = i18n.language === 'ar';
+    const { t, i18n, isRtl } = useAppTranslation('landing', 'header');
     const toggleLang = () => i18n.changeLanguage(isRtl ? 'en' : 'ar');
 
     const handleUserAction = () => {

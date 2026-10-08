@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
-import { ArrowLeftOutlined, CheckOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined } from '@ant-design/icons';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Title, Paragraph } = Typography;
 
@@ -14,9 +15,12 @@ const defaultFeatures = [
 
 export const CTABanner: React.FC = () => {
     const navigate = useNavigate();
+    const { t, isRtl } = useAppTranslation('landing', 'cta');
+
+    const featureKeys = ['feature1', 'feature2', 'feature3', 'feature4'];
 
     return (
-        <section style={{ padding: '80px 24px', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
+        <section style={{ padding: '80px 24px', backgroundColor: 'var(--bg-main)', direction: isRtl ? 'rtl' : 'ltr' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <div style={{ width: '100%', maxWidth: '1024px' }}>
@@ -24,7 +28,7 @@ export const CTABanner: React.FC = () => {
                             style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                flexWrap: 'wrap', // يسمح للعناصر بالنزول تحت بعضها بسلاسة في الشاشات الصغيرة
+                                flexWrap: 'wrap',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 gap: '32px',
@@ -40,7 +44,7 @@ export const CTABanner: React.FC = () => {
                                 <Title
                                     level={3}
                                     style={{
-                                        fontSize: 'clamp(22px, 4vw, 28px)', // حجم خط متجاوب يمنع تكسر الكلمات بشكل مزعج
+                                        fontSize: 'clamp(22px, 4vw, 28px)', 
                                         fontWeight: 700,
                                         color: 'var(--text-primary)',
                                         marginBottom: '12px',
@@ -48,7 +52,7 @@ export const CTABanner: React.FC = () => {
                                         wordBreak: 'normal'
                                     }}
                                 >
-                                    جاهز لتجربة استخراج الفواتير بذكاء؟
+                                    {t('title')}
                                 </Title>
                                 <Paragraph
                                     style={{
@@ -59,12 +63,12 @@ export const CTABanner: React.FC = () => {
                                         lineHeight: '1.6'
                                     }}
                                 >
-                                    انضم إلينا اليوم وابدأ في أتمتة إدارة فواتيرك بدقة عالية وسرعة فائقة بكل سهولة.
+                                    {t('subtitle')}
                                 </Paragraph>
                                 <Button
                                     type="primary"
                                     size="large"
-                                    icon={<ArrowLeftOutlined />}
+                                    icon={isRtl ? <ArrowLeftOutlined /> : <ArrowRightOutlined />}
                                     onClick={() => navigate('/auth/register')}
                                     style={{
                                         height: '40px',
@@ -78,14 +82,14 @@ export const CTABanner: React.FC = () => {
                                         borderRadius: '8px'
                                     }}
                                 >
-                                    ابدأ الآن
+                                    {t('buttonText')}
                                 </Button>
                             </div>
 
                             {/* الجانب الأيسر: قائمة المميزات */}
                             <div style={{ flex: '1 1 280px', maxWidth: '350px' }}>
                                 <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {defaultFeatures.map((item, idx) => (
+                                    {featureKeys.map((key, idx) => (
                                         <li
                                             key={idx}
                                             style={{
@@ -107,14 +111,14 @@ export const CTABanner: React.FC = () => {
                                                     borderRadius: '50%',
                                                     backgroundColor: '#ECFDF5',
                                                     color: 'var(--emerald-500)',
-                                                    marginLeft: '12px',
+                                                    [isRtl ? 'marginLeft' : 'marginRight']: '12px',
                                                     flexShrink: 0,
                                                     fontSize: '12px'
                                                 }}
                                             >
                                                 <CheckOutlined />
                                             </span>
-                                            {item}
+                                            {t(key)}
                                         </li>
                                     ))}
                                 </ul>

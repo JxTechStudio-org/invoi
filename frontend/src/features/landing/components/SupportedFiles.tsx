@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Typography, Card, Row, Col } from 'antd';
 import { FilePdfOutlined, FileImageOutlined } from '@ant-design/icons';
+import { useAppTranslation } from '../../shared/hooks/useAppTranslation';
 
 const { Title, Paragraph } = Typography;
 
 export const SupportedFiles = () => {
+    const { t, isRtl } = useAppTranslation('landing', 'supportedFiles');
     const fileFormats = [
         {
             title: 'PDF',
@@ -50,7 +52,7 @@ export const SupportedFiles = () => {
                             fontFamily: 'var(--sans)'
                         }}
                     >
-                        صيغ الملفات المدعومة
+                        {t('title')}
                     </Title>
                     <Paragraph
                         style={{
@@ -60,7 +62,7 @@ export const SupportedFiles = () => {
                             margin: 0
                         }}
                     >
-                        قم برفع فواتيرك بكل سهولة بأي من الصيغ التالية لبدء الاستخراج التلقائي
+                        {t('subtitle')}
                     </Paragraph>
                 </div>
 
@@ -118,7 +120,6 @@ export const SupportedFiles = () => {
                                         style={{
                                             color: 'var(--var(--text-secondary))',
                                             fontSize: '14px',
-                                            margin: 0,
                                             fontFamily: 'var(--sans)'
                                         }}
                                     >
