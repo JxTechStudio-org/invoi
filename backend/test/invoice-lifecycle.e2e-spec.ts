@@ -1,4 +1,4 @@
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
+import { ExecutionContext, INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Invoice, Prisma } from '@prisma/client';
 import request from 'supertest';
@@ -80,7 +80,14 @@ describe('Invoice lifecycle API (e2e)', () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
       .overrideProvider(PrismaService).useValue(prisma)
       .overrideProvider(STORAGE_SERVICE).useValue({ stageRemoval })
-      .overrideGuard(JwtAuthGuard).useValue({ canActivate: () => true })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          const req = context.switchToHttp().getRequest();
+          req.user = { userId: 'test-owner' };
+          return true;
+        },
+      })
       .compile();
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
@@ -296,7 +303,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     records.set('test-invoice', invoiceFixture({ status }));
     await request(app.getHttpServer()).get('/api/invoices/test-invoice/status')
       .expect(200).expect({ invoiceId: 'test-invoice', status });
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'test-invoice' }, select: { id: true, status: true } });
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'test-invoice', userId: 'test-owner' }, select: { id: true, status: true } });
   });
 
   it('returns 404 for unknown status requests', async () => {
