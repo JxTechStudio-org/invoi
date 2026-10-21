@@ -2,12 +2,14 @@ import {
   CopyObjectCommand,
   CreateBucketCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { randomUUID } from 'node:crypto';
+import { Readable } from 'node:stream';
 import { LocalStorageService } from '../src/storage/local-storage.service';
 import { ReferenceRoutingStorageService } from '../src/storage/reference-routing-storage.service';
 import {
@@ -142,6 +144,34 @@ describe('RustFS S3 storage', () => {
     await expect(storage.stageRemoval(reference)).rejects.toThrow('Invalid RustFS storage reference');
     expect(send).not.toHaveBeenCalled();
   });
+
+  it('downloads an object with a content type derived from its key, not its metadata', async () => {
+    const body = Readable.from(['%PDF-1.4']);
+    const send = jest.fn().mockResolvedValue({ Body: body, ContentLength: 8, ContentType: 'text/html' });
+    const storage = new RustFsStorageService(config(), client(send));
+
+    const file = await storage.download('s3://invoices/invoices/file.pdf');
+
+    const get = send.mock.calls[0][0] as GetObjectCommand;
+    expect(get).toBeInstanceOf(GetObjectCommand);
+    expect(get.input).toEqual({ Bucket: 'invoices', Key: 'invoices/file.pdf' });
+    expect(file).toEqual({ stream: body, contentType: 'application/pdf', contentLength: 8 });
+  });
+
+  it('returns null when the object is missing', async () => {
+    const send = jest.fn().mockRejectedValue({ name: 'NoSuchKey', $metadata: { httpStatusCode: 404 } });
+    const storage = new RustFsStorageService(config(), client(send));
+    await expect(storage.download('s3://invoices/invoices/gone.png')).resolves.toBeNull();
+  });
+
+  it.each(['s3://other/invoices/file.pdf', 's3://invoices/../secret', 's3://invoices/'])(
+    'refuses to download an invalid reference %s', async reference => {
+      const send = jest.fn();
+      const storage = new RustFsStorageService(config(), client(send));
+      await expect(storage.download(reference)).rejects.toThrow('Invalid RustFS storage reference');
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe('Storage driver configuration', () => {
@@ -179,7 +209,7 @@ describe('Storage driver configuration', () => {
 
 describe('Storage reference routing', () => {
   const storage = () => ({
-    upload: jest.fn(), remove: jest.fn(), stageRemoval: jest.fn(),
+    upload: jest.fn(), remove: jest.fn(), stageRemoval: jest.fn(), download: jest.fn(),
   });
 
   it('uses RustFS for new uploads and S3 references', async () => {
@@ -194,7 +224,10 @@ describe('Storage reference routing', () => {
     await expect(router.upload(invoice)).resolves.toBe(stored);
     await router.remove(stored);
     await router.stageRemoval(stored.fileUrl);
+    await router.download(stored.fileUrl);
 
+    expect(rustfs.download).toHaveBeenCalledWith(stored.fileUrl);
+    expect(local.download).not.toHaveBeenCalled();
     expect(rustfs.upload).toHaveBeenCalledWith(invoice);
     expect(rustfs.remove).toHaveBeenCalledWith(stored);
     expect(rustfs.stageRemoval).toHaveBeenCalledWith(stored.fileUrl);
@@ -211,7 +244,10 @@ describe('Storage reference routing', () => {
 
     await router.remove(stored);
     await router.stageRemoval(stored.fileUrl);
+    await router.download(stored.fileUrl);
 
+    expect(local.download).toHaveBeenCalledWith(stored.fileUrl);
+    expect(rustfs.download).not.toHaveBeenCalled();
     expect(local.remove).toHaveBeenCalledWith(stored);
     expect(local.stageRemoval).toHaveBeenCalledWith(stored.fileUrl);
     expect(rustfs.remove).not.toHaveBeenCalled();

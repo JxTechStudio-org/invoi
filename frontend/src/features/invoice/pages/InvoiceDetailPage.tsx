@@ -19,6 +19,9 @@ import {
   REVIEW_REASON_LABELS
 } from '../constants/invoiceLabels';
 import { invoiceReviewApi } from '../api/invoiceReviewApi';
+import { openInvoiceFile } from '../api/invoiceFileApi';
+import { useInvoiceFile } from '../hooks/useInvoiceFile';
+import DocumentPreview from '../../shared/components/DocumentPreview';
 import MobileDataCard from '../../shared/components/MobileDataCard';
 import { FileTextOutlined } from '@ant-design/icons';
 
@@ -53,6 +56,7 @@ export default function InvoiceDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [reviewAction, setReviewAction] = useState<'approve' | 'flag' | null>(null);
   const [form] = Form.useForm<InvoiceFormValues>();
+  const invoiceFile = useInvoiceFile(id);
 
 
   const fetchInvoice = async () => {
@@ -305,8 +309,11 @@ export default function InvoiceDetailPage() {
       title: 'الملف',
       dataIndex: 'fileUrl',
       key: 'fileUrl',
-      render: (value: string) => (
-        <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: token.colorPrimary, textDecoration: 'underline' }}>
+      render: () => (
+        <a
+          onClick={() => openInvoiceFile(id!).catch((error) => pushAlert(getErrorMessage(mapAxiosErrorToCode(error)), 'error'))}
+          style={{ color: token.colorPrimary, textDecoration: 'underline', cursor: 'pointer' }}
+        >
           <FileTextOutlined /> عرض الملف
         </a>
       )
@@ -437,6 +444,26 @@ export default function InvoiceDetailPage() {
                   : 'تم تصحيح البيانات، راجعها ثم اعتمد الفاتورة.'}
               />
             )}
+
+            {/* مستند الفاتورة */}
+            <div className="mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider mb-2 opacity-65" style={{ color: token.colorTextSecondary }}>
+                مستند الفاتورة
+              </h3>
+              {invoiceFile.isLoading && <Spin />}
+              {invoiceFile.errorMessage && (
+                <Alert type="error" showIcon title={`تعذر تحميل ملف الفاتورة: ${invoiceFile.errorMessage}`} />
+              )}
+              {invoiceFile.url && (invoiceFile.contentType?.startsWith('image/')
+                ? <DocumentPreview src={invoiceFile.url} />
+                : (
+                  <iframe
+                    src={invoiceFile.url}
+                    title="مستند الفاتورة"
+                    style={{ width: '100%', height: 640, border: `1px solid ${token.colorBorder}`, borderRadius: 12 }}
+                  />
+                ))}
+            </div>
 
             {/* بيانات المورد */}
             <div className="mb-6">

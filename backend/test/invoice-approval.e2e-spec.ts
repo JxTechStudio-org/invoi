@@ -6,18 +6,20 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
 import { invoiceFixture } from './fixtures/invoice';
 
-describe('Invoice approval and flagging', () => {
+describe('Invoice approval, flagging and file access', () => {
   let service: InvoicesService;
   let findUnique: jest.Mock;
   let update: jest.Mock;
+  let download: jest.Mock;
 
   beforeEach(async () => {
     findUnique = jest.fn();
+    download = jest.fn();
     update = jest.fn().mockImplementation(({ data }) => Promise.resolve(invoiceFixture(data)));
     const moduleRef = await Test.createTestingModule({ providers: [
       InvoicesService,
       { provide: PrismaService, useValue: { invoice: { findUnique, update } } },
-      { provide: STORAGE_SERVICE, useValue: {} },
+      { provide: STORAGE_SERVICE, useValue: { download } },
     ] }).compile();
     service = moduleRef.get(InvoicesService);
   });
@@ -72,6 +74,30 @@ describe('Invoice approval and flagging', () => {
     expect(update).toHaveBeenCalledWith({
       where: { id: 'test-invoice' }, data: { status: 'needs_review', needsReviewReason: expected },
     });
+  });
+
+  it('returns the stored file of an owned invoice', async () => {
+    const file = { stream: {}, contentType: 'application/pdf' };
+    findUnique.mockResolvedValue({ fileUrl: 's3://invoices/invoices/a.pdf' });
+    download.mockResolvedValue(file);
+    await expect(service.getFile('test-invoice', 'test-owner')).resolves.toBe(file);
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: 'test-invoice', userId: 'test-owner' }, select: { fileUrl: true },
+    });
+    expect(download).toHaveBeenCalledWith('s3://invoices/invoices/a.pdf');
+  });
+
+  it('does not touch storage for invoices the user does not own', async () => {
+    findUnique.mockResolvedValue(null);
+    await expect(service.getFile('other-invoice', 'test-owner')).rejects.toBeInstanceOf(NotFoundException);
+    expect(download).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the invoice exists but its file is gone', async () => {
+    findUnique.mockResolvedValue({ fileUrl: 's3://invoices/invoices/gone.pdf' });
+    download.mockResolvedValue(null);
+    await expect(service.getFile('test-invoice', 'test-owner'))
+      .rejects.toThrow('File for invoice test-invoice was not found');
   });
 
   it('maps a concurrent delete during approval to 404', async () => {
