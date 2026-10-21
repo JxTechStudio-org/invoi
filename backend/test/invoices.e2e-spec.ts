@@ -89,6 +89,11 @@ describe('Invoices API (e2e)', () => {
         findUnique: jest.fn(({ where }) =>
           Promise.resolve(invoices.find((invoice) => invoice.id === where.id) ?? null),
         ),
+        update: jest.fn(({ where, data }) => {
+          const invoice = invoices.find((candidate) => candidate.id === where.id)!;
+          Object.assign(invoice, data);
+          return Promise.resolve(invoice);
+        }),
       },
     };
 
@@ -279,6 +284,35 @@ describe('Invoices API (e2e)', () => {
     expect(matching.body).toHaveLength(1);
     await request(app.getHttpServer())
       .get('/api/invoices?date=2026-09-09').expect(200).expect([]);
+  });
+
+  it('approves an invoice with 200 and marks it completed', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/approve')
+      .expect(200);
+    expect(response.body).toMatchObject({ id: 'existing-invoice', status: 'completed', needsReviewReason: null });
+  });
+
+  it('refuses to approve an invoice missing required data', async () => {
+    invoices[0].vendorName = null;
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/approve')
+      .expect(400);
+    expect(response.body.message).toContain('vendorName');
+    expect(invoices[0].status).toBe(InvoiceStatus.processing);
+  });
+
+  it('flags an invoice for review with 200', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/flag')
+      .expect(200);
+    expect(response.body).toMatchObject({ status: 'needs_review', needsReviewReason: 'user_flagged' });
+  });
+
+  it.each(['approve', 'flag'])('returns 404 when trying to %s an unknown invoice', async (action) => {
+    await request(app.getHttpServer())
+      .post(`/api/invoices/missing-invoice/${action}`)
+      .expect(404);
   });
 
   it('returns 404 for an unknown invoice id', async () => {

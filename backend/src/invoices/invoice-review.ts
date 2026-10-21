@@ -1,8 +1,15 @@
 import { Invoice, InvoiceStatus, User } from '@prisma/client';
 
 type ReviewInput = Pick<Invoice,
-  'status' | 'extractionConfidence' | 'customerName' | 'totalAmount' | 'taxAmount'
+  'status' | 'extractionConfidence' | 'customerName' | 'totalAmount' | 'taxAmount' | 'needsReviewReason'
 >;
+
+// Set by the user ("report an error"); only approval clears it.
+export const USER_FLAGGED_REASON = 'user_flagged';
+
+export function parseReviewReasons(reasons: string | null): string[] {
+  return reasons ? reasons.split(',').filter(Boolean) : [];
+}
 
 type ReviewAccount = {
   businessName: User['businessName'] | null;
@@ -34,6 +41,10 @@ export function evaluateInvoiceReview(invoice: ReviewInput, account: ReviewAccou
   if (threshold !== null
     && (invoice.totalAmount?.greaterThan(threshold) || invoice.taxAmount?.greaterThan(threshold))) {
     reasons.push('amount_threshold_exceeded');
+  }
+
+  if (parseReviewReasons(invoice.needsReviewReason).includes(USER_FLAGGED_REASON)) {
+    reasons.push(USER_FLAGGED_REASON);
   }
 
   return {
