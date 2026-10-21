@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Spin, Tag, theme, Grid, Form } from 'antd';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import PageHeader from '../../shared/components/PageHeader';
@@ -57,6 +58,9 @@ export default function InvoiceDetailPage() {
   const [reviewAction, setReviewAction] = useState<'approve' | 'flag' | null>(null);
   const [form] = Form.useForm<InvoiceFormValues>();
   const invoiceFile = useInvoiceFile(id);
+  const queryClient = useQueryClient();
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
 
   const fetchInvoice = async () => {
@@ -65,28 +69,13 @@ export default function InvoiceDetailPage() {
       const res = await apiClient.get(`/invoices/${id}`);
       setInvoice(res.data);
       setLoading(false);
-    } catch (err: any) {
+    } catch (err) {
       setLoading(false);
-      let errorCode = 'UNKNOWN_ERROR';
-
-      if (err.response) {
-        if (err.response.status === 404) {
-          setIsNotFound(true);
-          const msg = 'الفاتورة غير موجودة';
-          setErrorMsg(msg);
-          setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
-        } else {
-          errorCode = err.response?.data?.error_code || 'SERVER_ERROR';
-          const msg = getErrorMessage(errorCode);
-          setErrorMsg(msg);
-          setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
-        }
-      } else if (err.request) {
-        errorCode = 'NETWORK_ERROR';
-        const msg = getErrorMessage(errorCode);
-        setErrorMsg(msg);
-        setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
-      }
+      const code = mapAxiosErrorToCode(err);
+      if (code === 'NOT_FOUND') setIsNotFound(true);
+      const msg = code === 'NOT_FOUND' ? 'الفاتورة غير موجودة' : getErrorMessage(code);
+      setErrorMsg(msg);
+      setAlerts((prev) => [...prev, { id: Date.now(), message: msg, type: 'error' }]);
     }
   };
 
@@ -163,21 +152,20 @@ export default function InvoiceDetailPage() {
 
   // Delete invoice
   const handleDeleteInvoice = async () => {
+    setIsDeleting(true);
     try {
       await apiClient.delete(`/invoices/${id}`);
-      setAlerts((prev) => [
-        ...prev,
-        { id: Date.now(), message: 'تم حذف الفاتورة بنجاح', type: 'success' }
-      ]);
+      setIsDeleteModalVisible(false);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.removeQueries({ queryKey: ['invoice-file', id] });
+      pushAlert('تم حذف الفاتورة بنجاح', 'success');
       setTimeout(() => {
         navigate('/invoices');
       }, 1000);
-    } catch (error: any) {
-      const msg = getErrorMessage(error) || 'فشل في حذف الفاتورة';
-      setAlerts((prev) => [
-        ...prev,
-        { id: Date.now(), message: msg, type: 'error' }
-      ]);
+    } catch (error) {
+      pushAlert(getErrorMessage(mapAxiosErrorToCode(error)), 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -547,7 +535,7 @@ export default function InvoiceDetailPage() {
                   loading={reviewAction === 'flag'}
                   disabled={reviewAction !== null}
                 />
-                <MainButton type="default" danger text="حذف الفاتورة" onClick={handleDeleteInvoice} />
+                <MainButton type="default" danger text="حذف الفاتورة" onClick={() => setIsDeleteModalVisible(true)} />
               </div>
 
               <div>
@@ -558,6 +546,20 @@ export default function InvoiceDetailPage() {
         </div>
       </div>
 
+      {/* تأكيد الحذف */}
+      <MainModal
+        title="حذف الفاتورة"
+        open={isDeleteModalVisible}
+        onOpenChange={(isOpen) => setIsDeleteModalVisible(isOpen)}
+        onConfirm={handleDeleteInvoice}
+        okText="حذف"
+        confirmLoading={isDeleting}
+        keepOpenOnConfirm
+        danger
+      >
+        سيتم حذف الفاتورة وملفها نهائيًا ولا يمكن التراجع عن ذلك. هل تريد المتابعة؟
+      </MainModal>
+
       {/*تعديل الفاتورة */}
       <MainModal
         title="تعديل الفاتورة"
@@ -565,6 +567,7 @@ export default function InvoiceDetailPage() {
         onOpenChange={(isOpen) => setIsEditModalVisible(isOpen)}
         onConfirm={() => form.submit()}
         confirmLoading={isSaving}
+        keepOpenOnConfirm
       >
         <InvoiceEditForm form={form} initialValues={invoiceToFormValues(invoice)} onFinish={handleUpdateInvoice} />
       </MainModal>
