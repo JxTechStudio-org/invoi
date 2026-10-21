@@ -1,6 +1,7 @@
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Form } from 'antd'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../../services/api/client'
 import { ERROR_MESSAGES } from '../../../errors/errorMassages'
 import AuthLayout from '../components/AuthLayout'
@@ -24,6 +25,7 @@ interface AuthFormValues {
 export default function AuthPage() {
     const location = useLocation()
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const [form] = Form.useForm()
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [searchParams, setSearchParams] = useSearchParams()
@@ -59,6 +61,8 @@ export default function AuthPage() {
                     email: values.email,
                     password: values.password
                 })
+                // Never show data cached from a previous session to the newly logged-in user.
+                queryClient.clear()
                 localStorage.setItem('authToken', response.data.access_token)
 
                 const redirectTo = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard'
