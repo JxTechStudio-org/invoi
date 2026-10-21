@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin, Tag, theme, Grid, Form } from 'antd';
+import { Alert, Spin, Tag, theme, Grid, Form } from 'antd';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import PageHeader from '../../shared/components/PageHeader';
 import MainButton from '../../shared/components/MainButton';
@@ -12,7 +12,13 @@ import { getErrorMessage } from '../../../errors/errorMassages';
 import { mapAxiosErrorToCode } from '../../../services/api/mapAxiosError';
 import InvoiceEditForm, { buildInvoiceUpdate, invoiceToFormValues } from '../components/InvoiceEditForm';
 import type { InvoiceFormValues } from '../components/InvoiceEditForm';
-import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '../constants/invoiceLabels';
+import {
+  APPROVAL_REQUIRED_FIELDS,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
+  REVIEW_REASON_LABELS
+} from '../constants/invoiceLabels';
+import { invoiceReviewApi } from '../api/invoiceReviewApi';
 import MobileDataCard from '../../shared/components/MobileDataCard';
 import { FileTextOutlined } from '@ant-design/icons';
 
@@ -45,6 +51,7 @@ export default function InvoiceDetailPage() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [reviewAction, setReviewAction] = useState<'approve' | 'flag' | null>(null);
   const [form] = Form.useForm<InvoiceFormValues>();
 
 
@@ -112,6 +119,43 @@ export default function InvoiceDetailPage() {
     }
   };
 
+
+  const pushAlert = (message: string, type: 'error' | 'success' | 'info' | 'warning') => {
+    setAlerts((prev) => [...prev, { id: Date.now(), message, type }]);
+  };
+
+  const handleApprove = async () => {
+    const missing = (Object.keys(APPROVAL_REQUIRED_FIELDS) as Array<keyof typeof APPROVAL_REQUIRED_FIELDS>)
+      .filter((field) => invoice?.[field] == null || String(invoice[field]).trim() === '')
+      .map((field) => APPROVAL_REQUIRED_FIELDS[field]);
+    if (missing.length) {
+      pushAlert(`لا يمكن اعتماد الفاتورة قبل تعبئة: ${missing.join('، ')}`, 'warning');
+      return;
+    }
+    setReviewAction('approve');
+    try {
+      const res = await invoiceReviewApi.approve(id!);
+      setInvoice(res.data);
+      pushAlert('تم اعتماد الفاتورة', 'success');
+    } catch (error) {
+      pushAlert(getErrorMessage(mapAxiosErrorToCode(error)), 'error');
+    } finally {
+      setReviewAction(null);
+    }
+  };
+
+  const handleFlag = async () => {
+    setReviewAction('flag');
+    try {
+      const res = await invoiceReviewApi.flag(id!);
+      setInvoice(res.data);
+      pushAlert('تم تحويل الفاتورة للمراجعة', 'info');
+    } catch (error) {
+      pushAlert(getErrorMessage(mapAxiosErrorToCode(error)), 'error');
+    } finally {
+      setReviewAction(null);
+    }
+  };
 
   // Delete invoice
   const handleDeleteInvoice = async () => {
@@ -339,7 +383,13 @@ export default function InvoiceDetailPage() {
 
               <div className="flex flex-col items-end gap-3">
                 <div className="flex items-center gap-2">
-                  <MainButton type="primary" text="اعتماد الفاتورة" onClick={() => { }} />
+                  <MainButton
+                    type="primary"
+                    text="اعتماد الفاتورة"
+                    onClick={handleApprove}
+                    loading={reviewAction === 'approve'}
+                    disabled={invoice?.status === 'completed' || reviewAction !== null}
+                  />
                   <MainButton
                     type="default"
                     text="تعديل يدوي"
@@ -369,6 +419,24 @@ export default function InvoiceDetailPage() {
                 })()}
               </div>
             </div>
+
+            {invoice?.status === 'needs_review' && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 24 }}
+                title="هذه الفاتورة تحتاج مراجعة"
+                description={invoice.needsReviewReason
+                  ? (
+                    <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                      {String(invoice.needsReviewReason).split(',').filter(Boolean).map((reason: string) => (
+                        <li key={reason}>{REVIEW_REASON_LABELS[reason] || reason}</li>
+                      ))}
+                    </ul>
+                  )
+                  : 'تم تصحيح البيانات، راجعها ثم اعتمد الفاتورة.'}
+              />
+            )}
 
             {/* بيانات المورد */}
             <div className="mb-6">
@@ -438,8 +506,20 @@ export default function InvoiceDetailPage() {
 
             <div className="flex items-center justify-between w-full" style={{ marginTop: '32px' }}>
               <div className="flex items-center gap-4">
-                <MainButton type="primary" text="اعتماد كل الحقول" onClick={() => { }} />
-                <MainButton type="default" text="رفض / إبلاغ عن خطأ" onClick={() => { }} />
+                <MainButton
+                  type="primary"
+                  text="اعتماد كل الحقول"
+                  onClick={handleApprove}
+                  loading={reviewAction === 'approve'}
+                  disabled={invoice?.status === 'completed' || reviewAction !== null}
+                />
+                <MainButton
+                  type="default"
+                  text="رفض / إبلاغ عن خطأ"
+                  onClick={handleFlag}
+                  loading={reviewAction === 'flag'}
+                  disabled={reviewAction !== null}
+                />
                 <MainButton type="default" danger text="حذف الفاتورة" onClick={handleDeleteInvoice} />
               </div>
 
