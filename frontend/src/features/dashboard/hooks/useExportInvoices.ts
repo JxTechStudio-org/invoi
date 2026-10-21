@@ -3,16 +3,17 @@ import { useState } from 'react'
 import { dashboardApi } from '../api/dashboardApi'
 import { mapAxiosErrorToCode } from '../../../services/api/mapAxiosError'
 import { getErrorMessage } from '../../../errors/errorMassages'
+import type { InvoicesListFilters } from '../../invoice/api/invoicesListApi'
 
 export function useExportInvoices() {
     const [isExporting, setIsExporting] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-    const exportInvoices = async () => {
+    const exportInvoices = async (filters?: InvoicesListFilters) => {
         setIsExporting(true)
         setErrorMessage(null)
         try {
-            const response = await dashboardApi.exportInvoices()
+            const response = await dashboardApi.exportInvoices(filters)
             const url = window.URL.createObjectURL(new Blob([response.data]))
             const link = document.createElement('a')
             link.href = url

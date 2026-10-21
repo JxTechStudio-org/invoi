@@ -1,5 +1,6 @@
 
 import { apiClient } from '../../../services/api/client'
+import type { InvoicesListFilters } from '../../invoice/api/invoicesListApi'
 
 /**
  * ⚠️ غير مؤكد بعد: شكل رد GET /metrics لسا ما تأكدنا منه مع أحمد.
@@ -13,5 +14,6 @@ export interface DashboardMetrics {
 
 export const dashboardApi = {
     getMetrics: () => apiClient.get<DashboardMetrics>('/metrics'),
-    exportInvoices: () => apiClient.get('/invoices/export', { responseType: 'blob' })
+    exportInvoices: (filters?: InvoicesListFilters) =>
+        apiClient.get('/invoices/export', { params: filters, responseType: 'blob' })
 }

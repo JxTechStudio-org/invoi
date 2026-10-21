@@ -19,6 +19,9 @@ interface FilterBarProps {
     onSearch: (value: string) => void
     onReset: () => void
     searchPlaceholder?: string
+    /** When set, shows a date input (YYYY-MM-DD) labelled with this text. */
+    dateFilterLabel?: string
+    onDateChange?: (value: string | undefined) => void
 }
 
 export default function FilterBar({
@@ -26,10 +29,13 @@ export default function FilterBar({
     onFilterChange,
     onSearch,
     onReset,
-    searchPlaceholder = 'بحث...'
+    searchPlaceholder = 'بحث...',
+    dateFilterLabel,
+    onDateChange
 }: FilterBarProps) {
     const [filterValues, setFilterValues] = useState<Record<string, string | undefined>>({})
     const [searchValue, setSearchValue] = useState('')
+    const [dateValue, setDateValue] = useState('')
 
     const handleFilterChange = (key: string, value: string | undefined) => {
         setFilterValues((prev) => ({ ...prev, [key]: value }))
@@ -44,6 +50,7 @@ export default function FilterBar({
     const handleReset = () => {
         setFilterValues({})
         setSearchValue('')
+        setDateValue('')
         onReset()
     }
 
@@ -60,6 +67,20 @@ export default function FilterBar({
                     onChange={(value) => handleFilterChange(filter.key, value)}
                 />
             ))}
+
+            {dateFilterLabel && (
+                <Input
+                    type="date"
+                    aria-label={dateFilterLabel}
+                    title={dateFilterLabel}
+                    value={dateValue}
+                    style={{ maxWidth: 180 }}
+                    onChange={(e) => {
+                        setDateValue(e.target.value)
+                        onDateChange?.(e.target.value || undefined)
+                    }}
+                />
+            )}
 
             <Input
                 prefix={<SearchOutlined />}
