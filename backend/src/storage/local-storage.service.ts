@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { createReadStream } from 'node:fs';
 import { lstat, mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
+import {
+  contentTypeFor, PendingFileRemoval, StorageService, StoredFile, StoredFileContent,
+} from './storage.service';
 
 interface LocalStoredFile extends StoredFile {
   filePath: string;
@@ -58,6 +61,19 @@ export class LocalStorageService implements StorageService {
       finalize: () => rm(stagedPath, { force: true }),
       restore: () => rename(stagedPath, originalPath),
     };
+  }
+
+  async download(fileUrl: string): Promise<StoredFileContent | null> {
+    const filePath = this.resolveReference(fileUrl);
+    try {
+      const info = await lstat(filePath);
+      // Never follow symlinks or serve directories from the storage folder.
+      if (!info.isFile()) return null;
+      return { stream: createReadStream(filePath), contentType: contentTypeFor(filePath), contentLength: info.size };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
+    }
   }
 
   private resolveReference(fileUrl: string): string {
