@@ -6,12 +6,13 @@ import { join } from 'node:path';
 import type { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { corsOptions } from './cors.config';
+import { TRUST_PROXY_HOPS } from './proxy.config';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  // for rate limiting: enable trust proxy for accurate rate limiting behind reverse proxies
-  app.getHttpAdapter().getInstance().set('trust proxy', true);
+  // Rate limiting keys on req.ip, which must be the real client address behind Nginx.
+  app.getHttpAdapter().getInstance().set('trust proxy', TRUST_PROXY_HOPS);
   app.enableCors(corsOptions(process.env.CORS_ALLOWED_ORIGINS));
   const frontendDistPath = join(__dirname, '..', '..', 'frontend', 'dist');
   const frontendIndexPath = join(frontendDistPath, 'index.html');
