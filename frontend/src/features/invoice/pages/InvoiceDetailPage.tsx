@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Spin, Tag, theme, Grid, Form, Input, Select } from 'antd';
+import { Spin, Tag, theme, Grid, Form } from 'antd';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import PageHeader from '../../shared/components/PageHeader';
 import MainButton from '../../shared/components/MainButton';
@@ -9,6 +9,10 @@ import MainAlert from '../../shared/components/MainAlert';
 import MainModal from '../../shared/components/MainModal';
 import { apiClient } from '../../../services/api/client';
 import { getErrorMessage } from '../../../errors/errorMassages';
+import { mapAxiosErrorToCode } from '../../../services/api/mapAxiosError';
+import InvoiceEditForm, { buildInvoiceUpdate, invoiceToFormValues } from '../components/InvoiceEditForm';
+import type { InvoiceFormValues } from '../components/InvoiceEditForm';
+import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '../constants/invoiceLabels';
 import MobileDataCard from '../../shared/components/MobileDataCard';
 import { FileTextOutlined } from '@ant-design/icons';
 
@@ -40,7 +44,8 @@ export default function InvoiceDetailPage() {
   const isMobileOrTablet = !screens.lg
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [form] = Form.useForm();
+  const [isSaving, setIsSaving] = useState(false);
+  const [form] = Form.useForm<InvoiceFormValues>();
 
 
   const fetchInvoice = async () => {
@@ -81,21 +86,29 @@ export default function InvoiceDetailPage() {
 
 
   // Edit invoice form
-  const handleUpdateInvoice = async (values: any) => {
+  const handleUpdateInvoice = async (values: InvoiceFormValues) => {
+    const changes = buildInvoiceUpdate(invoice, values);
+    if (!Object.keys(changes).length) {
+      setIsEditModalVisible(false);
+      return;
+    }
+    setIsSaving(true);
     try {
-      await apiClient.put(`/invoices/${id}`, values);
+      await apiClient.put(`/invoices/${id}`, changes);
       setAlerts((prev) => [
         ...prev,
         { id: Date.now(), message: 'تم تعديل الفاتورة بنجاح', type: 'success' },
       ]);
       setIsEditModalVisible(false);
       fetchInvoice();
-    } catch (error: any) {
-      const msg = getErrorMessage(error) || 'فشل تعديل الفاتورة';
+    } catch (error) {
+      const msg = getErrorMessage(mapAxiosErrorToCode(error));
       setAlerts((prev) => [
         ...prev,
         { id: Date.now(), message: msg, type: 'error' },
       ]);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -190,7 +203,7 @@ export default function InvoiceDetailPage() {
       title: 'حالة الدفع',
       dataIndex: 'paymentStatus',
       key: 'paymentStatus',
-      render: (val: string) => val || '-'
+      render: (val: string) => (val && PAYMENT_STATUS_LABELS[val]) || val || '-'
     },
     {
       title: 'رقم الفاتورة',
@@ -202,7 +215,7 @@ export default function InvoiceDetailPage() {
       title: 'طريقة الدفع',
       dataIndex: 'paymentMethod',
       key: 'paymentMethod',
-      render: (val: string) => val || '-'
+      render: (val: string) => (val && PAYMENT_METHOD_LABELS[val]) || val || '-'
     },
     {
       title: 'تاريخ الفاتورة',
@@ -331,7 +344,6 @@ export default function InvoiceDetailPage() {
                     type="default"
                     text="تعديل يدوي"
                     onClick={() => {
-                      form.setFieldsValue(invoice);
                       setIsEditModalVisible(true);
                     }}
                   />
@@ -445,51 +457,9 @@ export default function InvoiceDetailPage() {
         open={isEditModalVisible}
         onOpenChange={(isOpen) => setIsEditModalVisible(isOpen)}
         onConfirm={() => form.submit()}
+        confirmLoading={isSaving}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleUpdateInvoice}
-          initialValues={invoice}
-        >
-          <Form.Item
-            name="vendorName"
-            label="اسم المورد"
-            rules={[{ required: true, message: 'يرجى إدخال اسم المورد' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="invoiceNumber"
-            label="رقم الفاتورة"
-            rules={[{ required: true, message: 'يرجى إدخال رقم الفاتورة' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="totalAmount"
-            label="المبلغ الإجمالي"
-            rules={[{ required: true, message: 'يرجى إدخال المبلغ' }]}
-          >
-            <Input type="number" />
-          </Form.Item>
-
-          <Form.Item
-            name="paymentStatus"
-            label="حالة الدفع"
-            rules={[{ required: true, message: 'يرجى اختيار حالة الدفع' }]}
-          >
-            <Select
-              options={[
-                { value: 'processing', label: 'قيد المعالجة' },
-                { value: 'completed', label: 'مكتملة' },
-                { value: 'needs_review', label: 'تحتاج مراجعة' }
-              ]}
-            />
-          </Form.Item>
-        </Form>
+        <InvoiceEditForm form={form} initialValues={invoiceToFormValues(invoice)} onFinish={handleUpdateInvoice} />
       </MainModal>
 
     </div>
