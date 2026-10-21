@@ -96,4 +96,36 @@ describe('Local invoice storage cleanup', () => {
     expect(await readFile(outsidePath, 'utf8')).toBe('keep');
     expect(await readdir(join(directory, 'uploads'))).toEqual([]);
   });
+
+  it('downloads a stored file with its size and a type from its extension', async () => {
+    const stored = await storage.upload({ originalname: 'scan.PNG', buffer: Buffer.from('png-bytes') } as Express.Multer.File);
+    const file = await storage.download(stored.fileUrl);
+    expect(file).toMatchObject({ contentType: 'image/png', contentLength: 9 });
+    const chunks: Buffer[] = [];
+    for await (const chunk of file!.stream) chunks.push(chunk as Buffer);
+    expect(Buffer.concat(chunks).toString()).toBe('png-bytes');
+  });
+
+  it('returns null for a missing file', async () => {
+    await expect(storage.download('/uploads/missing.pdf')).resolves.toBeNull();
+  });
+
+  it('does not serve directories or symlinks', async () => {
+    const uploads = join(directory, 'uploads');
+    await mkdir(join(uploads, 'folder.pdf'), { recursive: true });
+    await expect(storage.download('/uploads/folder.pdf')).resolves.toBeNull();
+    await writeFile(join(directory, 'secret.txt'), 'secret');
+    try {
+      await symlink(join(directory, 'secret.txt'), join(uploads, 'link.pdf'));
+    } catch {
+      return; // Creating symlinks needs extra privileges on Windows.
+    }
+    await expect(storage.download('/uploads/link.pdf')).resolves.toBeNull();
+  });
+
+  it.each(['/uploads/../keep.txt', '/uploads/sub/file.pdf', 'https://example.test/invoice.pdf'])(
+    'refuses to download outside the storage directory: %s', async reference => {
+      await expect(storage.download(reference)).rejects.toThrow('Invalid invoice storage URL');
+    },
+  );
 });

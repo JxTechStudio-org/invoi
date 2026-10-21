@@ -8,7 +8,9 @@ import {
 } from '@nestjs/common';
 import { Invoice, InvoiceStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { PendingFileRemoval, STORAGE_SERVICE, StorageService } from '../storage/storage.service';
+import {
+  PendingFileRemoval, STORAGE_SERVICE, StorageService, StoredFileContent,
+} from '../storage/storage.service';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { evaluateInvoiceReview, parseReviewReasons, USER_FLAGGED_REASON } from './invoice-review';
@@ -162,6 +164,17 @@ export class InvoicesService {
     } catch (error) {
       this.rethrowPersistenceError(error, id);
     }
+  }
+
+  async getFile(id: string, userId: string): Promise<StoredFileContent> {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id, userId }, select: { fileUrl: true },
+    });
+    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+    const file = await this.storageService.download(invoice.fileUrl);
+    if (!file) throw new NotFoundException(`File for invoice ${id} was not found`);
+    return file;
   }
 
   /** Human sign-off: completes the invoice even if review rules fired. */
