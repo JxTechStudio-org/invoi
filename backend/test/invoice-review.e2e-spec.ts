@@ -102,6 +102,14 @@ describe('Invoice review rules', () => {
     },
   );
 
+  it('keeps a manual user flag after edits until approval clears it', () => {
+    expect(review({ status: 'needs_review', needsReviewReason: 'customer_name_mismatch,user_flagged' }))
+      .toEqual({ status: 'needs_review', needsReviewReason: 'user_flagged' });
+    expect(review({
+      status: 'needs_review', needsReviewReason: 'user_flagged', customerName: 'Other Business',
+    })).toEqual({ status: 'needs_review', needsReviewReason: 'customer_name_mismatch,user_flagged' });
+  });
+
   it('flags failed rules even when the invoice is processing', () => {
     expect(review({ status: 'processing', customerName: 'Other Business' }).status)
       .toBe('needs_review');

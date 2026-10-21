@@ -105,6 +105,26 @@ export class InvoicesController {
     return this.invoicesService.update(id, body, userId);
   }
 
+  @Post(':id/approve')
+  @HttpCode(200)
+  approve(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.approve(id, userId);
+  }
+
+  @Post(':id/flag')
+  @HttpCode(200)
+  flag(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.flag(id, userId);
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async delete(@Param('id') id: string,
