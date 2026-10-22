@@ -39,7 +39,7 @@ describeDatabase('Extraction worker (PostgreSQL)', () => {
     const storage = { download } as unknown as StorageService;
     const extractor: InvoiceExtractor = { extract };
     return new ExtractionWorkerService(
-      { enabled: true, accountAllowlist: [], monthlyBudgetUsd: 2, ...config },
+      { enabled: true, accountAllowlist: [], monthlyBudgetUsd: 2, model: 'claude-sonnet-5-5', ...config },
       new ExtractionJobsService(prisma as PrismaService), storage, new MetricsService(), extractor,
     );
   }

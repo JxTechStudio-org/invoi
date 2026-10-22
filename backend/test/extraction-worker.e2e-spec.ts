@@ -8,21 +8,24 @@ import { StorageService } from '../src/storage/storage.service';
 describe('Extraction configuration', () => {
   it('is off by default with a USD 2 budget and every account allowed', () => {
     expect(extractionConfigFromEnvironment({})).toEqual({
-      enabled: false, accountAllowlist: [], monthlyBudgetUsd: 2,
+      enabled: false, accountAllowlist: [], monthlyBudgetUsd: 2, model: 'claude-sonnet-5-5',
     });
   });
 
   it('reads the kill switch, allow-list and budget', () => {
     expect(extractionConfigFromEnvironment({
       EXTRACTION_ENABLED: ' TRUE ', EXTRACTION_ACCOUNT_ALLOWLIST: ' user-1, ,user-2 ',
-      EXTRACTION_MONTHLY_BUDGET_USD: '5.5',
-    })).toEqual({ enabled: true, accountAllowlist: ['user-1', 'user-2'], monthlyBudgetUsd: 5.5 });
+      EXTRACTION_MONTHLY_BUDGET_USD: '5.5', EXTRACTION_MODEL: 'claude-haiku-5-5',
+    })).toEqual({
+      enabled: true, accountAllowlist: ['user-1', 'user-2'], monthlyBudgetUsd: 5.5, model: 'claude-haiku-5-5',
+    });
   });
 
   it.each([
     [{ EXTRACTION_ENABLED: 'yes' }, 'EXTRACTION_ENABLED must be true or false'],
     [{ EXTRACTION_MONTHLY_BUDGET_USD: '-1' }, 'non-negative number'],
     [{ EXTRACTION_MONTHLY_BUDGET_USD: 'two' }, 'non-negative number'],
+    [{ EXTRACTION_MODEL: 'claude-opus-5-5' }, 'EXTRACTION_MODEL must be one of'],
   ])('rejects invalid settings %p', (environment, message) => {
     expect(() => extractionConfigFromEnvironment(environment)).toThrow(message);
   });
@@ -34,7 +37,7 @@ describe('Extraction worker startup', () => {
 
   function worker(enabled: boolean, withExtractor: boolean) {
     return new ExtractionWorkerService(
-      { enabled, accountAllowlist: [], monthlyBudgetUsd: 2 },
+      { enabled, accountAllowlist: [], monthlyBudgetUsd: 2, model: 'claude-sonnet-5-5' },
       jobs as unknown as ExtractionJobsService, {} as StorageService, new MetricsService(),
       withExtractor ? extractor : null,
     );

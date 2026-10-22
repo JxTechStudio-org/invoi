@@ -1,3 +1,5 @@
+import { ExtractionModel, SUPPORTED_EXTRACTION_MODELS } from './claude-invoice-model';
+
 export const EXTRACTION_CONFIG = Symbol('EXTRACTION_CONFIG');
 
 export interface ExtractionConfig {
@@ -7,6 +9,8 @@ export interface ExtractionConfig {
   accountAllowlist: string[];
   /** Hard monthly cap on AI spend, shared with analytics (A4, H2). */
   monthlyBudgetUsd: number;
+  /** Claude model for extraction (A2); Haiku 5.5 is the comparison candidate. */
+  model: ExtractionModel;
 }
 
 const DEFAULT_MONTHLY_BUDGET_USD = 2;
@@ -25,10 +29,16 @@ export function extractionConfigFromEnvironment(
     throw new Error('EXTRACTION_MONTHLY_BUDGET_USD must be a non-negative number');
   }
 
+  const model = (environment.EXTRACTION_MODEL ?? '').trim() || 'claude-sonnet-5-5';
+  if (!(SUPPORTED_EXTRACTION_MODELS as readonly string[]).includes(model)) {
+    throw new Error(`EXTRACTION_MODEL must be one of ${SUPPORTED_EXTRACTION_MODELS.join(', ')}`);
+  }
+
   return {
     enabled: enabled === 'true',
     accountAllowlist: (environment.EXTRACTION_ACCOUNT_ALLOWLIST ?? '')
       .split(',').map(id => id.trim()).filter(Boolean),
     monthlyBudgetUsd,
+    model: model as ExtractionModel,
   };
 }
