@@ -253,4 +253,35 @@ describe('Storage reference routing', () => {
     expect(rustfs.remove).not.toHaveBeenCalled();
     expect(rustfs.stageRemoval).not.toHaveBeenCalled();
   });
+
+  it('treats seeded demo references as having no file instead of calling a backend', async () => {
+    const rustfs = storage();
+    const local = storage();
+    const router = new ReferenceRoutingStorageService(rustfs, local);
+    const fileUrl = 'seed://invoices/demo-1.pdf';
+
+    await expect(router.download(fileUrl)).resolves.toBeNull();
+    const removal = await router.stageRemoval(fileUrl);
+    await expect(removal.finalize()).resolves.toBeUndefined();
+    await expect(removal.restore()).resolves.toBeUndefined();
+    await expect(router.remove({ fileUrl })).resolves.toBeUndefined();
+
+    for (const backend of [rustfs, local]) {
+      expect(backend.download).not.toHaveBeenCalled();
+      expect(backend.stageRemoval).not.toHaveBeenCalled();
+      expect(backend.remove).not.toHaveBeenCalled();
+    }
+  });
+
+  it('guards seed references before they reach RustFS, which would reject them', async () => {
+    const send = jest.fn();
+    const rustfs = new RustFsStorageService({
+      endpoint: 'http://rustfs:9000', region: 'us-east-1', bucket: 'invoices',
+      accessKey: randomUUID(), secretKey: randomUUID(),
+    }, { send } as unknown as S3Client);
+    const router = new ReferenceRoutingStorageService(rustfs, storage());
+    await expect(router.download('seed://invoices/demo-1.pdf')).resolves.toBeNull();
+    await expect(rustfs.download('seed://invoices/demo-1.pdf')).rejects.toThrow('Invalid RustFS storage reference');
+    expect(send).not.toHaveBeenCalled();
+  });
 });
