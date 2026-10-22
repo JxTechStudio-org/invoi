@@ -217,27 +217,27 @@ describe('Invoice lifecycle API (e2e)', () => {
 
   it('does not flag positive monetary values based on an inferred accounting threshold', async () => {
     const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
-      .send({ totalAmount: '1.00', taxAmount: '9999.99' }).expect(200);
+      .send({ totalAmount: '1150.00', taxAmount: '150.00' }).expect(200);
     expect(response.body).toMatchObject({ status: 'completed', needsReviewReason: null });
   });
 
   it('applies the owning user amount threshold with Decimal precision', async () => {
     reviewAmountThreshold = new Prisma.Decimal('100.00');
     const equal = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
-      .send({ totalAmount: '100.00', taxAmount: '100.00' }).expect(200);
+      .send({ totalAmount: '100.00', taxAmount: '13.04' }).expect(200);
     expect(equal.body.needsReviewReason).toBeNull();
 
     const above = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
-      .send({ taxAmount: '100.01' }).expect(200);
+      .send({ totalAmount: '100.01' }).expect(200);
     expect(above.body).toMatchObject({
       status: 'needs_review', needsReviewReason: 'amount_threshold_exceeded',
     });
   });
 
-  it('accepts zero amounts without inferring a review reason', async () => {
+  it('accepts zero amounts but sends a zero total to review (B8)', async () => {
     const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
       .send({ totalAmount: '0', taxAmount: '0' }).expect(200);
-    expect(response.body).toMatchObject({ status: 'completed', needsReviewReason: null });
+    expect(response.body).toMatchObject({ status: 'needs_review', needsReviewReason: 'zero_total' });
   });
 
   it('clears resolved reasons without inventing extraction completion', async () => {

@@ -122,6 +122,15 @@ describeDatabase('Extraction worker (PostgreSQL)', () => {
     expect(await invoice('a')).toMatchObject({ status: 'needs_review', needsReviewReason: 'low_confidence' });
   });
 
+  it('adds review reasons only extraction knows, keeping sticky ones (F24)', async () => {
+    extract.mockResolvedValue({ ...cleanResult, reviewReasons: ['multiple_invoices'] });
+    await addInvoice('a', 'owner', { needsReviewReason: 'user_flagged' });
+    await run();
+    expect(await invoice('a')).toMatchObject({
+      status: 'needs_review', needsReviewReason: 'user_flagged,multiple_invoices',
+    });
+  });
+
   it('never overwrites fields the user edited (C12)', async () => {
     await addInvoice('a', 'owner', { vendorName: 'Typed by user', editedFields: ['vendorName'] });
     await run();

@@ -152,7 +152,7 @@ export class InvoicesService {
       where: { id, userId }, include: {
         user: {
           select: {
-            businessName: true, reviewAmountThreshold: true,
+            businessName: true, businessNameEn: true, reviewAmountThreshold: true,
           }
         }
       },

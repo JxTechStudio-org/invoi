@@ -25,6 +25,8 @@ export interface ExtractionResult {
   /** Model ID used, or `zatca_qr` when the QR code alone was enough (E17). */
   model: string;
   costUsd: number;
+  /** Review reasons only extraction can know, such as multiple_invoices (F24). */
+  reviewReasons?: string[];
 }
 
 /** Reads one invoice file. Implemented in later Phase 1 tasks (QR reader, model client). */

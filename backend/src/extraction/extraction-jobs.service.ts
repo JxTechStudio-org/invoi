@@ -85,7 +85,7 @@ export class ExtractionJobsService {
       await tx.$queryRaw`SELECT 1 FROM "Invoice" WHERE "id" = ${job.invoiceId} FOR UPDATE`;
       const invoice = await tx.invoice.findUnique({
         where: { id: job.invoiceId },
-        include: { user: { select: { businessName: true, reviewAmountThreshold: true } } },
+        include: { user: { select: { businessName: true, businessNameEn: true, reviewAmountThreshold: true } } },
       });
       if (!invoice || invoice.status !== InvoiceStatus.processing) return;
 
@@ -97,8 +97,10 @@ export class ExtractionJobsService {
       const confidence = Object.fromEntries(
         Object.entries(result.confidence).filter(([field]) => !edited.has(field)),
       );
-      const reasons = parseReviewReasons(invoice.needsReviewReason)
-        .filter(reason => reason !== EXTRACTION_FAILED_REASON);
+      const reasons = [...new Set([
+        ...parseReviewReasons(invoice.needsReviewReason).filter(reason => reason !== EXTRACTION_FAILED_REASON),
+        ...(result.reviewReasons ?? []),
+      ])];
 
       const review = evaluateInvoiceReview({
         ...invoice,

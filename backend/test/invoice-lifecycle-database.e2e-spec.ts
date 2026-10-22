@@ -98,12 +98,12 @@ describeDatabase('Invoice lifecycle persistence (PostgreSQL)', () => {
   it('persists manual corrections and exposes recalculated status', async () => {
     const id = await upload();
     await request(app.getHttpServer()).put(`/api/invoices/${id}`).send({
-      totalAmount: '100.00', taxAmount: '99.99', customerName: '  DEMO, Business. ',
+      totalAmount: '100.00', taxAmount: '13.04', customerName: '  DEMO, Business. ',
       invoiceDate: '2026-09-12',
     }).expect(200);
     const saved = await prisma.invoice.findUniqueOrThrow({ where: { id } });
     expect(saved.totalAmount?.toFixed(2)).toBe('100.00');
-    expect(saved.taxAmount?.toFixed(2)).toBe('99.99');
+    expect(saved.taxAmount?.toFixed(2)).toBe('13.04');
     expect(saved.userId).toBe(userId);
     expect(saved.status).toBe('processing');
     expect(saved.needsReviewReason).toBeNull();

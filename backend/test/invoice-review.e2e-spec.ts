@@ -7,7 +7,8 @@ describe('Invoice review rules', () => {
     changes: Partial<Invoice> = {},
     businessName: string | null = 'Demo Business',
     reviewAmountThreshold: Prisma.Decimal | null = null,
-  ) => evaluateInvoiceReview(invoiceFixture(changes), { businessName, reviewAmountThreshold });
+    businessNameEn: string | null = null,
+  ) => evaluateInvoiceReview(invoiceFixture(changes), { businessName, businessNameEn, reviewAmountThreshold });
 
   it('accepts confidence exactly at 90 percent', () => {
     expect(review({ extractionConfidence: { vendorName: 0.9, totalAmount: 1 } }))
@@ -24,14 +25,14 @@ describe('Invoice review rules', () => {
   });
 
   it.each([
-    ['0', '0'], ['1.00', '9999.99'], ['9999999999.99', '9999999999.99'],
+    ['1.00', '0.13'], ['115.00', '15.00'], ['9999999999.99', '1304347826.09'],
   ])('disables amount review when the user threshold is null: %s / %s', (total, tax) => {
     expect(review({ totalAmount: new Prisma.Decimal(total), taxAmount: new Prisma.Decimal(tax) })
       .needsReviewReason).toBeNull();
   });
 
   it.each([
-    ['99.99', '99.99'], ['100.00', '100.00'],
+    ['99.99', '13.04'], ['100.00', '30.00'],
   ])('does not flag amounts at or below the threshold: %s / %s', (total, tax) => {
     expect(review({
       totalAmount: new Prisma.Decimal(total), taxAmount: new Prisma.Decimal(tax),
@@ -39,7 +40,7 @@ describe('Invoice review rules', () => {
   });
 
   it.each([
-    ['100.01', '0'], ['0', '100.01'], ['100.01', '100.01'],
+    ['100.01', '0'], ['100.01', '13.05'], ['500.00', '100.01'],
   ])('flags either amount above the threshold exactly once: %s / %s', (total, tax) => {
     expect(review({
       totalAmount: new Prisma.Decimal(total), taxAmount: new Prisma.Decimal(tax),
@@ -87,7 +88,7 @@ describe('Invoice review rules', () => {
       totalAmount: new Prisma.Decimal('100.01'), taxAmount: new Prisma.Decimal('100.02'),
     }, 'Demo Business', new Prisma.Decimal('100.00'))).toEqual({
       status: 'needs_review',
-      needsReviewReason: 'low_confidence,customer_name_mismatch,amount_threshold_exceeded',
+      needsReviewReason: 'low_confidence,customer_name_mismatch,amount_threshold_exceeded,tax_over_30_percent',
     });
   });
 
@@ -113,5 +114,36 @@ describe('Invoice review rules', () => {
   it('flags failed rules even when the invoice is processing', () => {
     expect(review({ status: 'processing', customerName: 'Other Business' }).status)
       .toBe('needs_review');
+  });
+
+  it.each([['0', '0'], ['0.00', null]])('sends a zero total to review but keeps it approvable (B8): %s / %s', (total, tax) => {
+    expect(review({ totalAmount: new Prisma.Decimal(total), taxAmount: tax === null ? null : new Prisma.Decimal(tax) }))
+      .toEqual({ status: 'needs_review', needsReviewReason: 'zero_total' });
+  });
+
+  it.each([
+    ['100.00', '30.00', null], ['100.00', '30.01', 'tax_over_30_percent'],
+    ['1.00', '9999.99', 'tax_over_30_percent'], ['0', '0.01', 'zero_total,tax_over_30_percent'],
+  ])('checks tax above 30%% of the total on every invoice: %s / %s', (total, tax, expected) => {
+    for (const currency of ['SAR', 'USD'] as const) {
+      expect(review({
+        currency, taxNumber: null, totalAmount: new Prisma.Decimal(total), taxAmount: new Prisma.Decimal(tax),
+      }).needsReviewReason).toBe(expected);
+    }
+  });
+
+  it('matches the customer against the English business name too (F19)', () => {
+    expect(review({ customerName: 'Demo Trading Co.' }, 'مؤسسة التجربة', null, 'Demo Trading Co')
+      .needsReviewReason).toBeNull();
+    expect(review({ customerName: 'مؤسسة التجربة' }, 'مؤسسة التجربة', null, 'Demo Trading Co')
+      .needsReviewReason).toBeNull();
+    expect(review({ customerName: 'Other Co' }, 'مؤسسة التجربة', null, 'Demo Trading Co')
+      .needsReviewReason).toBe('customer_name_mismatch');
+  });
+
+  it('keeps multiple_invoices and user_flagged until approval, and drops extraction_failed on edit', () => {
+    expect(review({ needsReviewReason: 'multiple_invoices,user_flagged,extraction_failed' })).toEqual({
+      status: 'needs_review', needsReviewReason: 'user_flagged,multiple_invoices',
+    });
   });
 });
