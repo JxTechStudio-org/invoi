@@ -169,7 +169,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     { totalAmount: 'NaN' }, { totalAmount: true }, { taxAmount: {} },
     { totalAmount: '-1' }, { totalAmount: -0.01 }, { taxAmount: '-0.01' }, { taxAmount: -10 },
     { amountPaid: '-0.01' }, { amountPaid: '1.001' }, { amountPaid: '10000000000' },
-    { paymentStatus: 'invalid' }, { paymentMethod: 'Bank Transfer' }, { currency: 'EUR' },
+    { paymentStatus: 'invalid' }, { paymentMethod: 'Bank Transfer' }, { currency: 'XYZ' }, { currency: 'eur' },
   ])('rejects invalid updates %p', async body => {
     await request(app.getHttpServer()).put('/api/invoices/test-invoice').send(body).expect(400);
     expect(update).not.toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('Invoice lifecycle API (e2e)', () => {
     },
   );
 
-  it.each(['SAR', 'USD', 'AED'])('accepts currency %s', async currency => {
+  it.each(['SAR', 'USD', 'AED', 'EUR', 'KWD', 'INR'])('accepts currency %s', async currency => {
     await request(app.getHttpServer()).put('/api/invoices/test-invoice')
       .send({ currency }).expect(200);
     expect(records.get('test-invoice')?.currency).toBe(currency);

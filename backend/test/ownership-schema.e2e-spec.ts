@@ -18,6 +18,12 @@ describe('Ownership schema', () => {
       type: 'Decimal', isRequired: false,
     });
     expect(user.fields.some((field) => field.name === 'password')).toBe(false);
+    expect(user.fields.find((field) => field.name === 'businessNameEn')).toMatchObject({
+      type: 'String', isRequired: false,
+    });
+    expect(user.fields.find((field) => field.name === 'isDemo')).toMatchObject({
+      type: 'Boolean', isRequired: true, default: false,
+    });
   });
 
   it('requires every invoice to belong to one user through a foreign key', () => {
@@ -45,7 +51,10 @@ describe('Ownership schema', () => {
     ['customerName', 'String', false], ['taxNumber', 'String', false],
     ['crNumber', 'String', false], ['extractionConfidence', 'Json', false],
     ['needsReviewReason', 'String', false], ['createdAt', 'DateTime', true],
-    ['updatedAt', 'DateTime', true],
+    ['updatedAt', 'DateTime', true], ['editedFields', 'String', true],
+    ['extractionModel', 'String', false], ['extractionDurationMs', 'Int', false],
+    ['extractionCostUsd', 'Decimal', false], ['extractedAt', 'DateTime', false],
+    ['paidAt', 'DateTime', false],
   ])('defines Invoice.%s with the intended type and nullability', (name, type, isRequired) => {
     expect(invoice.fields.find((field) => field.name === name)).toMatchObject({
       type, isRequired,
@@ -63,7 +72,10 @@ describe('Ownership schema', () => {
       bank_transfer: 'bank_transfer', credit_card: 'credit_card', cash: 'cash',
       cheque: 'cheque', online_payment: 'online_payment', mixed: 'mixed',
     });
-    expect(Currency).toEqual({ SAR: 'SAR', USD: 'USD', AED: 'AED' });
+    // F22: the original three plus ten currencies vendors commonly bill in.
+    expect(Object.keys(Currency)).toEqual([
+      'SAR', 'USD', 'AED', 'EUR', 'GBP', 'KWD', 'QAR', 'BHD', 'OMR', 'EGP', 'JOD', 'CNY', 'INR',
+    ]);
     for (const name of ['invoiceType', 'sellerName', 'amount', 'needsReview']) {
       expect(invoice.fields.some((field) => field.name === name)).toBe(false);
     }
