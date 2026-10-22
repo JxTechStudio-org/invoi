@@ -1,0 +1,6 @@
+# Real invoices and filled answer sheets contain business data: keep them out of git.
+*
+!.gitignore
+!README.md
+!answers-template.csv
+!answers-example.csv
