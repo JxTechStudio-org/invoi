@@ -45,6 +45,7 @@ describe('Invoice upload ownership service', () => {
     expect(create).toHaveBeenCalledWith({ data: {
       fileUrl: 's3://invoices/invoices/test-upload.pdf', status: 'processing',
       user: { connect: { id: 'existing-test-owner' } },
+      extractionJobs: { create: {} },
     } });
     expect(invoice).toMatchObject({ id: 'created-invoice', userId: 'existing-test-owner' });
     expect(findUser.mock.invocationCallOrder[0]).toBeLessThan(upload.mock.invocationCallOrder[0]);
