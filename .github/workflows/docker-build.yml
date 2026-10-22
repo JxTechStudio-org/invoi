@@ -44,7 +44,7 @@ jobs:
       - name: Report image size
         run: |
           bytes=$(docker image inspect --format '{{.Size}}' invoi-app:ci)
-          echo "Image size: ${bytes} bytes ($(numfmt --to=iec --suffix=B "${bytes}"))"
+          echo "::notice title=Image size::${bytes} bytes ($(numfmt --to=iec --suffix=B "${bytes}"))"
           {
             echo "### Docker image"
             echo ""
@@ -61,9 +61,11 @@ jobs:
       - name: Run backend tests in the image
         # Host networking lets the container reach the Postgres service on localhost, so the
         # database suites run too (they skip without TEST_DATABASE_URL).
-        run: >-
-          docker run --rm --network host
-          -e JWT_SECRET=ci-test-secret
-          -e DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test
-          -e TEST_DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test
-          invoi-app:ci npm run test:e2e
+        run: |
+          set -o pipefail
+          docker run --rm --network host \
+            -e JWT_SECRET=ci-test-secret \
+            -e DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test \
+            -e TEST_DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test \
+            invoi-app:ci npm run test:e2e 2>&1 | tee test-output.txt
+          echo "::notice title=Backend tests::$(grep -E '^(Test Suites|Tests):' test-output.txt | tr '\n' ' ')"
