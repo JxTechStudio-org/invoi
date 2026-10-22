@@ -6,6 +6,8 @@ type ReviewInput = Pick<Invoice,
 
 // Set by the user ("report an error"); only approval clears it.
 export const USER_FLAGGED_REASON = 'user_flagged';
+// Set when every extraction attempt failed (C11); the user fills the fields in by hand.
+export const EXTRACTION_FAILED_REASON = 'extraction_failed';
 
 export function parseReviewReasons(reasons: string | null): string[] {
   return reasons ? reasons.split(',').filter(Boolean) : [];
