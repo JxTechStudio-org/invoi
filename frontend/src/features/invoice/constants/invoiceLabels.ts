@@ -19,7 +19,17 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 export const CURRENCY_LABELS: Record<string, string> = {
     SAR: 'ريال سعودي (SAR)',
     USD: 'دولار أمريكي (USD)',
-    AED: 'درهم إماراتي (AED)'
+    AED: 'درهم إماراتي (AED)',
+    EUR: 'يورو (EUR)',
+    GBP: 'جنيه إسترليني (GBP)',
+    KWD: 'دينار كويتي (KWD)',
+    QAR: 'ريال قطري (QAR)',
+    BHD: 'دينار بحريني (BHD)',
+    OMR: 'ريال عماني (OMR)',
+    EGP: 'جنيه مصري (EGP)',
+    JOD: 'دينار أردني (JOD)',
+    CNY: 'يوان صيني (CNY)',
+    INR: 'روبية هندية (INR)'
 }
 
 export const toOptions = (labels: Record<string, string>) =>

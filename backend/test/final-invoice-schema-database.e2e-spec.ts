@@ -96,7 +96,14 @@ describeDatabase('Final invoice schema migration (PostgreSQL)', () => {
   });
 
   it('preserves rows, ownership, lifecycle status, and monetary values while mapping enums', async () => {
-    const invoices = await prisma.invoice.findMany({ orderBy: { id: 'asc' } });
+    // Explicit selects: later migrations add columns this schema version does not have.
+    const invoices = await prisma.invoice.findMany({
+      orderBy: { id: 'asc' },
+      select: {
+        id: true, userId: true, status: true, totalAmount: true, taxAmount: true,
+        amountPaid: true, paymentStatus: true, paymentMethod: true, currency: true,
+      },
+    });
     expect(invoices).toHaveLength(6);
     expect(invoices.map(invoice => ({
       id: invoice.id,
@@ -147,7 +154,14 @@ describeDatabase('Final invoice schema migration (PostgreSQL)', () => {
     expect(user.reviewAmountThreshold).toBeNull();
     expect(await prisma.invoice.count({ where: { userId: user.id } })).toBe(6);
 
-    expect(await prisma.invoice.findUniqueOrThrow({ where: { id: 'invoice-bank' } }))
+    expect(await prisma.invoice.findUniqueOrThrow({
+      where: { id: 'invoice-bank' },
+      select: {
+        fileUrl: true, vendorName: true, invoiceNumber: true, invoiceDate: true, dueDate: true,
+        customerName: true, taxNumber: true, crNumber: true, extractionConfidence: true,
+        needsReviewReason: true, createdAt: true, updatedAt: true,
+      },
+    }))
       .toMatchObject({
         fileUrl: '/bank.pdf', vendorName: 'Legacy Vendor', invoiceNumber: 'LEGACY-001',
         invoiceDate: new Date('2026-08-01T00:00:00.000Z'),
