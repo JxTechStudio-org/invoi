@@ -38,3 +38,12 @@ export interface PendingFileRemoval {
   finalize(): Promise<void>;
   restore(): Promise<void>;
 }
+
+export function noOpRemoval(): PendingFileRemoval {
+  return { finalize: async () => {}, restore: async () => {} };
+}
+
+// Demo invoices are seeded with `seed://` references; no stored file exists behind them.
+export function isFilelessReference(fileUrl: string): boolean {
+  return fileUrl.startsWith('seed://');
+}

@@ -123,6 +123,17 @@ describe('Local invoice storage cleanup', () => {
     await expect(storage.download('/uploads/link.pdf')).resolves.toBeNull();
   });
 
+  it('treats seeded demo references as having no file', async () => {
+    const outsidePath = join(directory, 'keep.txt');
+    await writeFile(outsidePath, 'keep');
+    await expect(storage.download('seed://invoices/demo-1.pdf')).resolves.toBeNull();
+    const removal = await storage.stageRemoval('seed://invoices/demo-1.pdf');
+    await expect(removal.finalize()).resolves.toBeUndefined();
+    await expect(removal.restore()).resolves.toBeUndefined();
+    await expect(storage.remove({ fileUrl: 'seed://invoices/demo-1.pdf' })).resolves.toBeUndefined();
+    expect(await readFile(outsidePath, 'utf8')).toBe('keep');
+  });
+
   it.each(['/uploads/../keep.txt', '/uploads/sub/file.pdf', 'https://example.test/invoice.pdf'])(
     'refuses to download outside the storage directory: %s', async reference => {
       await expect(storage.download(reference)).rejects.toThrow('Invalid invoice storage URL');

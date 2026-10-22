@@ -167,7 +167,7 @@ Set `STORAGE_DRIVER=rustfs` and provide all five `RUSTFS_*` application settings
 - Staged deletion copies the object to `_deleting/<uuid>` and deletes the original. Restore copies it back; finalization deletes the staging copy.
 - The RustFS management console on port `9001` is separate from the S3 API on port `9000`. `RUSTFS_ENDPOINT` must target the S3 API.
 
-With RustFS selected, [ReferenceRoutingStorageService](src/storage/reference-routing-storage.service.ts) sends new uploads to RustFS and routes removal of existing `/uploads/...` references to local storage. S3 references route to RustFS and must match the configured bucket. Keep the legacy upload directory or volume available; selecting RustFS does not migrate existing files. Selecting local storage alone does not support S3 references.
+With RustFS selected, [ReferenceRoutingStorageService](src/storage/reference-routing-storage.service.ts) sends new uploads to RustFS and routes removal of existing `/uploads/...` references to local storage. S3 references route to RustFS and must match the configured bucket. Keep the legacy upload directory or volume available; selecting RustFS does not migrate existing files. Selecting local storage alone does not support S3 references. Seeded demo `seed://...` references have no stored file: downloads return 404 and deletion removes only the database row.
 
 ### Database and File Consistency
 
