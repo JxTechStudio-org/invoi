@@ -13,7 +13,7 @@ import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import type { Readable } from 'node:stream';
 import {
-  contentTypeFor, PendingFileRemoval, StorageService, StoredFile, StoredFileContent,
+  contentTypeFor, noOpRemoval, PendingFileRemoval, StorageService, StoredFile, StoredFileContent,
 } from './storage.service';
 
 export interface RustFsStorageConfig {
@@ -218,10 +218,6 @@ export class RustFsStorageService implements StorageService {
     const candidates = allowed[file.mimetype] ?? [];
     return candidates.includes(extension) ? extension : (candidates[0] ?? '');
   }
-}
-
-function noOpRemoval(): PendingFileRemoval {
-  return { finalize: async () => {}, restore: async () => {} };
 }
 
 function isNotFound(error: unknown): boolean {
