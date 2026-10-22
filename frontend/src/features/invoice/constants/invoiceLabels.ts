@@ -40,7 +40,11 @@ export const REVIEW_REASON_LABELS: Record<string, string> = {
     low_confidence: 'بعض الحقول المستخرجة بدرجة ثقة منخفضة',
     customer_name_mismatch: 'اسم العميل في الفاتورة لا يطابق اسم المنشأة',
     amount_threshold_exceeded: 'المبلغ يتجاوز حد المراجعة المحدد',
-    user_flagged: 'تم الإبلاغ عن خطأ في هذه الفاتورة'
+    user_flagged: 'تم الإبلاغ عن خطأ في هذه الفاتورة',
+    extraction_failed: 'تعذّر استخراج بيانات الفاتورة تلقائياً، يرجى إدخالها يدوياً',
+    zero_total: 'المبلغ الإجمالي يساوي صفراً',
+    tax_over_30_percent: 'مبلغ الضريبة يتجاوز 30% من الإجمالي',
+    multiple_invoices: 'الملف يحتوي على أكثر من فاتورة، وتم استخراج الأولى فقط'
 }
 
 // Must match approvalRequiredFields in backend/src/invoices/invoices.service.ts
