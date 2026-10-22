@@ -63,6 +63,8 @@ export class InvoicesService {
           fileUrl: storedFile.fileUrl,
           status: InvoiceStatus.processing,
           user: { connect: { id: user.id } },
+          // Queued in the same insert so no upload is missed (A5); the worker decides when it runs.
+          extractionJobs: { create: {} },
         },
       });
     } catch (error) {

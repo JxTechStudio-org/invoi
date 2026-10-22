@@ -37,8 +37,10 @@ describeDatabase('Extraction schema migration (PostgreSQL)', () => {
     temporaryDirectory = mkdtempSync(join(tmpdir(), 'invoi-extraction-schema-migrations-'));
     cpSync(join(prismaDirectory, 'schema.prisma'), join(temporaryDirectory, 'schema.prisma'));
     mkdirSync(join(temporaryDirectory, 'migrations'));
-    for (const entry of readdirSync(join(prismaDirectory, 'migrations'))) {
-      if (entry !== EXTRACTION_MIGRATION) copyMigration(entry);
+    // Migrations before this one, then this one and everything after it.
+    const migrations = readdirSync(join(prismaDirectory, 'migrations'));
+    for (const entry of migrations) {
+      if (entry === 'migration_lock.toml' || entry < EXTRACTION_MIGRATION) copyMigration(entry);
     }
     deploy(join(temporaryDirectory, 'schema.prisma'), url.toString());
 
@@ -58,7 +60,9 @@ describeDatabase('Extraction schema migration (PostgreSQL)', () => {
         ('real-paid', 'real-user', 's3://invoices/invoices/real.pdf', 'completed', 'paid', 'SAR', '2026-09-12T08:00:00.000Z')
     `;
 
-    copyMigration(EXTRACTION_MIGRATION);
+    for (const entry of migrations) {
+      if (entry !== 'migration_lock.toml' && entry >= EXTRACTION_MIGRATION) copyMigration(entry);
+    }
     deploy(join(temporaryDirectory, 'schema.prisma'), url.toString());
   }, 90000);
 
@@ -101,8 +105,9 @@ describeDatabase('Extraction schema migration (PostgreSQL)', () => {
     const analysis = await prisma.analysisJob.create({ data: { userId: 'real-user', type: 'dpo_aging' } });
     expect(analysis).toMatchObject({ state: 'queued', result: null, costUsd: null });
 
-    // Deleting an invoice removes its extraction jobs.
+    // Deleting an invoice keeps its extraction jobs (their cost counts toward the budget).
     await prisma.invoice.delete({ where: { id: 'real-paid' } });
-    expect(await prisma.extractionJob.count()).toBe(0);
+    expect(await prisma.extractionJob.findUniqueOrThrow({ where: { id: job.id } }))
+      .toMatchObject({ invoiceId: null });
   });
 });
