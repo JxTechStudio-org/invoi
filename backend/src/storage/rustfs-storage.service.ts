@@ -2,6 +2,7 @@ import {
   CopyObjectCommand,
   CreateBucketCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -10,7 +11,10 @@ import {
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
-import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
+import type { Readable } from 'node:stream';
+import {
+  contentTypeFor, PendingFileRemoval, StorageService, StoredFile, StoredFileContent,
+} from './storage.service';
 
 export interface RustFsStorageConfig {
   endpoint: string;
@@ -141,6 +145,23 @@ export class RustFsStorageService implements StorageService {
         await this.delete(stagedKey);
       },
     };
+  }
+
+  async download(fileUrl: string): Promise<StoredFileContent | null> {
+    const key = this.keyFromReference(fileUrl);
+    try {
+      const object = await this.client.send(new GetObjectCommand({ Bucket: this.config.bucket, Key: key }));
+      if (!object.Body) return null;
+      return {
+        // In Node.js the SDK returns the body as a Readable stream.
+        stream: object.Body as Readable,
+        contentType: contentTypeFor(key),
+        contentLength: object.ContentLength,
+      };
+    } catch (error) {
+      if (isNotFound(error)) return null;
+      throw error;
+    }
   }
 
   private async ensureBucket(): Promise<void> {

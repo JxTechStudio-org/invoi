@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, theme, Empty, Flex } from 'antd'
 import { FileTextOutlined } from '@ant-design/icons'
@@ -8,11 +8,16 @@ import PendingValue from '../../shared/components/PendingValue'
 import MainAlert from '../../shared/components/MainAlert'
 import MainButton from '../../shared/components/MainButton'
 import { useInvoicesList } from '../hooks/useInvoicesList'
+import { openInvoiceFile } from '../api/invoiceFileApi'
+import { mapAxiosErrorToCode } from '../../../services/api/mapAxiosError'
+import { getErrorMessage } from '../../../errors/errorMassages'
 import type { Invoice, InvoicesListFilters } from '../api/invoicesListApi'
 import type { TableColumnsType } from 'antd'
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
 import FilterBar from '../../shared/components/FilterBar'
 import PageHeader from '../../shared/components/PageHeader'
+import ExportButton from '../../shared/components/ExportButton'
+import { useExportInvoices } from '../../dashboard/hooks/useExportInvoices'
 
 const { useBreakpoint } = Grid
 
@@ -24,6 +29,18 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function InvoicesListPage() {
     const [filters, setFilters] = useState<InvoicesListFilters>({})
+    const [fileError, setFileError] = useState<string | null>(null)
+    const [searchInput, setSearchInput] = useState('')
+    const { exportInvoices, isExporting, errorMessage: exportError } = useExportInvoices()
+
+    // Wait until typing pauses: every request counts against the API rate limit (60/min).
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const search = searchInput.trim() || undefined
+            setFilters((prev) => (prev.search === search ? prev : { ...prev, search }))
+        }, 400)
+        return () => clearTimeout(timer)
+    }, [searchInput])
     const { invoices, isLoading, errorMessage } = useInvoicesList(filters)
     const screens = useBreakpoint()
     const isMobileOrTablet = !screens.lg
@@ -49,11 +66,12 @@ export default function InvoicesListPage() {
     }
 
     const handleReset = () => {
+        setSearchInput('')
         setFilters({})
     }
 
-    const handleSearch = (value: string) => {
-        setFilters((prev) => ({ ...prev, search: value.trim() === '' ? undefined : value }))
+    const handleDateChange = (date: string | undefined) => {
+        setFilters((prev) => ({ ...prev, date }))
     }
 
     const columns: TableColumnsType<Invoice> = [
@@ -61,8 +79,13 @@ export default function InvoicesListPage() {
             title: 'الملف',
             dataIndex: 'fileUrl',
             key: 'fileUrl',
-            render: (value: string) => (
-                <a href={value} target="_blank" rel="noopener noreferrer" style={{ color: token.colorPrimary, textDecoration: 'underline' }}>
+            render: (_value: string, record) => (
+                <a
+                    onClick={() => {
+                        openInvoiceFile(record.id).catch((error) => setFileError(getErrorMessage(mapAxiosErrorToCode(error))))
+                    }}
+                    style={{ color: token.colorPrimary, textDecoration: 'underline', cursor: 'pointer' }}
+                >
                     <FileTextOutlined /> عرض الملف
                 </a>
             )
@@ -77,7 +100,7 @@ export default function InvoicesListPage() {
             title: 'تاريخ الفاتورة',
             dataIndex: 'invoiceDate',
             key: 'invoiceDate',
-            render: (value) => <PendingValue value={value} />
+            render: (value: string | null) => <PendingValue value={value?.slice(0, 10)} />
         },
         {
             title: 'المبلغ',
@@ -117,12 +140,20 @@ export default function InvoicesListPage() {
             <FilterBar
                 filters={filterConfig}
                 onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
+                onSearch={setSearchInput}
                 onReset={handleReset}
                 searchPlaceholder="بحث في الفواتير..."
+                dateFilterLabel="تاريخ الفاتورة"
+                onDateChange={handleDateChange}
             />
 
+            <Flex justify="end" style={{ marginBottom: 16 }}>
+                <ExportButton onClick={() => exportInvoices(filters)} loading={isExporting} />
+            </Flex>
+
             {errorMessage ? <MainAlert alertMessage={errorMessage} alertType="error" /> : null}
+            {exportError ? <MainAlert alertMessage={exportError} alertType="error" /> : null}
+            {fileError ? <MainAlert alertMessage={fileError} alertType="error" closeAction={() => setFileError(null)} /> : null}
 
             {!isLoading && invoices.length === 0 ? (
                 <Flex vertical align="center" justify="center" style={{ height: '60vh' }}>

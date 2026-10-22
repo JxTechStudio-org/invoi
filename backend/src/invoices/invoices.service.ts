@@ -8,10 +8,12 @@ import {
 } from '@nestjs/common';
 import { Invoice, InvoiceStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { PendingFileRemoval, STORAGE_SERVICE, StorageService } from '../storage/storage.service';
+import {
+  PendingFileRemoval, STORAGE_SERVICE, StorageService, StoredFileContent,
+} from '../storage/storage.service';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
-import { evaluateInvoiceReview } from './invoice-review';
+import { evaluateInvoiceReview, parseReviewReasons, USER_FLAGGED_REASON } from './invoice-review';
 import { invoicesToCsv } from './invoice-csv';
 
 const editableTextFields = [
@@ -22,6 +24,9 @@ type EditableInvoice = Pick<Invoice,
   typeof editableTextFields[number] | 'currency' | 'paymentStatus' | 'paymentMethod'
   | 'invoiceDate' | 'dueDate' | 'totalAmount' | 'taxAmount' | 'amountPaid'
 >;
+
+// Minimum data a human must have confirmed before an invoice can be completed.
+const approvalRequiredFields = ['vendorName', 'totalAmount', 'invoiceDate'] as const;
 
 type InvoiceResponse = Invoice & {
   sellerName: Invoice['vendorName'];
@@ -155,6 +160,59 @@ export class InvoicesService {
     const review = evaluateInvoiceReview({ ...invoice, ...changes }, invoice.user);
     try {
       const updated = await this.prisma.invoice.update({ where: { id }, data: { ...changes, ...review } });
+      return this.toResponse(updated);
+    } catch (error) {
+      this.rethrowPersistenceError(error, id);
+    }
+  }
+
+  async getFile(id: string, userId: string): Promise<StoredFileContent> {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id, userId }, select: { fileUrl: true },
+    });
+    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+    const file = await this.storageService.download(invoice.fileUrl);
+    if (!file) throw new NotFoundException(`File for invoice ${id} was not found`);
+    return file;
+  }
+
+  /** Human sign-off: completes the invoice even if review rules fired. */
+  async approve(id: string, userId: string): Promise<InvoiceResponse> {
+    const invoice = await this.prisma.invoice.findUnique({ where: { id, userId } });
+    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+    const missing = approvalRequiredFields.filter(field => {
+      const value = invoice[field];
+      return value === null || (typeof value === 'string' && !value.trim());
+    });
+    if (missing.length) {
+      throw new BadRequestException(`Invoice cannot be approved without: ${missing.join(', ')}`);
+    }
+
+    try {
+      const updated = await this.prisma.invoice.update({
+        where: { id }, data: { status: InvoiceStatus.completed, needsReviewReason: null },
+      });
+      return this.toResponse(updated);
+    } catch (error) {
+      this.rethrowPersistenceError(error, id);
+    }
+  }
+
+  /** User reports a problem: sends the invoice back to review until it is approved. */
+  async flag(id: string, userId: string): Promise<InvoiceResponse> {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: { id, userId }, select: { needsReviewReason: true },
+    });
+    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+    const reasons = parseReviewReasons(invoice.needsReviewReason);
+    if (!reasons.includes(USER_FLAGGED_REASON)) reasons.push(USER_FLAGGED_REASON);
+    try {
+      const updated = await this.prisma.invoice.update({
+        where: { id }, data: { status: InvoiceStatus.needs_review, needsReviewReason: reasons.join(',') },
+      });
       return this.toResponse(updated);
     } catch (error) {
       this.rethrowPersistenceError(error, id);

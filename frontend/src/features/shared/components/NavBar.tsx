@@ -1,6 +1,7 @@
 import { Layout, Flex, theme, Switch, Drawer, Button } from 'antd'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { SunOutlined, MoonOutlined, MenuOutlined, LogoutOutlined } from '@ant-design/icons'
 import { useThemeMode } from '../context/themContext'
 import { useNotifications } from '../context/notificationsContext'
@@ -28,7 +29,8 @@ export default function NavBar() {
     const { token } = useToken()
     const { mode, toggleTheme } = useThemeMode()
     const navigate = useNavigate()
-    const { notifications, markAsRead } = useNotifications()
+    const { notifications, markAsRead, clearNotifications } = useNotifications()
+    const queryClient = useQueryClient()
     // Changed from 768 to 1024 so it covers both phones and tablets
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -43,6 +45,9 @@ export default function NavBar() {
 
     const handleLogout = () => {
         localStorage.removeItem('authToken')
+        // Drop everything cached for this user so the next login on this browser starts clean.
+        queryClient.clear()
+        clearNotifications()
         navigate('/auth/login')
     }
 

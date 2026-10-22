@@ -1,4 +1,4 @@
-import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
+import { PendingFileRemoval, StorageService, StoredFile, StoredFileContent } from './storage.service';
 
 export class ReferenceRoutingStorageService implements StorageService {
   constructor(
@@ -16,6 +16,10 @@ export class ReferenceRoutingStorageService implements StorageService {
 
   stageRemoval(fileUrl: string): Promise<PendingFileRemoval> {
     return this.storageFor(fileUrl).stageRemoval(fileUrl);
+  }
+
+  download(fileUrl: string): Promise<StoredFileContent | null> {
+    return this.storageFor(fileUrl).download(fileUrl);
   }
 
   private storageFor(fileUrl: string): StorageService {

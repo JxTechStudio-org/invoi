@@ -16,10 +16,12 @@ import {
   UseInterceptors,
   UseGuards,
   Req,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ListInvoicesQueryDto } from './dto/list-invoices-query.dto';
 import { UploadInvoiceDto } from './dto/upload-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
@@ -95,6 +97,24 @@ export class InvoicesController {
     return this.invoicesService.getStatus(id, userId);
   }
 
+  @Get(':id/file')
+  async getFile(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const userId = req.user.userId;
+    const file = await this.invoicesService.getFile(id, userId);
+    // Uploaded files are untrusted: never let the browser sniff them into HTML.
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'private, no-store');
+    return new StreamableFile(file.stream, {
+      type: file.contentType,
+      length: file.contentLength,
+      disposition: 'inline',
+    });
+  }
+
   @Put(':id')
   update(
     @Param('id') id: string,
@@ -103,6 +123,26 @@ export class InvoicesController {
   ) {
     const userId = req.user.userId;
     return this.invoicesService.update(id, body, userId);
+  }
+
+  @Post(':id/approve')
+  @HttpCode(200)
+  approve(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.approve(id, userId);
+  }
+
+  @Post(':id/flag')
+  @HttpCode(200)
+  flag(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.flag(id, userId);
   }
 
   @Delete(':id')

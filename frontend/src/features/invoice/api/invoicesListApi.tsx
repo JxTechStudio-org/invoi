@@ -29,6 +29,8 @@ export interface Invoice {
 export interface InvoicesListFilters {
     status?: 'processing' | 'completed' | 'needs_review'
     search?: string
+    // YYYY-MM-DD, matches the invoice date (not the upload date)
+    date?: string
 }
 
 export const invoicesListApi = {
