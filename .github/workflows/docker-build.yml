@@ -1,0 +1,69 @@
+# Builds the production Docker image, runs the backend checks inside it and reports the
+# image size. It never deploys: Jenkins on the server still owns deployment from main.
+name: Docker build check
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: invoi
+          POSTGRES_PASSWORD: invoi
+          POSTGRES_DB: invoi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U invoi -d invoi_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build image
+        run: docker build --tag invoi-app:ci .
+
+      - name: Report image size
+        run: |
+          bytes=$(docker image inspect --format '{{.Size}}' invoi-app:ci)
+          echo "Image size: ${bytes} bytes ($(numfmt --to=iec --suffix=B "${bytes}"))"
+          {
+            echo "### Docker image"
+            echo ""
+            echo "| Image | Size |"
+            echo "|---|---|"
+            echo "| invoi-app (${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}) | ${bytes} bytes ($(numfmt --to=iec --suffix=B "${bytes}")) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Lint backend
+        run: |
+          docker build --quiet --target backend-build --tag invoi-backend-build:ci .
+          docker run --rm invoi-backend-build:ci npm run lint
+
+      - name: Run backend tests in the image
+        # Host networking lets the container reach the Postgres service on localhost, so the
+        # database suites run too (they skip without TEST_DATABASE_URL).
+        run: >-
+          docker run --rm --network host
+          -e JWT_SECRET=ci-test-secret
+          -e DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test
+          -e TEST_DATABASE_URL=postgresql://invoi:invoi@localhost:5432/invoi_test
+          invoi-app:ci npm run test:e2e
