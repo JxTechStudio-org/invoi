@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
 import { UserOutlined, MenuOutlined } from '@ant-design/icons';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
@@ -45,9 +45,9 @@ export const Header = () => {
                 }}
             >
                 {/* 1. invoi logo (يمين في الديسكتوب والجوال) */}
-                <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => navigate('/')}>
-                    <Image src={logoWordmark} alt="invoi logo" preview={false} width={85} />
-                </div>
+                <Link to="/" aria-label="invoi" style={{ display: 'flex', alignItems: 'center' }}>
+                    <Image src={logoWordmark} alt="invoi" preview={false} width={85} />
+                </Link>
 
                 {/* 2. navbar links - Desktop */}
                 <nav
@@ -62,16 +62,7 @@ export const Header = () => {
                         <a
                             key={link.name}
                             href={link.href}
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textDecoration: 'none',
-                                fontSize: '15px',
-                                fontWeight: 500,
-                                transition: 'color 0.2s ease',
-                                fontFamily: 'var(--sans)'
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--emerald-500)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                            className="landing-nav-link"
                         >
                             {link.name}
                         </a>
@@ -85,6 +76,7 @@ export const Header = () => {
                         shape="circle"
                         icon={<UserOutlined style={{ fontSize: '16px' }} />}
                         title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
+                        aria-label={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
                         onClick={handleUserAction}
                         style={{
                             backgroundColor: 'var(--emerald-500)',
@@ -104,6 +96,7 @@ export const Header = () => {
                         className="mobile-menu-btn"
                         type="text"
                         icon={<MenuOutlined style={{ fontSize: '20px', color: 'var(--text-primary)' }} />}
+                        aria-label="القائمة"
                         onClick={() => setMobileMenuOpen(true)}
                         style={{ display: 'none', padding: '4px' }}
                     />
@@ -142,6 +135,23 @@ export const Header = () => {
             <style>{`
                 .mobile-menu-btn {
                     display: none;
+                }
+                .landing-nav-link {
+                    color: var(--text-secondary);
+                    text-decoration: none;
+                    font-size: 15px;
+                    font-weight: 500;
+                    transition: color 0.2s ease;
+                    font-family: var(--sans);
+                    border-radius: 4px;
+                }
+                .landing-nav-link:hover,
+                .landing-nav-link:focus-visible {
+                    color: var(--emerald-700);
+                }
+                .landing-nav-link:focus-visible {
+                    outline: 2px solid var(--emerald-500);
+                    outline-offset: 4px;
                 }
                 @media (max-width: 768px) {
                     .desktop-nav {

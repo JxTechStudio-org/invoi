@@ -82,3 +82,17 @@ p {
 .landing-gradient-bg > footer {
     background-color: transparent !important;
 }
+/* landing anchors: smooth scroll that stops below the sticky header */
+html {
+    scroll-behavior: smooth;
+}
+
+.landing-gradient-bg section[id] {
+    scroll-margin-top: 80px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}

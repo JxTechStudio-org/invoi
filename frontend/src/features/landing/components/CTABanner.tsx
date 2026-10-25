@@ -16,7 +16,7 @@ export const CTABanner: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <section style={{ padding: '80px 24px', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
+        <section style={{ padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <div style={{ width: '100%', maxWidth: '1024px' }}>
@@ -30,7 +30,7 @@ export const CTABanner: React.FC = () => {
                                 gap: '32px',
                                 backgroundColor: 'var(--bg-container)',
                                 borderRadius: '16px',
-                                padding: '40px 48px',
+                                padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 48px)',
                                 border: '1px solid var(--border-color)',
                                 boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)'
                             }}
