@@ -29,8 +29,8 @@ export default function Features() {
     ];
 
     return (
-        <section id="features" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: 'rtl' }}>
-            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
+        <section id="features" style={{ padding: 'clamp(56px, 9vw, 96px) 0', background: 'var(--bg-main)', direction: 'rtl' }}>
+            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 48px)', boxSizing: 'border-box' }}>
 
                 <div style={{ textAlign: 'center', marginBottom: '56px' }}>
                     <Title
@@ -48,7 +48,7 @@ export default function Features() {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: 'var(--var(--text-secondary))',
+                            color: 'var(--text-secondary)',
                             fontFamily: 'var(--sans)',
                         }}
                     >
@@ -66,7 +66,7 @@ export default function Features() {
                                     borderRadius: '12px',
                                     height: '100%',
                                     textAlign: 'center',
-                                    border: '1px solid var(-border-color)',
+                                    border: '1px solid var(--border-color)',
                                     boxSizing: 'border-box',
                                 }}
                                 styles={{body:{ padding: '32px 24px'} }}
@@ -100,7 +100,7 @@ export default function Features() {
                                 <Paragraph
                                     style={{
                                         fontSize: '14px',
-                                        color: 'var(--var(--text-secondary))',
+                                        color: 'var(--text-secondary)',
                                         margin: 0,
                                         lineHeight: 1.5,
                                         fontFamily: 'var(--sans)',
