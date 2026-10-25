@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined, CheckOutlined } from '@ant-design/icons';
+import { hasAuthToken } from '../utils/auth';
 
 const { Title, Paragraph } = Typography;
 
@@ -14,9 +15,10 @@ const defaultFeatures = [
 
 export const CTABanner: React.FC = () => {
     const navigate = useNavigate();
+    const isLoggedIn = hasAuthToken();
 
     return (
-        <section style={{ padding: '80px 24px', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
+        <section style={{ padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
             <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <div style={{ width: '100%', maxWidth: '1024px' }}>
@@ -30,7 +32,7 @@ export const CTABanner: React.FC = () => {
                                 gap: '32px',
                                 backgroundColor: 'var(--bg-container)',
                                 borderRadius: '16px',
-                                padding: '40px 48px',
+                                padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 48px)',
                                 border: '1px solid var(--border-color)',
                                 boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)'
                             }}
@@ -65,7 +67,7 @@ export const CTABanner: React.FC = () => {
                                     type="primary"
                                     size="large"
                                     icon={<ArrowLeftOutlined />}
-                                    onClick={() => navigate('/auth/register')}
+                                    onClick={() => navigate(isLoggedIn ? '/dashboard' : '/auth/register')}
                                     style={{
                                         height: '40px',
                                         paddingInline: '24px',
@@ -78,7 +80,7 @@ export const CTABanner: React.FC = () => {
                                         borderRadius: '8px'
                                     }}
                                 >
-                                    ابدأ الآن
+                                    {isLoggedIn ? 'لوحة التحكم' : 'ابدأ الآن'}
                                 </Button>
                             </div>
 

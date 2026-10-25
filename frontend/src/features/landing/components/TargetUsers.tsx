@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 
 export default function TargetUsers() {
     return (
-        <section style={{ backgroundColor: 'var(--bg-main)', padding: 'clamp(48px, 8vw, 88px) clamp(16px, 4vw, 24px)' }}>
+        <section id="for-whom" style={{ backgroundColor: 'var(--bg-main)', padding: 'clamp(48px, 8vw, 88px) clamp(16px, 4vw, 24px)' }}>
             <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto' }}>
 
                 {/* section title */}
@@ -37,6 +37,10 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={meeting}
+                                    width={960}
+                                    height={640}
+                                    loading="lazy"
+                                    decoding="async"
                                     alt="أصحاب الأعمال الصغيرة"
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />
@@ -88,6 +92,10 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={accountant}
+                                    width={960}
+                                    height={640}
+                                    loading="lazy"
+                                    decoding="async"
                                     alt="المحاسبون"
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />

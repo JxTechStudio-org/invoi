@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Typography, Card, Row, Col } from 'antd';
 import { FilePdfOutlined, FileImageOutlined } from '@ant-design/icons';
 
@@ -26,16 +26,14 @@ export const SupportedFiles = () => {
         },
     ];
 
-    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
     return (
         <section
             style={{
                 backgroundColor: 'var(--bg-main)',
-                padding: '80px 24px',
+                padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)',
                 direction: 'rtl',
-                borderTop: '1px solid var(-border-color)',
-                borderBottom: '1px solid var(-border-color)'
+                borderTop: '1px solid var(--border-color)',
+                borderBottom: '1px solid var(--border-color)'
             }}
         >
             <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -55,7 +53,7 @@ export const SupportedFiles = () => {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: 'var(--var(--text-secondary))',
+                            color: 'var(--text-secondary)',
                             fontFamily: 'var(--sans)',
                             margin: 0
                         }}
@@ -66,26 +64,17 @@ export const SupportedFiles = () => {
 
                 <Row gutter={[24, 24]} justify="center">
                     {fileFormats.map((file, index) => {
-                        const isHovered = hoveredIndex === index;
                         return (
                             <Col xs={24} sm={8} key={index}>
                                 <Card
-                                    hoverable
-                                    onMouseEnter={() => setHoveredIndex(index)}
-                                    onMouseLeave={() => setHoveredIndex(null)}
                                     variant="borderless"
                                     style={{
                                         background: ' var(--bg-container)',
                                         borderRadius: '16px',
                                         border: `1px solid ${file.border}`,
-                                        boxShadow: isHovered
-                                            ? '0 12px 20px -3px rgba(0, 0, 0, 0.1)'
-                                            : '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
                                         textAlign: 'center',
-                                        height: '100%',
-                                        transform: isHovered ? 'translateY(-8px)' : 'translateY(0)',
-                                        transition: 'all 0.3s ease',
-                                        cursor: 'pointer'
+                                        height: '100%'
                                     }}
                                 >
                                     <div
@@ -97,9 +86,7 @@ export const SupportedFiles = () => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            margin: '0 auto 16px auto',
-                                            transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                                            transition: 'transform 0.3s ease'
+                                            margin: '0 auto 16px auto'
                                         }}
                                     >
                                         {file.icon}
@@ -108,22 +95,12 @@ export const SupportedFiles = () => {
                                         level={4}
                                         style={{
                                             color: 'var(--text-primary)',
-                                            marginBottom: '8px',
+                                            margin: 0,
                                             fontFamily: 'var(--sans)'
                                         }}
                                     >
                                         {file.title}
                                     </Title>
-                                    <Paragraph
-                                        style={{
-                                            color: 'var(--var(--text-secondary))',
-                                            fontSize: '14px',
-                                            margin: 0,
-                                            fontFamily: 'var(--sans)'
-                                        }}
-                                    >
-
-                                    </Paragraph>
                                 </Card>
                             </Col>
                         );

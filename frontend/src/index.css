@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
   /* Light Mode Tokens - Invoi Design System */
   --bg-main: #F8FAFC;       /* Slate 50 - Main Background */
@@ -81,4 +79,18 @@ p {
 .landing-gradient-bg > section,
 .landing-gradient-bg > footer {
     background-color: transparent !important;
+}
+/* landing anchors: smooth scroll that stops below the sticky header */
+html {
+    scroll-behavior: smooth;
+}
+
+.landing-gradient-bg section[id] {
+    scroll-margin-top: 80px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
 }
