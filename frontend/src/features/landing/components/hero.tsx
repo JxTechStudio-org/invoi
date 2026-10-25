@@ -4,11 +4,13 @@ import { Button, Typography, Space, Image } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import logoIcon from '../../../assets/invoi-logo-icon_(2).svg';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
+import { hasAuthToken } from '../utils/auth';
 
 const { Title, Paragraph } = Typography;
 
 export const Hero = () => {
   const navigate = useNavigate();
+  const isLoggedIn = hasAuthToken();
 
   return (
     <>
@@ -153,7 +155,7 @@ export const Hero = () => {
                 type="primary"
                 size="large"
                 icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/auth/register')}
+                onClick={() => navigate(isLoggedIn ? '/dashboard' : '/auth/register')}
                 style={{
                   height: '40px',
                   paddingInline: '24px',
@@ -165,7 +167,7 @@ export const Hero = () => {
                   boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 }}
               >
-                ابدأ الآن
+                {isLoggedIn ? 'لوحة التحكم' : 'ابدأ الآن'}
               </Button>
             </Space>
           </div>

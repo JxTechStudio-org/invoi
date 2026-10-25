@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Typography } from 'antd';
 import { ArrowLeftOutlined, CheckOutlined } from '@ant-design/icons';
+import { hasAuthToken } from '../utils/auth';
 
 const { Title, Paragraph } = Typography;
 
@@ -14,6 +15,7 @@ const defaultFeatures = [
 
 export const CTABanner: React.FC = () => {
     const navigate = useNavigate();
+    const isLoggedIn = hasAuthToken();
 
     return (
         <section style={{ padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)', backgroundColor: 'var(--bg-main)', direction: 'rtl' }}>
@@ -65,7 +67,7 @@ export const CTABanner: React.FC = () => {
                                     type="primary"
                                     size="large"
                                     icon={<ArrowLeftOutlined />}
-                                    onClick={() => navigate('/auth/register')}
+                                    onClick={() => navigate(isLoggedIn ? '/dashboard' : '/auth/register')}
                                     style={{
                                         height: '40px',
                                         paddingInline: '24px',
@@ -78,7 +80,7 @@ export const CTABanner: React.FC = () => {
                                         borderRadius: '8px'
                                     }}
                                 >
-                                    ابدأ الآن
+                                    {isLoggedIn ? 'لوحة التحكم' : 'ابدأ الآن'}
                                 </Button>
                             </div>
 

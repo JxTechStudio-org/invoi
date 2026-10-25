@@ -1,24 +1,48 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Image, Button, Drawer } from 'antd';
-import { UserOutlined, MenuOutlined } from '@ant-design/icons';
+import { MenuOutlined } from '@ant-design/icons';
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
+import { hasAuthToken } from '../utils/auth';
 
+// "/#..." so the links also work from other public pages (e.g. the privacy policy).
 const navLinks = [
-    { name: 'الرئيسية', href: '#home' },
-    { name: 'المميزات', href: '#features' },
-    { name: 'كيف يعمل', href: '#how-it-works' },
-    { name: 'الأسئلة الشائعة', href: '#faq' },
+    { name: 'الرئيسية', href: '/#home' },
+    { name: 'لمن هذا المنتج', href: '/#for-whom' },
+    { name: 'المميزات', href: '/#features' },
+    { name: 'التحقق من الفواتير', href: '/#verification' },
+    { name: 'كيف يعمل', href: '/#how-it-works' },
+    { name: 'الأسئلة الشائعة', href: '/#faq' },
 ];
 
 export const Header = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
-    const isLoggedIn = Boolean(localStorage.getItem('authToken'));
+    const isLoggedIn = hasAuthToken();
 
-    const handleUserAction = () => {
-        navigate(isLoggedIn ? '/dashboard' : '/auth/login');
+    const go = (path: string) => {
+        setMobileMenuOpen(false);
+        navigate(path);
     };
+
+    const actions = (stacked: boolean) => (
+        <div style={{ display: 'flex', flexDirection: stacked ? 'column' : 'row', alignItems: stacked ? 'stretch' : 'center', gap: '12px' }}>
+            {isLoggedIn ? (
+                <Button type="primary" onClick={() => go('/dashboard')} style={{ fontWeight: 600 }}>
+                    لوحة التحكم
+                </Button>
+            ) : (
+                <>
+                    <Button onClick={() => go('/auth/login')} style={{ fontWeight: 600 }}>
+                        تسجيل الدخول
+                    </Button>
+                    <Button type="primary" onClick={() => go('/auth/register')} style={{ fontWeight: 600 }}>
+                        إنشاء حساب
+                    </Button>
+                </>
+            )}
+        </div>
+    );
 
     return (
         <header
@@ -36,10 +60,11 @@ export const Header = () => {
                 style={{
                     maxWidth: '1440px',
                     margin: '0 auto',
-                    padding: '16px 24px',
+                    padding: '16px clamp(16px, 4vw, 24px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    gap: '16px',
                     boxSizing: 'border-box',
                     direction: 'rtl' // ضمان اتجاه العناصر يمين ويسار بشكل صحيح
                 }}
@@ -55,7 +80,7 @@ export const Header = () => {
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '32px'
+                        gap: 'clamp(16px, 2vw, 28px)'
                     }}
                 >
                     {navLinks.map((link) => (
@@ -71,25 +96,7 @@ export const Header = () => {
 
                 {/* 3. Actions & Hamburger (يسار في الديسكتوب والجوال) */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Button
-                        type="primary"
-                        shape="circle"
-                        icon={<UserOutlined style={{ fontSize: '16px' }} />}
-                        title={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
-                        aria-label={isLoggedIn ? "لوحة التحكم" : "تسجيل الدخول"}
-                        onClick={handleUserAction}
-                        style={{
-                            backgroundColor: 'var(--emerald-500)',
-                            borderColor: 'var(--emerald-500)',
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                            transition: 'all 0.3s ease'
-                        }}
-                    />
+                    <div className="desktop-actions">{actions(false)}</div>
 
                     {/* Hamburger Button for Mobile */}
                     <Button
@@ -128,6 +135,9 @@ export const Header = () => {
                             {link.name}
                         </a>
                     ))}
+                    <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>
+                        {actions(true)}
+                    </div>
                 </div>
             </Drawer>
 
@@ -141,6 +151,7 @@ export const Header = () => {
                     text-decoration: none;
                     font-size: 15px;
                     font-weight: 500;
+                    white-space: nowrap;
                     transition: color 0.2s ease;
                     font-family: var(--sans);
                     border-radius: 4px;
@@ -153,12 +164,17 @@ export const Header = () => {
                     outline: 2px solid var(--emerald-500);
                     outline-offset: 4px;
                 }
-                @media (max-width: 768px) {
+                @media (max-width: 1100px) {
                     .desktop-nav {
                         display: none !important;
                     }
                     .mobile-menu-btn {
                         display: flex !important;
+                    }
+                }
+                @media (max-width: 480px) {
+                    .desktop-actions {
+                        display: none;
                     }
                 }
             `}</style>

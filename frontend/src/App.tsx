@@ -12,6 +12,7 @@ import './App.css'
 
 
 const LandingPage = lazy(() => import('./features/landing/pages/landingPage'))
+const PrivacyPolicyPage = lazy(() => import('./features/landing/pages/PrivacyPolicyPage'))
 const NotFoundPage = lazy(() => import('./features/shared/pages/NotFoundPage'))
 const UploadInvoicePage = lazy(() => import('./features/invoice/pages/uploadInvoicePage'))
 const InvoiceDetailPage = lazy(() => import('./features/invoice/pages/InvoiceDetailPage'))
@@ -33,6 +34,7 @@ function App() {
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path='/' element={<LandingPage />} />
+                <Route path='/privacy' element={<PrivacyPolicyPage />} />
                 <Route path='/auth' >
                   <Route path='login' element={<AuthPage />} />
                   <Route path='register' element={<AuthPage />} />
