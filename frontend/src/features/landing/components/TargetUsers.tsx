@@ -37,6 +37,10 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={meeting}
+                                    width={960}
+                                    height={640}
+                                    loading="lazy"
+                                    decoding="async"
                                     alt="أصحاب الأعمال الصغيرة"
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />
@@ -88,6 +92,10 @@ export default function TargetUsers() {
                             <div style={{ width: '100%', height: '220px', overflow: 'hidden', position: 'relative' }}>
                                 <img
                                     src={accountant}
+                                    width={960}
+                                    height={640}
+                                    loading="lazy"
+                                    decoding="async"
                                     alt="المحاسبون"
                                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
                                 />
