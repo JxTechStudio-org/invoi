@@ -9,7 +9,7 @@ export default function Features() {
         {
             icon: <ThunderboltOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
             title: 'استخراج ذكي وسريع',
-            description: 'تخلص من الأخطاء البشرية والإدخال اليدوي.',
+            description: 'اترك إدخال الفواتير علينا، وركّز على مراجعة البيانات واعتمادها.',
         },
         {
             icon: <LockOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
