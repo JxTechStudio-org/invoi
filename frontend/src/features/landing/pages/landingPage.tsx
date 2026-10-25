@@ -4,6 +4,7 @@ import { MotionConfig } from 'framer-motion';
 import { Hero } from '../components/hero';
 import HowItWorks from '../components/HowItWorks';
 import Features from '../components/Features';
+import VerificationFeatures from '../components/VerificationFeatures';
 import TargetUsers from '../components/TargetUsers';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
@@ -21,6 +22,7 @@ export default function LandingPage() {
                     <TargetUsers />
                     <SupportedFiles />
                     <Features />
+                    <VerificationFeatures />
                     <HowItWorks />
                     <FAQ />
                     <CTABanner />
