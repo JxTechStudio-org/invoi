@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ConfigProvider } from 'antd';
 import { MotionConfig } from 'framer-motion';
 import { Hero } from '../components/hero';
@@ -13,6 +13,12 @@ import { SupportedFiles } from '../components/SupportedFiles';
 import { CTABanner } from '../components/CTABanner';
 
 export default function LandingPage() {
+    // Links like /#faq from other pages load this page first; scroll once the sections exist.
+    useEffect(() => {
+        const id = window.location.hash.slice(1);
+        if (id) requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+    }, []);
+
     return (
         <ConfigProvider direction="rtl">
             <MotionConfig reducedMotion="user">
