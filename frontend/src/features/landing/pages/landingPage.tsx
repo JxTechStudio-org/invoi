@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react'
 import { ConfigProvider } from 'antd';
 import { MotionConfig } from 'framer-motion';
+import { useLandingTheme } from '../hooks/useLandingTheme';
 import { Hero } from '../components/hero';
 import HowItWorks from '../components/HowItWorks';
 import Features from '../components/Features';
-import VerificationFeatures from '../components/VerificationFeatures';
+import DashboardPreview from '../components/DashboardPreview';
 import TargetUsers from '../components/TargetUsers';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
@@ -13,6 +14,8 @@ import { SupportedFiles } from '../components/SupportedFiles';
 import { CTABanner } from '../components/CTABanner';
 
 export default function LandingPage() {
+    useLandingTheme();
+
     // Links like /#faq from other pages load this page first; scroll once the sections exist.
     useEffect(() => {
         const id = window.location.hash.slice(1);
@@ -25,11 +28,11 @@ export default function LandingPage() {
                 <Header />
                 <div className='landing-gradient-bg' style={{ minHeight: '100vh', width: '100%' }}>
                     <Hero />
-                    <TargetUsers />
+                    <HowItWorks />
+                    <DashboardPreview />
                     <SupportedFiles />
                     <Features />
-                    <VerificationFeatures />
-                    <HowItWorks />
+                    <TargetUsers />
                     <FAQ />
                     <CTABanner />
                 </div>

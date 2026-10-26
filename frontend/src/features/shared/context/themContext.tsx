@@ -13,10 +13,14 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
     
     const [mode, setMode] = useState<'light' | 'dark'>(() => {
         const savedMode = localStorage.getItem('theme_mode');
-        return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+        const initial = (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+        document.documentElement.dataset.theme = initial; // before first paint, no light flash
+        return initial;
     });
     useEffect(() => {
         localStorage.setItem('theme_mode', mode);
+        // Lets CSS variables follow the antd theme (used by the public pages, see index.css).
+        document.documentElement.dataset.theme = mode;
     }, [mode]);
 
     // The colour fade overrides every element's own transition, so it is only

@@ -34,7 +34,7 @@ export const CTABanner: React.FC = () => {
                                 borderRadius: '16px',
                                 padding: 'clamp(24px, 5vw, 40px) clamp(20px, 5vw, 48px)',
                                 border: '1px solid var(--border-color)',
-                                boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)'
+                                boxShadow: 'var(--shadow-md)'
                             }}
                         >
                             {/* الجانب الأيمن: العنوان، الوصف والزر */}
@@ -76,7 +76,7 @@ export const CTABanner: React.FC = () => {
                                         display: 'inline-flex',
                                         alignItems: 'center',
                                         gap: '8px',
-                                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                                        boxShadow: 'var(--shadow-sm)',
                                         borderRadius: '8px'
                                     }}
                                 >
@@ -95,7 +95,7 @@ export const CTABanner: React.FC = () => {
                                                 alignItems: 'center',
                                                 fontSize: '14px',
                                                 fontWeight: 500,
-                                                color: '#334155',
+                                                color: 'var(--text-body)',
                                                 fontFamily: 'var(--sans)'
                                             }}
                                         >
@@ -107,7 +107,7 @@ export const CTABanner: React.FC = () => {
                                                     width: '20px',
                                                     height: '20px',
                                                     borderRadius: '50%',
-                                                    backgroundColor: '#ECFDF5',
+                                                    backgroundColor: 'var(--primary-soft)',
                                                     color: 'var(--emerald-500)',
                                                     marginLeft: '12px',
                                                     flexShrink: 0,

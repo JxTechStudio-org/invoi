@@ -8,10 +8,9 @@ import { hasAuthToken } from '../utils/auth';
 // "/#..." so the links also work from other public pages (e.g. the privacy policy).
 const navLinks = [
     { name: 'الرئيسية', href: '/#home' },
-    { name: 'لمن هذا المنتج', href: '/#for-whom' },
-    { name: 'المميزات', href: '/#features' },
-    { name: 'التحقق من الفواتير', href: '/#verification' },
     { name: 'كيف يعمل', href: '/#how-it-works' },
+    { name: 'المميزات', href: '/#features' },
+    { name: 'لمن هذا المنتج', href: '/#for-whom' },
     { name: 'الأسئلة الشائعة', href: '/#faq' },
 ];
 
@@ -158,7 +157,7 @@ export const Header = () => {
                 }
                 .landing-nav-link:hover,
                 .landing-nav-link:focus-visible {
-                    color: var(--emerald-700);
+                    color: var(--primary-text);
                 }
                 .landing-nav-link:focus-visible {
                     outline: 2px solid var(--emerald-500);

@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography, Space, Image } from 'antd';
+import { Button, Typography, Space } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import logoIcon from '../../../assets/invoi-logo-icon_(2).svg';
-import logoWordmark from '../../../assets/invoi-logo-wordmark.svg';
+import { HeroDemo } from './HeroDemo';
 import { hasAuthToken } from '../utils/auth';
 
 const { Title, Paragraph } = Typography;
@@ -22,6 +21,11 @@ export const Hero = () => {
           .ant-btn-primary:hover {
             background-color: var(--emerald-600) !important;
           }
+          /* Phones: headline and button first, demo below */
+          @media (max-width: 900px) {
+            .hero-text-col { order: 1 !important; }
+            .hero-demo-col { order: 2 !important; }
+          }
         `}
       </style>
 
@@ -29,7 +33,7 @@ export const Hero = () => {
         id="home"
         style={{
           backgroundColor: 'var(--bg-main)',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--border-subtle)',
           padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)',
           overflow: 'hidden'
         }}
@@ -45,88 +49,13 @@ export const Hero = () => {
             flexWrap: 'wrap'
           }}
         >
-          {/* Mockups */}
-          <div aria-hidden="true" style={{ flex: '1.2', minWidth: 'min(340px, 100%)', display: 'flex', justifyContent: 'center', order: 1 }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: '16px',
-                alignItems: 'center',
-                width: '100%',
-                justifyContent: 'center'
-              }}
-            >
-              {/* hero card 1*/}
-              <div
-                style={{
-                  background: ' var(--bg-container)',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  width: 'clamp(120px, 38%, 180px)',
-                  boxSizing: 'border-box',
-                  border: '1px solid #E2E8F0',
-                  transform: 'rotate(-4deg) translateY(10px)',
-                  zIndex: 1
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-                  <Image src={logoIcon} alt="logo" preview={false} width={18} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '90%' }}></div>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '70%' }}></div>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '85%' }}></div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <div style={{ background: 'var(--emerald-500)', borderRadius: '6px', width: '32px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ color: ' var(--bg-container)', fontSize: '12px' }}>↑</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* hero card 2*/}
-              <div
-                style={{
-                  background: ' var(--bg-container)',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  width: 'clamp(170px, 55%, 260px)',
-                  boxSizing: 'border-box',
-                  border: '1px solid #E2E8F0',
-                  zIndex: 2
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px' }}>
-                  <Image src={logoWordmark} alt="invoi logo" preview={false} width={65} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '10px', fontWeight: 600 }}>
-                  <span>التاريخ</span>
-                  <span>المورد</span>
-                  <span>المبلغ</span>
-                  <span>الحالة</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '22%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '26%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '16%' }}></div>
-                    <div style={{ height: '8px', background: 'var(--emerald-500)', borderRadius: '4px', width: '20%' }}></div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '22%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '26%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '16%' }}></div>
-                    <div style={{ height: '8px', background: 'var(--emerald-500)', borderRadius: '4px', width: '20%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Product demo */}
+          <div className="hero-demo-col" style={{ flex: '1.2', minWidth: 'min(340px, 100%)', display: 'flex', justifyContent: 'center', order: 1 }}>
+            <HeroDemo />
           </div>
 
           {/* Text Content */}
-          <div style={{ flex: '1', minWidth: 'min(320px, 100%)', textAlign: 'right', order: 2 }}>
+          <div className="hero-text-col" style={{ flex: '1', minWidth: 'min(320px, 100%)', textAlign: 'right', order: 2 }}>
             <Title
               level={1}
               style={{
@@ -164,7 +93,7 @@ export const Hero = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 {isLoggedIn ? 'لوحة التحكم' : 'ابدأ الآن'}

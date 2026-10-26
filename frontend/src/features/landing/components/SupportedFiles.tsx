@@ -8,21 +8,21 @@ export const SupportedFiles = () => {
     const fileFormats = [
         {
             title: 'PDF',
-            icon: <FilePdfOutlined style={{ fontSize: '32px', color: '#DC2626' }} />,
-            bg: '#FEF2F2',
-            border: '#FCA5A5',
+            icon: <FilePdfOutlined style={{ fontSize: '32px', color: 'var(--file-pdf)' }} />,
+            bg: 'var(--file-pdf-bg)',
+            border: 'var(--file-pdf-border)',
         },
         {
             title: 'JPG',
-            icon: <FileImageOutlined style={{ fontSize: '32px', color: '#2563EB' }} />,
-            bg: '#EFF6FF',
-            border: '#93C5FD',
+            icon: <FileImageOutlined style={{ fontSize: '32px', color: 'var(--file-jpg)' }} />,
+            bg: 'var(--file-jpg-bg)',
+            border: 'var(--file-jpg-border)',
         },
         {
             title: 'PNG',
-            icon: <FileImageOutlined style={{ fontSize: '32px', color: '#16A34A' }} />,
-            bg: '#F0FDF4',
-            border: '#86EFAC',
+            icon: <FileImageOutlined style={{ fontSize: '32px', color: 'var(--file-png)' }} />,
+            bg: 'var(--file-png-bg)',
+            border: 'var(--file-png-border)',
         },
     ];
 
@@ -72,7 +72,7 @@ export const SupportedFiles = () => {
                                         background: ' var(--bg-container)',
                                         borderRadius: '16px',
                                         border: `1px solid ${file.border}`,
-                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                                        boxShadow: 'var(--shadow-sm)',
                                         textAlign: 'center',
                                         height: '100%'
                                     }}
