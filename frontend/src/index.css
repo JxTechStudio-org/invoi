@@ -24,6 +24,8 @@
   --file-pdf: #DC2626;  --file-pdf-bg: #FEF2F2;  --file-pdf-border: #FCA5A5;
   --file-jpg: #2563EB;  --file-jpg-bg: #EFF6FF;  --file-jpg-border: #93C5FD;
   --file-png: #16A34A;  --file-png-bg: #F0FDF4;  --file-png-border: #86EFAC;
+  --warning: #F59E0B;  --warning-soft: #FFFBEB;  --warning-text: #B45309;  /* Amber 500 / 50 / 700 */
+  --primary-text: #047857;   /* Emerald 700: primary-coloured text that passes contrast */
 
   /* Typography */
   --sans: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
@@ -131,4 +133,6 @@ html {
   --file-pdf: #F87171;  --file-pdf-bg: rgba(220, 38, 38, 0.15);  --file-pdf-border: rgba(248, 113, 113, 0.4);
   --file-jpg: #60A5FA;  --file-jpg-bg: rgba(37, 99, 235, 0.15);  --file-jpg-border: rgba(96, 165, 250, 0.4);
   --file-png: #4ADE80;  --file-png-bg: rgba(22, 163, 74, 0.15);  --file-png-border: rgba(74, 222, 128, 0.4);
+  --warning: #FBBF24;  --warning-soft: rgba(245, 158, 11, 0.15);  --warning-text: #FCD34D;
+  --primary-text: #34D399;  /* Emerald 400: readable on dark surfaces */
 }

@@ -157,7 +157,7 @@ export const Header = () => {
                 }
                 .landing-nav-link:hover,
                 .landing-nav-link:focus-visible {
-                    color: var(--emerald-700);
+                    color: var(--primary-text);
                 }
                 .landing-nav-link:focus-visible {
                     outline: 2px solid var(--emerald-500);
