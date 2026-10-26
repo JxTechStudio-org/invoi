@@ -5,6 +5,7 @@ import { useLandingTheme } from '../hooks/useLandingTheme';
 import { Hero } from '../components/hero';
 import HowItWorks from '../components/HowItWorks';
 import Features from '../components/Features';
+import DashboardPreview from '../components/DashboardPreview';
 import TargetUsers from '../components/TargetUsers';
 import { Footer } from '../components/Footer';
 import { Header } from '../components/Header';
@@ -28,6 +29,7 @@ export default function LandingPage() {
                 <div className='landing-gradient-bg' style={{ minHeight: '100vh', width: '100%' }}>
                     <Hero />
                     <HowItWorks />
+                    <DashboardPreview />
                     <SupportedFiles />
                     <Features />
                     <TargetUsers />
