@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { ConfigProvider, Typography } from 'antd';
 import { MotionConfig } from 'framer-motion';
+import { useLandingTheme } from '../hooks/useLandingTheme';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { CONTACT_EMAIL } from '../constants/contact';
@@ -117,6 +118,8 @@ const sections: PolicySection[] = [
 ];
 
 export default function PrivacyPolicyPage() {
+    useLandingTheme();
+
     useEffect(() => {
         const previous = document.title;
         document.title = 'سياسة الخصوصية | invoi';

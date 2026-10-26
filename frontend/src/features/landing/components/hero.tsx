@@ -29,7 +29,7 @@ export const Hero = () => {
         id="home"
         style={{
           backgroundColor: 'var(--bg-main)',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--border-subtle)',
           padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)',
           overflow: 'hidden'
         }}
@@ -62,10 +62,10 @@ export const Hero = () => {
                   background: ' var(--bg-container)',
                   borderRadius: '8px',
                   padding: '20px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  boxShadow: 'var(--shadow-md)',
                   width: 'clamp(120px, 38%, 180px)',
                   boxSizing: 'border-box',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--border-subtle)',
                   transform: 'rotate(-4deg) translateY(10px)',
                   zIndex: 1
                 }}
@@ -74,13 +74,13 @@ export const Hero = () => {
                   <Image src={logoIcon} alt="logo" preview={false} width={18} />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '90%' }}></div>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '70%' }}></div>
-                  <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '85%' }}></div>
+                  <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '90%' }}></div>
+                  <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '70%' }}></div>
+                  <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '85%' }}></div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                   <div style={{ background: 'var(--emerald-500)', borderRadius: '6px', width: '32px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ color: ' var(--bg-container)', fontSize: '12px' }}>↑</span>
+                    <span style={{ color: 'var(--bg-container)', fontSize: '12px' }}>↑</span>
                   </div>
                 </div>
               </div>
@@ -91,14 +91,14 @@ export const Hero = () => {
                   background: ' var(--bg-container)',
                   borderRadius: '8px',
                   padding: '20px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  boxShadow: 'var(--shadow-md)',
                   width: 'clamp(170px, 55%, 260px)',
                   boxSizing: 'border-box',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--border-subtle)',
                   zIndex: 2
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #E2E8F0', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}>
                   <Image src={logoWordmark} alt="invoi logo" preview={false} width={65} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-secondary)', marginBottom: '10px', fontWeight: 600 }}>
@@ -109,15 +109,15 @@ export const Hero = () => {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '22%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '26%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '16%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '22%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '26%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '16%' }}></div>
                     <div style={{ height: '8px', background: 'var(--emerald-500)', borderRadius: '4px', width: '20%' }}></div>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '22%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '26%' }}></div>
-                    <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '4px', width: '16%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '22%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '26%' }}></div>
+                    <div style={{ height: '6px', background: 'var(--surface-muted)', borderRadius: '4px', width: '16%' }}></div>
                     <div style={{ height: '8px', background: 'var(--emerald-500)', borderRadius: '4px', width: '20%' }}></div>
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export const Hero = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 {isLoggedIn ? 'لوحة التحكم' : 'ابدأ الآن'}
