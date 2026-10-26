@@ -38,6 +38,19 @@ pipeline {
 
     stage('Deploy') {
       steps {
+        echo 'Removing containers left over from the old "invoiproject" project name...'
+        sh '''
+          set -eu
+
+          legacy_containers="$(docker ps -aq --filter label=com.docker.compose.project=invoiproject)"
+
+          if [ -n "$legacy_containers" ]; then
+            # Stop gracefully so Postgres shuts down cleanly. Volumes are kept.
+            docker stop -t 60 $legacy_containers
+            docker rm $legacy_containers
+          fi
+        '''
+
         echo 'Deploying app and postgres services with Docker Compose...'
         sh 'docker compose --env-file /run/secrets/invoi.env up -d --build app postgres'
 

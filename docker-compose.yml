@@ -1,4 +1,4 @@
-name: invoiproject
+name: invoi
 
 services:
   app:
@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
-    container_name: invoice-app
     restart: unless-stopped
     depends_on:
       postgres:
@@ -41,7 +40,6 @@ services:
 
   postgres:
     image: postgres:16
-    container_name: invoice-postgres
     restart: unless-stopped
     ports:
       - "127.0.0.1:5433:5432"
@@ -65,7 +63,6 @@ services:
 
   rustfs:
     image: rustfs/rustfs:1.0.0-rc.6
-    container_name: invoice-rustfs
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
@@ -93,6 +90,8 @@ services:
       start_period: 30s
 
 volumes:
+  # These names hold the production data created under the old "invoiproject"
+  # project name. Keep them pinned; changing a name starts with an empty volume.
   postgres_data:
     name: invoiproject_postgres_data
   invoice_uploads:
