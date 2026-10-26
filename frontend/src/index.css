@@ -11,6 +11,20 @@
   --emerald-600: #059669;    /* Primary Hover */
   --emerald-700: #047857;    /* Primary Active */
 
+  /* Supporting tokens (landing + public pages) */
+  --border-subtle: #E2E8F0;  /* Slate 200 */
+  --surface-muted: #F1F5F9;  /* Slate 100 - placeholder bars, muted fills */
+  --text-body: #334155;      /* Slate 700 - list text */
+  --primary-soft: #ECFDF5;   /* Emerald 50 - icon circles */
+  --landing-tint: #E3F5EC;   /* opaque mid-page tint (was translucent → app green showed through) */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 12px 24px -6px rgba(15, 23, 42, 0.12);
+  --file-pdf: #DC2626;  --file-pdf-bg: #FEF2F2;  --file-pdf-border: #FCA5A5;
+  --file-jpg: #2563EB;  --file-jpg-bg: #EFF6FF;  --file-jpg-border: #93C5FD;
+  --file-png: #16A34A;  --file-png-bg: #F0FDF4;  --file-png-border: #86EFAC;
+
   /* Typography */
   --sans: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
   --heading: 'IBM Plex Sans Arabic', 'Inter', sans-serif;
@@ -68,9 +82,9 @@ p {
   color: var(--text-secondary);
 }
 
-/* background gradient */
+/* background gradient (opaque, so the app's emerald body gradient never shows through) */
 .landing-gradient-bg {
-    background: linear-gradient(180deg, var(--bg-main) 0%, rgba(16, 185, 129, 0.12) 50%, var(--bg-main) 100%) !important;
+    background: linear-gradient(180deg, var(--bg-main) 0%, var(--landing-tint) 50%, var(--bg-main) 100%) !important;
     min-height: 100vh !important;
     width: 100% !important;
 }
@@ -93,4 +107,28 @@ html {
     html {
         scroll-behavior: auto;
     }
+}
+
+/* Dark mode for the public pages. The class is set on <html> while a landing/privacy page is
+   mounted (useLandingTheme), so antd portals such as the mobile Drawer get the tokens too,
+   and the dashboard is unaffected. Values match the antd dark theme (config/theme/theme.ts). */
+:root.landing[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-main: #0F172A;
+  --bg-container: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --border-color: #334155;
+  --border-subtle: #334155;
+  --surface-muted: #334155;
+  --text-body: #CBD5E1;
+  --primary-soft: rgba(16, 185, 129, 0.15);
+  --landing-tint: #0F2B26;
+  --glass-bg: rgba(30, 41, 59, 0.9);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  --file-pdf: #F87171;  --file-pdf-bg: rgba(220, 38, 38, 0.15);  --file-pdf-border: rgba(248, 113, 113, 0.4);
+  --file-jpg: #60A5FA;  --file-jpg-bg: rgba(37, 99, 235, 0.15);  --file-jpg-border: rgba(96, 165, 250, 0.4);
+  --file-png: #4ADE80;  --file-png-bg: rgba(22, 163, 74, 0.15);  --file-png-border: rgba(74, 222, 128, 0.4);
 }

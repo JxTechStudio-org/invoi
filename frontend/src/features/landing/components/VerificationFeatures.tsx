@@ -92,7 +92,7 @@ export default function VerificationFeatures() {
                                 <div style={{
                                     width: '60px',
                                     height: '60px',
-                                    background: '#ECFDF5',
+                                    background: 'var(--primary-soft)',
                                     borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
