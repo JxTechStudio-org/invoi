@@ -100,6 +100,9 @@ describe('Invoices API (e2e)', () => {
           return Promise.resolve(invoice);
         }),
       },
+      extractionJob: { count: jest.fn().mockResolvedValue(0), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      $transaction: (action: (tx: unknown) => Promise<unknown>) => action(prismaMock),
     };
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })

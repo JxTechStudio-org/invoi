@@ -1,12 +1,14 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Invoice, InvoiceStatus, Prisma } from '@prisma/client';
+import { Invoice, InvoiceStatus, JobState, Prisma } from '@prisma/client';
+import { CANCELLED_BY_USER_ERROR } from '../extraction/extraction-jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   PendingFileRemoval, STORAGE_SERVICE, StorageService, StoredFileContent,
@@ -32,6 +34,25 @@ type InvoiceResponse = Invoice & {
   sellerName: Invoice['vendorName'];
   amount: Invoice['totalAmount'];
 };
+
+const reviewAccountFields = { businessName: true, businessNameEn: true, reviewAmountThreshold: true } as const;
+
+type LockedInvoice = Prisma.InvoiceGetPayload<{ include: { user: { select: typeof reviewAccountFields } } }>;
+
+function sameValue(stored: unknown, next: unknown): boolean {
+  if (stored instanceof Prisma.Decimal && next instanceof Prisma.Decimal) return stored.equals(next);
+  if (stored instanceof Date && next instanceof Date) return stored.getTime() === next.getTime();
+  return stored === next;
+}
+
+/** The extraction scores without the given fields; the same object if none of them had a score. */
+function withoutScores(confidence: Prisma.JsonValue, fields: string[]): Prisma.JsonValue {
+  if (!confidence || typeof confidence !== 'object' || Array.isArray(confidence)
+    || !fields.some(field => field in confidence)) {
+    return confidence;
+  }
+  return Object.fromEntries(Object.entries(confidence).filter(([field]) => !fields.includes(field)));
+}
 
 @Injectable()
 export class InvoicesService {
@@ -128,6 +149,11 @@ export class InvoicesService {
     return { invoiceId: invoice.id, status: invoice.status };
   }
 
+  /**
+   * Hand edit: re-runs the review rules, records the changed fields in editedFields so
+   * extraction never overwrites them (C12), and drops their extraction scores, since a
+   * value typed by a person is no longer a low-confidence guess.
+   */
   async update(id: string, body: UpdateInvoiceDto, userId: string): Promise<InvoiceResponse> {
     const changes: Partial<EditableInvoice> = {};
     for (const field of editableTextFields) {
@@ -148,24 +174,19 @@ export class InvoicesService {
       throw new BadRequestException('At least one editable invoice field is required');
     }
 
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id, userId }, include: {
-        user: {
-          select: {
-            businessName: true, businessNameEn: true, reviewAmountThreshold: true,
-          }
-        }
-      },
+    return this.changeByUser(id, userId, invoice => {
+      const changed = (Object.keys(changes) as (keyof EditableInvoice)[])
+        .filter(field => !sameValue(invoice[field], changes[field]));
+      const extractionConfidence = withoutScores(invoice.extractionConfidence, changed);
+      const review = evaluateInvoiceReview({ ...invoice, ...changes, extractionConfidence }, invoice.user);
+      return {
+        ...changes,
+        ...review,
+        editedFields: [...new Set([...invoice.editedFields, ...changed])],
+        ...(extractionConfidence !== invoice.extractionConfidence
+          && { extractionConfidence: extractionConfidence as Prisma.InputJsonObject }),
+      };
     });
-    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
-
-    const review = evaluateInvoiceReview({ ...invoice, ...changes }, invoice.user);
-    try {
-      const updated = await this.prisma.invoice.update({ where: { id }, data: { ...changes, ...review } });
-      return this.toResponse(updated);
-    } catch (error) {
-      this.rethrowPersistenceError(error, id);
-    }
   }
 
   async getFile(id: string, userId: string): Promise<StoredFileContent> {
@@ -181,41 +202,66 @@ export class InvoicesService {
 
   /** Human sign-off: completes the invoice even if review rules fired. */
   async approve(id: string, userId: string): Promise<InvoiceResponse> {
-    const invoice = await this.prisma.invoice.findUnique({ where: { id, userId } });
-    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
-
-    const missing = approvalRequiredFields.filter(field => {
-      const value = invoice[field];
-      return value === null || (typeof value === 'string' && !value.trim());
-    });
-    if (missing.length) {
-      throw new BadRequestException(`Invoice cannot be approved without: ${missing.join(', ')}`);
-    }
-
-    try {
-      const updated = await this.prisma.invoice.update({
-        where: { id }, data: { status: InvoiceStatus.completed, needsReviewReason: null },
+    return this.changeByUser(id, userId, invoice => {
+      const missing = approvalRequiredFields.filter(field => {
+        const value = invoice[field];
+        return value === null || (typeof value === 'string' && !value.trim());
       });
-      return this.toResponse(updated);
-    } catch (error) {
-      this.rethrowPersistenceError(error, id);
-    }
+      if (missing.length) {
+        throw new BadRequestException(`Invoice cannot be approved without: ${missing.join(', ')}`);
+      }
+      return { status: InvoiceStatus.completed, needsReviewReason: null };
+    });
   }
 
   /** User reports a problem: sends the invoice back to review until it is approved. */
   async flag(id: string, userId: string): Promise<InvoiceResponse> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id, userId }, select: { needsReviewReason: true },
+    return this.changeByUser(id, userId, invoice => {
+      const reasons = parseReviewReasons(invoice.needsReviewReason);
+      if (!reasons.includes(USER_FLAGGED_REASON)) reasons.push(USER_FLAGGED_REASON);
+      return { status: InvoiceStatus.needs_review, needsReviewReason: reasons.join(',') };
     });
-    if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+  }
 
-    const reasons = parseReviewReasons(invoice.needsReviewReason);
-    if (!reasons.includes(USER_FLAGGED_REASON)) reasons.push(USER_FLAGGED_REASON);
+  /**
+   * Applies a person's change to one invoice while holding its row lock. A processing
+   * invoice whose extraction job is running can only be viewed (D15): 409. Once the change
+   * takes the invoice out of processing, its queued jobs are cancelled, since their result
+   * would be ignored anyway. The cancel only touches jobs still queued, and the worker's
+   * claim only touches jobs still queued, so exactly one of them wins; the running check
+   * after the cancel catches a claim that won. An edit that leaves the invoice processing
+   * keeps its job; a claim racing with it is safe, because the worker waits for this row
+   * lock before storing a result and never overwrites editedFields.
+   */
+  private async changeByUser(
+    id: string,
+    userId: string,
+    change: (invoice: LockedInvoice) => Prisma.InvoiceUpdateInput & { status: InvoiceStatus },
+  ): Promise<InvoiceResponse> {
     try {
-      const updated = await this.prisma.invoice.update({
-        where: { id }, data: { status: InvoiceStatus.needs_review, needsReviewReason: reasons.join(',') },
+      return await this.prisma.$transaction(async tx => {
+        await tx.$queryRaw`SELECT 1 FROM "Invoice" WHERE "id" = ${id} AND "userId" = ${userId} FOR UPDATE`;
+        const invoice = await tx.invoice.findUnique({ where: { id, userId }, include: { user: { select: reviewAccountFields } } });
+        if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+        const processing = invoice.status === InvoiceStatus.processing;
+        const assertNotExtracting = async () => {
+          const running = await tx.extractionJob.count({ where: { invoiceId: id, state: JobState.running } });
+          if (running) throw new ConflictException(`Invoice ${id} is being extracted; try again when it finishes`);
+        };
+
+        if (processing) await assertNotExtracting();
+        const data = change(invoice);
+        if (data.status !== InvoiceStatus.processing) {
+          await tx.extractionJob.updateMany({
+            where: { invoiceId: id, state: JobState.queued },
+            data: { state: JobState.failed, lastError: CANCELLED_BY_USER_ERROR },
+          });
+          if (processing) await assertNotExtracting();
+        }
+
+        return this.toResponse(await tx.invoice.update({ where: { id }, data }));
       });
-      return this.toResponse(updated);
     } catch (error) {
       this.rethrowPersistenceError(error, id);
     }

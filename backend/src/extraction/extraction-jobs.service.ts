@@ -12,6 +12,8 @@ export const MAX_ATTEMPTS = RETRY_DELAYS_MS.length + 1;
 /** A job still running after this long belongs to a worker that stopped mid-job. */
 export const STALE_JOB_MS = 10 * 60_000;
 const MAX_ERROR_LENGTH = 500;
+/** lastError of a queued job dropped because a person approved, flagged or reviewed the invoice first. */
+export const CANCELLED_BY_USER_ERROR = 'Cancelled: the invoice was handled by a person before extraction';
 
 export interface ExtractionJobRef {
   id: string;
@@ -39,6 +41,8 @@ export class ExtractionJobsService {
   /**
    * Claims the oldest due job and marks it running. Demo accounts are never claimed (H9);
    * accounts outside a non-empty allow-list stay queued until they are added (G25).
+   * The update repeats the queued condition so a job a person cancelled meanwhile is never
+   * started; InvoicesService cancels with the mirror-image condition.
    */
   async claimNext(accountAllowlist: string[]): Promise<ExtractionJobRef | null> {
     // Prisma stores UTC in timestamp-without-time-zone columns, so compare in UTC.
@@ -59,7 +63,7 @@ export class ExtractionJobsService {
       UPDATE "ExtractionJob" AS j
       SET "state" = 'running', "attempts" = j."attempts" + 1, "updatedAt" = (now() AT TIME ZONE 'UTC')
       FROM next
-      WHERE j."id" = next."id"
+      WHERE j."id" = next."id" AND j."state" = 'queued'
       RETURNING j."id", j."invoiceId", j."attempts"`;
     return rows[0] ?? null;
   }
