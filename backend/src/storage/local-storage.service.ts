@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { createReadStream } from 'node:fs';
 import { lstat, mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
+import {
+  contentTypeFor, isFilelessReference, noOpRemoval, PendingFileRemoval, StorageService, StoredFile,
+  StoredFileContent,
+} from './storage.service';
 
 interface LocalStoredFile extends StoredFile {
   filePath: string;
@@ -30,6 +34,7 @@ export class LocalStorageService implements StorageService {
   }
 
   async remove(file: StoredFile): Promise<void> {
+    if (isFilelessReference(file.fileUrl)) return;
     const filePath = file.filePath ?? this.resolveReference(file.fileUrl);
     if (dirname(resolve(filePath)) !== this.storageDirectory) {
       throw new Error('Cannot remove a file outside the invoice storage directory');
@@ -38,6 +43,7 @@ export class LocalStorageService implements StorageService {
   }
 
   async stageRemoval(fileUrl: string): Promise<PendingFileRemoval> {
+    if (isFilelessReference(fileUrl)) return noOpRemoval();
     const originalPath = this.resolveReference(fileUrl);
 
     const stagedPath = join(this.storageDirectory, `.deleting-${randomUUID()}`);
@@ -49,15 +55,27 @@ export class LocalStorageService implements StorageService {
       // Keep the move on the same filesystem so rollback can restore the file.
       await rename(originalPath, stagedPath);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return { finalize: async () => {}, restore: async () => {} };
-      }
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return noOpRemoval();
       throw error;
     }
     return {
       finalize: () => rm(stagedPath, { force: true }),
       restore: () => rename(stagedPath, originalPath),
     };
+  }
+
+  async download(fileUrl: string): Promise<StoredFileContent | null> {
+    if (isFilelessReference(fileUrl)) return null;
+    const filePath = this.resolveReference(fileUrl);
+    try {
+      const info = await lstat(filePath);
+      // Never follow symlinks or serve directories from the storage folder.
+      if (!info.isFile()) return null;
+      return { stream: createReadStream(filePath), contentType: contentTypeFor(filePath), contentLength: info.size };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw error;
+    }
   }
 
   private resolveReference(fileUrl: string): string {

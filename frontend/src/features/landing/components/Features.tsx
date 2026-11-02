@@ -1,36 +1,66 @@
 import React from 'react';
 import { Typography, Card, Row, Col } from 'antd';
-import { ThunderboltOutlined, LockOutlined, AppstoreOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import {
+    RobotOutlined,
+    QrcodeOutlined,
+    PercentageOutlined,
+    AlertOutlined,
+    TranslationOutlined,
+    AuditOutlined,
+    AppstoreOutlined,
+    SafetyCertificateOutlined,
+} from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
 
 export default function Features() {
+    const iconStyle = { fontSize: '28px', color: 'var(--emerald-500)' };
     const featuresList = [
         {
-            icon: <ThunderboltOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'استخراج ذكي وسريع',
-            description: 'تخلص من الأخطاء البشرية والإدخال اليدوي.',
+            icon: <RobotOutlined style={iconStyle} />,
+            title: 'استخراج بالذكاء الاصطناعي',
+            description: 'يقرأ invoi الفاتورة بالذكاء الاصطناعي، ويستخرج منها 12 حقلاً: اسم المورد، ورقم الفاتورة، وتاريخ الفاتورة وتاريخ الاستحقاق، والإجمالي ومبلغ الضريبة، والعملة، وحالة الدفع وطريقته، واسم العميل، والرقم الضريبي والسجل التجاري للمورد.',
         },
         {
-            icon: <LockOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
-            title: 'تحكم كامل',
-            description: 'راجع وعدل أي تفاصيل بكل مرونة.',
+            icon: <QrcodeOutlined style={iconStyle} />,
+            title: 'استخراج بيانات رمز QR',
+            description: 'يقرأ invoi رمز QR في الفاتورة الإلكترونية ويأخذ منه اسم المورد والرقم الضريبي وتاريخ الفاتورة والإجمالي ومبلغ الضريبة، لتقليل الإدخال اليدوي.',
         },
         {
-            icon: <AppstoreOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
+            icon: <PercentageOutlined style={iconStyle} />,
+            title: 'التحقق من ضريبة القيمة المضافة',
+            description: 'يتحقق invoi من صحة الرقم الضريبي للمورد، ومن أن الضريبة تساوي 15% في الفواتير بالريال السعودي من الموردين المسجلين في ضريبة القيمة المضافة، وينبّهك إذا تجاوزت الضريبة 30% من إجمالي أي فاتورة.',
+        },
+        {
+            icon: <AlertOutlined style={iconStyle} />,
+            title: 'تنبيهات واضحة للمراجعة',
+            description: 'تعرّف على الفواتير التي تحتاج إلى مراجعة مع سبب كل تنبيه، مثل بيانات غير مؤكدة، أو اسم عميل لا يطابق اسم منشأتك، أو ضريبة غير منطقية.',
+        },
+        {
+            icon: <TranslationOutlined style={iconStyle} />,
+            title: 'فواتير عربية وإنجليزية',
+            description: 'يقرأ invoi الفواتير باللغتين العربية والإنجليزية، ويدعم الأرقام العربية (١٢٣) والتواريخ الهجرية والميلادية بصيغها المختلفة.',
+        },
+        {
+            icon: <AuditOutlined style={iconStyle} />,
+            title: 'مراجعة الفاتورة واعتمادها',
+            description: 'راجع البيانات المستخرجة وعدّلها عند الحاجة، ثم اعتمد الفاتورة أو أبلغ عن وجود خطأ.',
+        },
+        {
+            icon: <AppstoreOutlined style={iconStyle} />,
             title: 'معالجة كميات كبيرة',
             description: 'مثالية للشركات التي تتعامل مع مئات الفواتير يومياً.',
         },
         {
-            icon: <SafetyCertificateOutlined style={{ fontSize: '28px', color: 'var(--emerald-500)' }} />,
+            icon: <SafetyCertificateOutlined style={iconStyle} />,
             title: 'دعم وموثوقية',
             description: 'أمان عالي ودعم كامل لكافة أنواع الملفات.',
         },
     ];
 
     return (
-        <section id="features" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: 'rtl' }}>
-            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
+        <section id="features" style={{ padding: 'clamp(56px, 9vw, 96px) 0', background: 'var(--bg-main)', direction: 'rtl' }}>
+            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 48px)', boxSizing: 'border-box' }}>
 
                 <div style={{ textAlign: 'center', marginBottom: '56px' }}>
                     <Title
@@ -48,11 +78,11 @@ export default function Features() {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: 'var(--var(--text-secondary))',
+                            color: 'var(--text-secondary)',
                             fontFamily: 'var(--sans)',
                         }}
                     >
-                        كل ما تحتاجه لاستخراج بيانات الفواتير بسهولة وكفاءة
+                        يستخرج invoi بيانات فواتيرك ويتحقق منها، ويوضّح لك الحالات التي تحتاج إلى مراجعتك.
                     </Paragraph>
                 </div>
 
@@ -66,7 +96,7 @@ export default function Features() {
                                     borderRadius: '12px',
                                     height: '100%',
                                     textAlign: 'center',
-                                    border: '1px solid var(-border-color)',
+                                    border: '1px solid var(--border-color)',
                                     boxSizing: 'border-box',
                                 }}
                                 styles={{body:{ padding: '32px 24px'} }}
@@ -74,7 +104,7 @@ export default function Features() {
                                 <div style={{
                                     width: '60px',
                                     height: '60px',
-                                    background: '#ECFDF5',
+                                    background: 'var(--primary-soft)',
                                     borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -85,7 +115,7 @@ export default function Features() {
                                 </div>
 
                                 <Title
-                                    level={4}
+                                    level={3}
                                     style={{
                                         fontSize: '18px',
                                         fontWeight: 600,
@@ -100,9 +130,9 @@ export default function Features() {
                                 <Paragraph
                                     style={{
                                         fontSize: '14px',
-                                        color: 'var(--var(--text-secondary))',
+                                        color: 'var(--text-secondary)',
                                         margin: 0,
-                                        lineHeight: 1.5,
+                                        lineHeight: 1.7,
                                         fontFamily: 'var(--sans)',
                                     }}
                                 >

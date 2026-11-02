@@ -48,9 +48,9 @@ export const FAQ = () => {
             id="faq"
             style={{
                 backgroundColor: 'var(--bg-main)',
-                padding: '80px 24px',
+                padding: 'clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px)',
                 direction: 'rtl',
-                borderTop: '1px solid var(-border-color)'
+                borderTop: '1px solid var(--border-color)'
             }}
         >
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -95,7 +95,7 @@ export const FAQ = () => {
                             background: 'var(--bg-main)',
                             borderRadius: '12px',
                             marginBottom: '16px',
-                            border: '1px solid var(-border-color)',
+                            border: '1px solid var(--border-color)',
                             overflow: 'hidden',
                         }
                     }))}

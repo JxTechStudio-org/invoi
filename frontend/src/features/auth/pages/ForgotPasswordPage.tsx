@@ -1,6 +1,6 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Form, Input, Typography, Card, theme } from 'antd'
+import { Alert, Form, Input, Typography, Card, theme } from 'antd'
 import { MailOutlined } from '@ant-design/icons'
 import logoWordmark from '../../../assets/invoi-logo-wordmark.svg'
 import MainButton from '../../shared/components/MainButton'
@@ -8,15 +8,11 @@ import MainAlert from '../../shared/components/MainAlert'
 
 const { Title, Text } = Typography
 
-interface ForgotPasswordFormValues {
-    email: string
-}
-
 export default function ForgotPasswordPage() {
-    const navigate = useNavigate()
     const { token } = theme.useToken()
     const [form] = Form.useForm()
     const [submitError, setSubmitError] = useState<string | null>(null)
+    const [isUnavailable, setIsUnavailable] = useState(false)
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
 
     useEffect(() => {
@@ -25,19 +21,10 @@ export default function ForgotPasswordPage() {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const onFinish = async (values: ForgotPasswordFormValues) => {
+    // There is no password-reset endpoint yet (roadmap phase 2), so say so instead of faking success.
+    const onFinish = () => {
         setSubmitError(null)
-        try {
-            console.log('Success:', values)
-            // Handle password reset request logic here, then redirect or show success
-            navigate('/login')
-        } catch {
-            setSubmitError('حدث خطأ أثناء المعالجة. حاول مرة أخرى.')
-        }
-    }
-
-    const onFinishFailed = () => {
-        console.log('Failed: validation errors present')
+        setIsUnavailable(true)
     }
 
     return (
@@ -88,11 +75,20 @@ export default function ForgotPasswordPage() {
                     </div>
                 )}
 
+                {isUnavailable && (
+                    <Alert
+                        type="info"
+                        showIcon
+                        style={{ marginBottom: 20 }}
+                        title="استعادة كلمة المرور غير متاحة حاليًا"
+                        description="نعمل على إتاحة هذه الخدمة قريبًا. للمساعدة في استعادة حسابك تواصل مع فريق الدعم."
+                    />
+                )}
+
                 <Form
                     form={form}
                     layout="vertical"
                     onFinish={onFinish}
-                    onFinishFailed={onFinishFailed}
                     autoComplete="off"
                     requiredMark={false}
                 >

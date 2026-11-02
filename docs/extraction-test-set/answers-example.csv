@@ -1,0 +1,4 @@
+﻿file,language,source,quality,hasQr,arabicDigits,vendorName,invoiceNumber,invoiceDate,dueDate,totalAmount,taxAmount,currency,paymentStatus,paymentMethod,customerName,taxNumber,crNumber,notes
+EX-001.pdf,ar,pdf,good,yes,no,شركة المثال للتجارة | Example Trading Co,INV-2026-0142,2026-09-14,2026-10-14,1150.00,150.00,SAR,,,مؤسسة إنفوي التجريبية | Invoi Demo Est.,300000000000003,1010000000,Bilingual vendor name; payment status not printed
+EX-002.jpg,en,photo,poor,no,no,Gulf Supplies LLC,GS-7781,2026-08-02,,420.50,0.00,AED,paid,cash,Invoi Demo Est.,,,Zero-rated; phone photo taken at an angle
+EX-003.pdf,ar,scan,good,yes,yes,مؤسسة النور,512,,,2300.00,300.00,SAR,unpaid,bank_transfer,مؤسسة إنفوي التجريبية,310000000000003,4030000000,Date printed in Hijri only (1448/03/12); digits printed as Arabic-Indic

@@ -1,4 +1,6 @@
-import { PendingFileRemoval, StorageService, StoredFile } from './storage.service';
+import {
+  isFilelessReference, noOpRemoval, PendingFileRemoval, StorageService, StoredFile, StoredFileContent,
+} from './storage.service';
 
 export class ReferenceRoutingStorageService implements StorageService {
   constructor(
@@ -10,12 +12,19 @@ export class ReferenceRoutingStorageService implements StorageService {
     return this.primaryStorage.upload(file);
   }
 
-  remove(file: StoredFile): Promise<void> {
+  async remove(file: StoredFile): Promise<void> {
+    if (isFilelessReference(file.fileUrl)) return;
     return this.storageFor(file.fileUrl).remove(file);
   }
 
-  stageRemoval(fileUrl: string): Promise<PendingFileRemoval> {
+  async stageRemoval(fileUrl: string): Promise<PendingFileRemoval> {
+    if (isFilelessReference(fileUrl)) return noOpRemoval();
     return this.storageFor(fileUrl).stageRemoval(fileUrl);
+  }
+
+  async download(fileUrl: string): Promise<StoredFileContent | null> {
+    if (isFilelessReference(fileUrl)) return null;
+    return this.storageFor(fileUrl).download(fileUrl);
   }
 
   private storageFor(fileUrl: string): StorageService {

@@ -42,10 +42,21 @@ const ARABIC_MONTHS = [
 
 export type ConfidenceLevel = 'high' | 'medium' | 'low'
 
+/**
+ * ثقة الفاتورة = أضعف حقل فيها، لأن أي حقل أقل من 0.9 يرسل الفاتورة للمراجعة
+ * (low_confidence في backend/src/invoices/invoice-review.ts).
+ */
+export function getInvoiceConfidence(confidence: Invoice['extractionConfidence']): number | null {
+    if (!confidence) return null
+    const scores = Object.values(confidence).filter((score) => typeof score === 'number')
+    return scores.length ? Math.min(...scores) : null
+}
+
+// high = لا تحتاج مراجعة (≥ 0.9)، medium = فحص واحد فشل جزئياً، low = حقل ناقص أو غير صالح
 export function getConfidenceLevel(confidence: number | null): ConfidenceLevel | null {
     if (confidence === null) return null
-    if (confidence >= 0.8) return 'high'
-    if (confidence >= 0.5) return 'medium'
+    if (confidence >= 0.9) return 'high'
+    if (confidence >= 0.6) return 'medium'
     return 'low'
 }
 
@@ -111,19 +122,12 @@ export function calculateProcessingVolume(invoices: Invoice[]): ProcessingVolume
     })
 }
 
-/**
- * ⚠️ افتراض غير مؤكد من الباك إند: حدود تصنيف الثقة
- * (High ≥ 0.8, Medium ≥ 0.5, Low < 0.5). صححي هذي الحدود
- * فور ما يوضحها أحمد أو المشرفة.
- */
 export function calculateConfidenceDistribution(invoices: Invoice[]): ConfidenceDistribution {
     const distribution: ConfidenceDistribution = { high: 0, medium: 0, low: 0 }
 
     invoices.forEach((invoice) => {
-        if (invoice.extractionConfidence === null) return
-        if (invoice.extractionConfidence >= 0.8) distribution.high += 1
-        else if (invoice.extractionConfidence >= 0.5) distribution.medium += 1
-        else distribution.low += 1
+        const level = getConfidenceLevel(getInvoiceConfidence(invoice.extractionConfidence))
+        if (level) distribution[level] += 1
     })
 
     return distribution
@@ -134,14 +138,17 @@ export function calculateRecentInvoices(invoices: Invoice[], limit = 6): RecentI
     return [...invoices]
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, limit)
-        .map((inv) => ({
-            id: inv.id,
-            vendorName: inv.vendorName ?? inv.sellerName,
-            status: inv.status,
-            amount: inv.amount !== null ? parseAmount(inv.amount) : null,
-            confidenceLevel: getConfidenceLevel(inv.extractionConfidence),
-            confidencePercentage: inv.extractionConfidence !== null ? Math.round(inv.extractionConfidence * 100) : null
-        }))
+        .map((inv) => {
+            const confidence = getInvoiceConfidence(inv.extractionConfidence)
+            return {
+                id: inv.id,
+                vendorName: inv.vendorName ?? inv.sellerName,
+                status: inv.status,
+                amount: inv.amount !== null ? parseAmount(inv.amount) : null,
+                confidenceLevel: getConfidenceLevel(confidence),
+                confidencePercentage: confidence !== null ? Math.round(confidence * 100) : null
+            }
+        })
 }
 
 

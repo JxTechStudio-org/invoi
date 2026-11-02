@@ -34,7 +34,7 @@ export default function DashboardPage() {
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                 <PageHeader pageIcon={<TbDeviceAnalytics />} pagename1='لوحة التحكم' />
-                <ExportButton onClick={exportInvoices} loading={isExporting} />
+                <ExportButton onClick={() => exportInvoices()} loading={isExporting} />
             </div>
             <div style={{ padding: 24 }}>
 

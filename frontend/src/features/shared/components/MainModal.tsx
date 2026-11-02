@@ -15,6 +15,8 @@ interface MainModalProps {
     danger?: boolean
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    /** Keep the modal open after confirm (e.g. async submit or validation); the caller closes it on success. */
+    keepOpenOnConfirm?: boolean
 }
 
 export default function MainModal({
@@ -28,7 +30,8 @@ export default function MainModal({
     confirmLoading = false,
     danger = false,
     open,
-    onOpenChange
+    onOpenChange,
+    keepOpenOnConfirm = false
 }: MainModalProps) {
     const { token } = theme.useToken()
     const [internalOpen, setInternalOpen] = useState(false)
@@ -46,7 +49,7 @@ export default function MainModal({
 
     const handleConfirm = () => {
         onConfirm()
-        setOpen(false)
+        if (!keepOpenOnConfirm) setOpen(false)
     }
 
     return (

@@ -1,9 +1,25 @@
 import React from 'react';
 import { Layout, Image } from 'antd';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import logoSvg from '../../../assets/invoi-logo-wordmark.svg';
+import { CONTACT_EMAIL } from '../constants/contact';
 
 const { Footer: AntFooter } = Layout;
+
+const footerLinks = [
+  { name: 'الرئيسية', href: '/#home' },
+  { name: 'المميزات', href: '/#features' },
+  { name: 'كيف يعمل', href: '/#how-it-works' },
+  { name: 'الأسئلة الشائعة', href: '/#faq' },
+];
+
+const linkStyle: React.CSSProperties = {
+  textDecoration: 'none',
+  color: 'var(--footer-link, #F0FDF4)',
+  fontSize: '14px',
+  fontFamily: 'IBM Plex Sans Arabic, sans-serif',
+};
 
 export const Footer = () => {
   return (
@@ -70,14 +86,30 @@ export const Footer = () => {
               alignItems: 'center',
             }}
           >
-            <li><a href="#home" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الرئيسية</a></li>
-            <li><a href="#features" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>المميزات</a></li>
-            <li><a href="#how-it-works" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>كيف يعمل</a></li>
-            <li><a href="#faq" style={{ textDecoration: 'none', color: 'var(--footer-link, #F0FDF4)', fontSize: '14px', fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>الأسئلة الشائعة</a></li>
+            {footerLinks.map(link => (
+              <li key={link.href}><a href={link.href} style={linkStyle}>{link.name}</a></li>
+            ))}
           </ul>
         </div>
 
-        <div style={{ width: '100%', maxWidth: '1440px', margin: '20px auto 0 auto', textAlign: 'center' }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '1440px',
+            margin: '20px auto 0 auto',
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px 24px',
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 24px' }}>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={linkStyle}>
+              تواصل معنا: <span dir="ltr">{CONTACT_EMAIL}</span>
+            </a>
+            <Link to="/privacy" style={linkStyle}>سياسة الخصوصية</Link>
+          </div>
           <p style={{ fontSize: '13px', color: 'var(--footer-text, rgba(255, 255, 255, 0.7))', margin: 0, fontFamily: 'IBM Plex Sans Arabic, sans-serif' }}>© 2026 invoi جميع الحقوق محفوظة.</p>
         </div>
       </AntFooter>

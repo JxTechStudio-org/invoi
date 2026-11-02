@@ -27,8 +27,8 @@ export default function HowItWorks() {
     ];
 
     return (
-        <section id="how-it-works" style={{ padding: '96px 0', background: 'var(--bg-main)', direction: 'rtl' }}>
-            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 48px', boxSizing: 'border-box' }}>
+        <section id="how-it-works" style={{ padding: 'clamp(56px, 9vw, 96px) 0', background: 'var(--bg-main)', direction: 'rtl' }}>
+            <div style={{ maxWidth: '1440px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 48px)', boxSizing: 'border-box' }}>
 
                 <div style={{ textAlign: 'center', marginBottom: '56px' }}>
                     <Title
@@ -46,7 +46,7 @@ export default function HowItWorks() {
                     <Paragraph
                         style={{
                             fontSize: '16px',
-                            color: 'var(--var(--text-secondary))',
+                            color: 'var(--text-secondary)',
                             fontFamily: 'var(--sans)',
                         }}
                     >
@@ -63,7 +63,7 @@ export default function HowItWorks() {
                                     borderRadius: '12px',
                                     padding: '32px 24px',
                                     textAlign: 'center',
-                                    border: '1px solid var(-border-color)',
+                                    border: '1px solid var(--border-color)',
                                     height: '100%',
                                     boxSizing: 'border-box',
                                 }}
@@ -107,7 +107,7 @@ export default function HowItWorks() {
                                 <Paragraph
                                     style={{
                                         fontSize: '14px',
-                                        color: 'var(--var(--text-secondary))',
+                                        color: 'var(--text-secondary)',
                                         margin: 0,
                                         lineHeight: 1.5,
                                         fontFamily: 'var(--sans)',

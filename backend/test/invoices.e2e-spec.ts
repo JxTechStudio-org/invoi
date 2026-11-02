@@ -1,6 +1,7 @@
 import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { InvoiceStatus } from '@prisma/client';
+import { Readable } from 'node:stream';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { JwtAuthGuard } from '../src/auth/jwt.auth.guard';
@@ -26,6 +27,7 @@ describe('Invoices API (e2e)', () => {
   let createInvoice: jest.Mock;
   let findUser: jest.Mock;
   let remove: jest.Mock;
+  let download: jest.Mock;
   let authUserId: string;
 
   beforeEach(async () => {
@@ -64,6 +66,9 @@ describe('Invoices API (e2e)', () => {
       ['test-owner', 'second-test-owner'].includes(where.id) ? { id: where.id } : null,
     ));
     remove = jest.fn().mockResolvedValue(undefined);
+    download = jest.fn(() => Promise.resolve({
+      stream: Readable.from([Buffer.from('%PDF-1.4')]), contentType: 'application/pdf', contentLength: 8,
+    }));
     upload = jest.fn().mockResolvedValue({
       filePath: '/tmp/invoice.pdf',
       fileUrl: '/uploads/uploaded-invoice.pdf',
@@ -89,6 +94,11 @@ describe('Invoices API (e2e)', () => {
         findUnique: jest.fn(({ where }) =>
           Promise.resolve(invoices.find((invoice) => invoice.id === where.id) ?? null),
         ),
+        update: jest.fn(({ where, data }) => {
+          const invoice = invoices.find((candidate) => candidate.id === where.id)!;
+          Object.assign(invoice, data);
+          return Promise.resolve(invoice);
+        }),
       },
     };
 
@@ -96,7 +106,7 @@ describe('Invoices API (e2e)', () => {
       .overrideProvider(PrismaService)
       .useValue(prismaMock)
       .overrideProvider(STORAGE_SERVICE)
-      .useValue({ upload, remove })
+      .useValue({ upload, remove, download })
       .overrideGuard(JwtAuthGuard)
       .useValue({
         canActivate: (context: ExecutionContext) => {
@@ -279,6 +289,63 @@ describe('Invoices API (e2e)', () => {
     expect(matching.body).toHaveLength(1);
     await request(app.getHttpServer())
       .get('/api/invoices?date=2026-09-09').expect(200).expect([]);
+  });
+
+  it('approves an invoice with 200 and marks it completed', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/approve')
+      .expect(200);
+    expect(response.body).toMatchObject({ id: 'existing-invoice', status: 'completed', needsReviewReason: null });
+  });
+
+  it('refuses to approve an invoice missing required data', async () => {
+    invoices[0].vendorName = null;
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/approve')
+      .expect(400);
+    expect(response.body.message).toContain('vendorName');
+    expect(invoices[0].status).toBe(InvoiceStatus.processing);
+  });
+
+  it('flags an invoice for review with 200', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/flag')
+      .expect(200);
+    expect(response.body).toMatchObject({ status: 'needs_review', needsReviewReason: 'user_flagged' });
+  });
+
+  it.each(['approve', 'flag'])('returns 404 when trying to %s an unknown invoice', async (action) => {
+    await request(app.getHttpServer())
+      .post(`/api/invoices/missing-invoice/${action}`)
+      .expect(404);
+  });
+
+  it('streams the invoice file inline with safe headers', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/invoices/existing-invoice/file')
+      .buffer(true)
+      .parse((res, done) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (chunk: Buffer) => chunks.push(chunk));
+        res.on('end', () => done(null, Buffer.concat(chunks)));
+      })
+      .expect(200);
+    expect(download).toHaveBeenCalledWith('/uploads/existing.pdf');
+    expect(response.headers['content-type']).toBe('application/pdf');
+    expect(response.headers['content-disposition']).toBe('inline');
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+    expect(response.headers['cache-control']).toBe('private, no-store');
+    expect((response.body as Buffer).toString()).toBe('%PDF-1.4');
+  });
+
+  it('returns 404 for the file of an unknown invoice', async () => {
+    await request(app.getHttpServer()).get('/api/invoices/missing-invoice/file').expect(404);
+    expect(download).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the stored file is missing', async () => {
+    download.mockResolvedValue(null);
+    await request(app.getHttpServer()).get('/api/invoices/existing-invoice/file').expect(404);
   });
 
   it('returns 404 for an unknown invoice id', async () => {

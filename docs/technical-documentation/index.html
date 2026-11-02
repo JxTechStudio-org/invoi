@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>invoi Technical Documentation</title>
+<!--
+  Source of the invoi technical documentation. Edit this file, then run
+  `python docs/technical-documentation/build.py` to export the PDF (see README.md).
+  Version, date and source commit are set once, in the DOC object at the bottom.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --emerald-700: #047857; --emerald-600: #059669; --emerald-500: #10B981;
+    --mint: #ECFDF5; --mint-border: #A7F3D0;
+    --slate-900: #0F172A; --slate-700: #334155; --slate-600: #475569; --slate-400: #94A3B8;
+    --slate-200: #E2E8F0; --slate-100: #F1F5F9; --slate-50: #F8FAFC;
+    --amber: #F59E0B; --amber-bg: #FFFBEB; --amber-text: #B45309;
+    --blue: #3B82F6; --blue-bg: #EFF6FF; --blue-text: #1D4ED8;
+    --font: "IBM Plex Sans", "IBM Plex Sans Arabic", "Segoe UI", Arial, sans-serif;
+    --mono: "IBM Plex Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; background: #fff; color: var(--slate-900); font: 9.4pt/1.5 var(--font); }
+
+  @page {
+    size: A4;
+    margin: 22mm 16mm 18mm;
+    @top-left { content: "invoi"; font: 700 15pt var(--font); color: var(--emerald-600); vertical-align: bottom; padding-bottom: 3mm; border-bottom: 0.4pt solid var(--slate-200); }
+    @top-right { content: "Technical Documentation"; font: 400 8pt var(--font); color: var(--slate-600); vertical-align: bottom; padding-bottom: 4mm; border-bottom: 0.4pt solid var(--slate-200); }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 600 8pt var(--font); color: var(--slate-600); }
+  }
+  @page cover { margin: 0; @top-left { content: none; border: 0; } @top-right { content: none; border: 0; } @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  /* Screen preview: show pages as sheets */
+  @media screen {
+    body { background: var(--slate-100); padding: 24px 0; }
+    .sheet { width: 210mm; margin: 0 auto 24px; padding: 18mm 17mm; background: #fff; box-shadow: 0 2px 12px rgb(15 23 42 / 0.12); }
+    .cover.sheet { padding: 0; }
+  }
+
+  /* Cover */
+  .cover { page: cover; height: 297mm; position: relative; overflow: hidden; color: #fff;
+    background-color: #0B8F64;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='132' height='58'%3E%3Cg fill='%23ffffff' fill-opacity='0.07'%3E%3Crect x='20' y='18' width='40' height='5' rx='2.5'/%3E%3Crect x='20' y='27' width='28' height='5' rx='2.5'/%3E%3Ccircle cx='99' cy='25' r='5.5'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(180deg, #077A55 0%, #10B981 100%); }
+  .cover-inner { position: absolute; left: 22mm; right: 22mm; top: 0; bottom: 0; }
+  .cover-logo { position: absolute; top: 100mm; display: flex; align-items: center; gap: 7mm; }
+  .cover-logo .mark { width: 20mm; height: 38mm; position: relative; }
+  .cover-logo .mark .dot { position: absolute; left: 4mm; top: 0; width: 11mm; height: 11mm; border-radius: 50%; background: #fff; }
+  .cover-logo .mark .stem { position: absolute; left: 4mm; top: 13mm; width: 11mm; height: 25mm; border-radius: 3mm; background: #fff; }
+  .cover-logo .mark .paper { position: absolute; left: 0; top: 15mm; width: 9mm; height: 16mm; border-radius: 1.5mm; background: rgb(255 255 255 / 0.35); }
+  .cover-logo .bar { width: 0.6mm; height: 34mm; background: rgb(255 255 255 / 0.5); }
+  .cover-logo .word { font: 700 92pt/1 var(--font); letter-spacing: -1pt; }
+  .cover-kicker { position: absolute; top: 180mm; font: 700 8.5pt var(--font); letter-spacing: 3pt; text-transform: uppercase; }
+  .cover h1 { position: absolute; top: 188mm; margin: 0; font: 700 34pt/1.15 var(--font); }
+  .cover .lede { position: absolute; top: 232mm; margin: 0; font-size: 10.5pt; color: rgb(255 255 255 / 0.9); max-width: 165mm; }
+  .cover .tagline { position: absolute; top: 254mm; font: 500 11pt "IBM Plex Sans Arabic", var(--font); direction: rtl; }
+  .cover-foot { position: absolute; bottom: 14mm; left: 0; right: 0; padding-top: 4mm; border-top: 0.5pt solid rgb(255 255 255 / 0.45); display: flex; justify-content: space-between; font-size: 8.5pt; color: rgb(255 255 255 / 0.9); }
+
+  /* Page breaks */
+  .page { break-before: page; }
+  .keep { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  tr, li, .callout, figure, pre { break-inside: avoid; }
+
+  /* Contents */
+  .eyebrow { margin: 6mm 0 1mm; font: 700 8pt var(--font); letter-spacing: 2pt; text-transform: uppercase; color: var(--emerald-600); }
+  .contents-title { margin: 0 0 6mm; font: 700 24pt var(--font); }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; margin-bottom: 4mm; }
+  .fact { background: var(--mint); border-radius: 10px; padding: 2.6mm 4mm; font-size: 9pt; }
+  .fact b { display: block; font-size: 7pt; letter-spacing: 1pt; text-transform: uppercase; color: var(--emerald-700); margin-bottom: 1mm; }
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc li { display: grid; grid-template-columns: 14mm 1fr 12mm; align-items: baseline; padding: 1.5mm 0; border-bottom: 0.5pt solid var(--slate-200); }
+  .toc .n { font: 700 12pt var(--font); color: var(--emerald-600); }
+  .toc a { color: inherit; text-decoration: none; font-weight: 600; font-size: 10.5pt; line-height: 1.35; }
+  .toc small { display: block; font-weight: 400; font-size: 8pt; color: var(--slate-600); }
+  .toc .pg { text-align: right; font: 700 11pt var(--font); color: var(--emerald-600); }
+
+  /* Section headings */
+  .sec-head { display: flex; align-items: center; gap: 5mm; margin: 2mm 0 5mm; padding-bottom: 3.5mm; border-bottom: 1.2pt solid var(--emerald-500); }
+  .sec-head .num { flex: none; width: 12mm; height: 12mm; border-radius: 3mm; background: var(--emerald-500); color: #fff; display: grid; place-items: center; font: 700 12pt var(--font); }
+  .sec-head h2 { margin: 0; font: 700 21pt var(--font); }
+  h3 { margin: 5mm 0 2mm; font: 700 11pt var(--font); color: var(--emerald-700); }
+  p { margin: 0 0 3mm; }
+  a { color: var(--emerald-700); }
+  strong.g { color: var(--emerald-700); }
+
+  code { font: 8.5pt var(--mono); background: var(--mint); color: var(--emerald-700); padding: 0.2mm 1.2mm; border-radius: 3px; }
+  pre { margin: 3mm 0 4mm; padding: 4.5mm 6mm; background: var(--slate-900); color: #E2E8F0; border-left: 1.2mm solid var(--emerald-500); border-radius: 8px; font: 8.3pt/1.6 var(--mono); white-space: pre; overflow: hidden; }
+  pre .c { color: var(--slate-400); }
+
+  ul, ol { margin: 0 0 3mm; padding-left: 5.5mm; }
+  li { margin-bottom: 1.2mm; }
+  ul li::marker { color: var(--emerald-500); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 2mm 0 4mm; font-size: 8.2pt; line-height: 1.33; border: 0.5pt solid var(--slate-200); border-radius: 8px; overflow: hidden; }
+  th { background: var(--emerald-700); color: #fff; text-align: left; font-weight: 600; padding: 1.6mm 2.6mm; }
+  td { padding: 1.2mm 2.6mm; border-top: 0.5pt solid var(--slate-200); vertical-align: top; }
+  tbody tr:nth-child(even) td { background: var(--slate-50); }
+  td.code-col { color: var(--slate-400); width: 10mm; }
+  tr.amended td { background: var(--mint) !important; }
+
+  /* Pills */
+  .pill { display: inline-block; padding: 0.3mm 2.2mm; border-radius: 99px; font-size: 7.3pt; font-weight: 600; white-space: nowrap; }
+  .pill.new { background: var(--emerald-700); color: #fff; }
+  .pill.done { background: #D1FAE5; color: var(--emerald-700); }
+  .pill.ph { background: var(--blue-bg); color: var(--blue-text); }
+  .pill.hold { background: #FEF3C7; color: var(--amber-text); }
+  .pill.amd { background: var(--emerald-500); color: #fff; }
+
+  /* Callouts */
+  .callout { margin: 4mm 0; padding: 3.5mm 5mm; border-radius: 8px; border-left: 1.2mm solid var(--emerald-500); background: var(--mint); }
+  .callout.warn { border-left-color: var(--amber); background: var(--amber-bg); }
+  .callout.warn > b:first-child { color: var(--amber-text); }
+  .callout > b:first-child { color: var(--emerald-700); }
+  .callout.quiet { background: none; border: 0; padding: 0; font-size: 8.3pt; color: var(--slate-600); }
+
+  /* Figures */
+  figure { margin: 2mm 0 5mm; padding: 5mm 5mm 3mm; border: 0.5pt solid var(--slate-200); border-radius: 10px; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { margin-top: 2mm; text-align: center; font-size: 8.3pt; color: var(--slate-600); }
+  svg text { font-family: var(--font); fill: var(--slate-600); font-size: 9.5px; }
+  svg text.t { fill: var(--slate-900); font-weight: 700; font-size: 10.5px; }
+  svg text.b { fill: var(--blue); }
+  svg text.bt { fill: var(--blue); font-weight: 700; font-size: 10.5px; }
+  svg text.g { fill: var(--emerald-700); font-weight: 700; font-size: 10.5px; }
+  svg text.o { fill: #C2410C; }
+  svg text.s { font-size: 8.5px; }
+  svg .box { fill: #fff; stroke: var(--slate-400); stroke-width: 0.8; }
+  svg .plan { fill: #fff; stroke: var(--blue); stroke-width: 0.9; stroke-dasharray: 4 3; }
+  svg .app { fill: var(--mint); stroke: var(--emerald-500); stroke-width: 1.6; }
+  svg .ok { fill: #F0FDF4; stroke: var(--emerald-500); stroke-width: 1.1; }
+  svg .warnbox { fill: #FEF3C7; stroke: var(--amber); stroke-width: 1.1; }
+  svg .orange { fill: #fff; stroke: #F59E0B; stroke-width: 1.1; }
+  svg .group { fill: var(--slate-50); stroke: var(--slate-200); stroke-width: 0.8; }
+  svg .ln { fill: none; stroke: var(--slate-400); stroke-width: 0.9; }
+  svg .lnp { fill: none; stroke: var(--blue); stroke-width: 0.9; stroke-dasharray: 4 3; }
+  svg .lnd { fill: none; stroke: var(--slate-400); stroke-width: 0.9; stroke-dasharray: 3 3; }
+
+  /* Design swatches */
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; margin: 2mm 0 4mm; }
+  .sw i { display: block; height: 11mm; border-radius: 6px; border: 0.5pt solid var(--slate-200); margin-bottom: 1.2mm; }
+  .sw b { display: block; font-size: 7.6pt; }
+  .sw span { font: 7pt var(--mono); color: var(--slate-600); }
+
+  /* Roadmap */
+  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 2mm 0 4mm; }
+  .phase { border: 0.5pt solid var(--slate-200); border-top: 1.4mm solid var(--emerald-700); border-radius: 8px; padding: 3mm; font-size: 8.4pt; color: var(--slate-700); }
+  .phase:nth-child(2) { border-top-color: var(--emerald-600); }
+  .phase:nth-child(3) { border-top-color: #34D399; }
+  .phase:nth-child(4) { border-top-color: var(--slate-200); }
+  .phase small { display: block; font-weight: 700; font-size: 7pt; letter-spacing: 1pt; color: var(--emerald-700); }
+  .phase b { display: block; font-size: 10.5pt; color: var(--slate-900); margin-bottom: 1.5mm; }
+  .phase em { font-style: normal; color: var(--emerald-600); }
+
+  .ar { font-family: "IBM Plex Sans Arabic", var(--font); }
+  .muted { color: var(--slate-600); }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover sheet">
+  <div class="cover-inner">
+    <div class="cover-logo">
+      <div class="mark"><span class="paper"></span><span class="dot"></span><span class="stem"></span></div>
+      <div class="bar"></div>
+      <div class="word">invoi</div>
+    </div>
+    <div class="cover-kicker">Technical documentation</div>
+    <h1>How invoi is built, run<br>and extended</h1>
+    <p class="lede">Architecture, data model, API, frontend, AI extraction, automations, infrastructure and roadmap, in one reference synced with the code. This edition records the AI extraction and analytics designs and the decisions behind them.</p>
+    <div class="tagline">استخرج بيانات الفواتير بسهولة وبدون مجهود</div>
+    <div class="cover-foot"><span><span data-doc="version">v—</span> · <span data-doc="date"></span></span><span>Source: JxTechStudio-org/invoi @ <span data-doc="source"></span></span><span>JX Tech Studio</span></div>
+  </div>
+</section>
+
+<!-- ============ CONTENTS ============ -->
+<section class="sheet page">
+  <div class="eyebrow">Contents</div>
+  <h1 class="contents-title">Inside this document</h1>
+  <div class="facts">
+    <div class="fact"><b>Live</b>invoi.jxtechstudio.com</div>
+    <div class="fact"><b>Repository</b>JxTechStudio-org/invoi · <span data-doc="repo"></span></div>
+    <div class="fact"><b>Stack</b>React 19 · NestJS 11 · PostgreSQL 16 · RustFS</div>
+    <div class="fact"><b>Status</b>Platform built · extraction and analytics designed</div>
+  </div>
+  <ol class="toc">
+    <li><span class="n">01</span><a href="#s1">Overview<small>What invoi is, who it serves and what works today</small></a><span class="pg" data-for="s1"></span></li>
+    <li><span class="n">02</span><a href="#s2">Architecture<small>How the services connect on the production server</small></a><span class="pg" data-for="s2"></span></li>
+    <li><span class="n">03</span><a href="#s3">Tech stack and repository<small>Libraries, versions and where the code lives</small></a><span class="pg" data-for="s3"></span></li>
+    <li><span class="n">04</span><a href="#s4">Invoice lifecycle<small>From upload through extraction to completed</small></a><span class="pg" data-for="s4"></span></li>
+    <li><span class="n">05</span><a href="#s5">Data model<small>Tables, fields, enums and planned schema changes</small></a><span class="pg" data-for="s5"></span></li>
+    <li><span class="n">06</span><a href="#s6">API reference<small>Every endpoint and the rules behind it</small></a><span class="pg" data-for="s6"></span></li>
+    <li><span class="n">07</span><a href="#s7">Frontend<small>Routes, data flow and the design system</small></a><span class="pg" data-for="s7"></span></li>
+    <li><span class="n">08</span><a href="#s8">AI extraction: Phase 1 design<small>Pipeline, confidence checks, review rules, failure and rollout</small></a><span class="pg" data-for="s8"></span></li>
+    <li><span class="n">09</span><a href="#s9">Decision log<small>38 decisions from 21 Oct 2026, B6, B8 and C13 amended 22 Oct; what is still open</small></a><span class="pg" data-for="s9"></span></li>
+    <li><span class="n">10</span><a href="#s10">Analytics, n8n and Power BI<small>Analytics page, n8n webhooks, scheduled reports, Power BI templates</small></a><span class="pg" data-for="s10"></span></li>
+    <li><span class="n">11</span><a href="#s11">Infrastructure and deployment<small>Docker, Jenkins, environment and monitoring</small></a><span class="pg" data-for="s11"></span></li>
+    <li><span class="n">12</span><a href="#s12">Developer guide<small>Local setup, scripts, Git workflow, conventions</small></a><span class="pg" data-for="s12"></span></li>
+    <li><span class="n">13</span><a href="#s13">Status, known gaps and roadmap<small>Closed and open gaps, Phase 1 work and the roadmap</small></a><span class="pg" data-for="s13"></span></li>
+    <li><span class="n">14</span><a href="#s14">Related documents and changelog<small>Notion pages, brand kit and the changelog</small></a><span class="pg" data-for="s14"></span></li>
+  </ol>
+</section>
+
+<!-- ============ 1 OVERVIEW ============ -->
+<section class="sheet page" id="s1">
+  <div class="sec-head"><span class="num">1</span><h2>Overview</h2></div>
+  <p>invoi is an AI-powered invoice management dashboard for small Saudi businesses: users upload incoming invoices, invoi stores and organises them, and flags the ones that need a human check. This document describes the system as it is on the <code>develop</code> branch of <a href="https://github.com/JxTechStudio-org/invoi">JxTechStudio-org/invoi</a> (last merge 22 Oct 2026, PR #113). <code>main</code> was brought level with <code>develop</code> the same day (PR #114), so everything described as built here is on the production branch.</p>
+  <p><strong class="g">Problem.</strong> Businesses that receive many invoices a day (100+ from different vendors and payment methods) re-type vendor, amount, date and tax by hand. It is slow and error-prone.</p>
+  <p><strong class="g">Users.</strong> Small business owners and accountants without a dedicated finance team.</p>
+  <p><strong class="g">Scope of this version.</strong> Incoming invoices only (expenses the user receives from vendors). The customer on every invoice is therefore always the account owner, identified by <code>User.businessName</code>. Arabic and English invoices are both first-class.</p>
+  <table>
+    <thead><tr><th>In scope (MVP)</th><th>Out of scope for now</th></tr></thead>
+    <tbody>
+      <tr><td>Upload, read, edit, approve and delete invoices</td><td>Outgoing invoices the user issues</td></tr>
+      <tr><td>Per-account storage, one user per account</td><td>Multi-user accounts and teams</td></tr>
+      <tr><td>AI extraction of 12 fields (ZATCA QR first)</td><td>ERP or accounting-system integrations</td></tr>
+      <tr><td>Rule-based flagging for manual review</td><td>Line-item (SKU) detail, credit notes, multi-file upload</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="g">Live:</strong> <a href="https://invoi.jxtechstudio.com">invoi.jxtechstudio.com</a> (landing page, app and API on one domain; API under <code>/api</code>).</p>
+  <h3>Team</h3>
+  <table>
+    <thead><tr><th style="width:30%">Person</th><th>Area</th></tr></thead>
+    <tbody>
+      <tr><td>Jana</td><td>Systems and infrastructure, product owner; prepares the extraction test set</td></tr>
+      <tr><td>Ahmed</td><td>Backend (NestJS, database, storage, CI)</td></tr>
+      <tr><td>Rahaf</td><td>Full-stack: invoice list, upload, notifications</td></tr>
+      <tr><td>Danah</td><td>Full-stack: invoice detail, auth, analytics page, landing page</td></tr>
+      <tr><td>Abdullah</td><td>Power BI reporting and n8n workflows</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>What works today:</b> sign-up and login (JWT), upload of PDF/JPEG/PNG to object storage, invoice list with search, status and date filters and CSV export, invoice detail with a preview of the original file, manual editing of all 13 editable fields, approve and report-error actions, delete with confirmation, the review rules, dashboard and vendors pages, health and Prometheus metrics, and a Jenkins pipeline that tests and deploys on every build.</div>
+  <div class="callout warn"><b>What does not exist yet:</b> the AI extraction itself. Uploaded invoices stay in <code>processing</code> with empty fields until someone fills them in by hand. Section 8 is the agreed extraction design, section 10 the analytics and n8n design, and section 9 records every decision behind both.</div>
+</section>
+
+<!-- ============ 2 ARCHITECTURE ============ -->
+<section class="sheet page" id="s2">
+  <div class="sec-head"><span class="num">2</span><h2>Architecture</h2></div>
+  <figure>
+    <svg viewBox="0 0 760 470" role="img" aria-label="invoi architecture diagram">
+      <defs>
+        <marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#94A3B8"/></marker>
+        <marker id="ab" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#3B82F6"/></marker>
+      </defs>
+      <rect class="group" x="350" y="16" width="400" height="296" rx="8"/>
+      <text class="t" x="364" y="34">Docker Compose on one server</text>
+      <text x="215" y="60">HTTPS</text>
+      <rect class="box" x="16" y="66" width="150" height="58" rx="6"/>
+      <text class="t" x="28" y="84">Browser</text><text x="28" y="99">React app, Arabic RTL</text><text x="28" y="112">token in localStorage</text>
+      <rect class="box" x="186" y="66" width="146" height="58" rx="6"/>
+      <text class="t" x="198" y="84">Nginx on the host</text><text x="198" y="99">SSL, public domain</text><text x="198" y="112">proxies to :3016</text>
+      <path class="ln" d="M166 95H184" marker-end="url(#ar)"/>
+      <path class="ln" d="M332 95H360" marker-end="url(#ar)"/>
+      <rect class="app" x="362" y="44" width="376" height="140" rx="8"/>
+      <text class="t" x="376" y="62">app: NestJS 11 + React build</text>
+      <text x="376" y="76">/api goes to the API, other paths to React</text>
+      <text x="376" y="89">JWT auth, rate limits (trust proxy = 1 hop), review rules</text>
+      <text x="376" y="102">/api/metrics for Prometheus and Grafana</text>
+      <rect class="plan" x="376" y="112" width="348" height="60" rx="6"/>
+      <text class="bt" x="388" y="129">Extraction job (planned, Phase 1)</text>
+      <text x="388" y="143">background job in the same process, jobs table in Postgres</text>
+      <text x="388" y="157">ZATCA QR → Claude Sonnet 5.5 → checks → review rules</text>
+      <rect class="plan" x="16" y="150" width="214" height="78" rx="6"/>
+      <text class="bt" x="28" y="168">Anthropic API (external)</text>
+      <text x="28" y="183">Claude Sonnet 5.5, structured output</text>
+      <text x="28" y="197">zero data retention required</text>
+      <text x="28" y="211">capped at USD 2 a month for now</text>
+      <path class="lnp" d="M376 150H300V185H232" marker-end="url(#ab)"/>
+      <rect class="box" x="378" y="214" width="160" height="82" rx="6"/>
+      <text class="t" x="390" y="232">PostgreSQL 16</text><text x="390" y="247">User, Invoice</text><text x="390" y="261">4 Prisma migrations</text><text x="390" y="275">local port 5433</text>
+      <rect class="box" x="566" y="214" width="160" height="82" rx="6"/>
+      <text class="t" x="578" y="232">RustFS</text><text x="578" y="247">S3 bucket: invoices</text><text x="578" y="261">PDF, JPEG, PNG</text><text x="578" y="275">up to 10 MB each</text>
+      <path class="ln" d="M458 184V212" marker-end="url(#ar)"/><text x="464" y="202">Prisma</text>
+      <path class="ln" d="M646 184V212" marker-end="url(#ar)"/><text x="652" y="196">S3 API</text><text x="652" y="207">(upload, download)</text>
+      <rect class="box" x="16" y="360" width="210" height="62" rx="6"/>
+      <text class="t" x="28" y="378">Jenkins</text><text x="28" y="393">build, lint, test, deploy</text><text x="28" y="407">health check after deploy</text>
+      <path class="ln" d="M121 360V330H370V186" marker-end="url(#ar)"/><text x="170" y="325">deploys with docker compose</text>
+      <rect class="box" x="388" y="360" width="150" height="62" rx="6"/>
+      <text class="t" x="400" y="378">n8n</text><text x="400" y="393">analysis + AI</text><text x="400" y="407">no database access</text>
+      <rect class="box" x="566" y="360" width="172" height="62" rx="6"/>
+      <text class="t" x="578" y="378">Power BI</text><text x="578" y="393">empty templates, paid plan</text><text x="578" y="407">users load their CSV</text>
+      <path class="lnp" d="M556 184V344H500V358" marker-end="url(#ab)"/><text class="b s" x="562" y="340">webhook: one user's data + secret</text>
+      <path class="lnp" d="M430 360V340H384V186" marker-end="url(#ab)"/><text class="b s" x="388" y="336">result callback</text>
+      <text class="s" x="16" y="450">Dashed blue = planned, not built yet. Green = the one container that holds the app code.</text>
+    </svg>
+    <figcaption>Figure 1 · invoi architecture on the production server, with the planned extraction job and n8n webhooks</figcaption>
+  </figure>
+  <p>One container serves both the API and the web app; PostgreSQL holds invoice data and RustFS holds the original files. n8n sits outside the app and only talks to it through webhooks: the app sends one user's data, n8n calls back with the result (section 10). Power BI becomes downloadable templates and no longer reads the database. Extraction will run inside the same container as a background job (decision C10); the only new outside dependency is the Anthropic API.</p>
+</section>
+
+<!-- ============ 3 TECH STACK ============ -->
+<section class="sheet page" id="s3">
+  <div class="sec-head"><span class="num">3</span><h2>Tech stack and repository</h2></div>
+  <p>One repository holds both apps. They ship as a single Docker image: NestJS serves the API under <code>/api</code> and the built React app for every other path.</p>
+  <table>
+    <thead><tr><th>Layer</th><th>Technology</th><th>Version (package.json)</th></tr></thead>
+    <tbody>
+      <tr><td>Frontend</td><td>React, TypeScript, Vite</td><td>React 19.2, Vite 8.2, TS 7.0</td></tr>
+      <tr><td>UI kit</td><td>Ant Design, framer-motion, Recharts</td><td>antd 6.6, Recharts 3.10</td></tr>
+      <tr><td>Data fetching</td><td>TanStack Query, Axios</td><td>Query 5.102, Axios 1.20</td></tr>
+      <tr><td>Routing</td><td>React Router</td><td>7.18</td></tr>
+      <tr><td>Backend</td><td>NestJS, TypeScript</td><td>Nest 11, TS 5.7</td></tr>
+      <tr><td>ORM and database</td><td>Prisma, PostgreSQL</td><td>Prisma 6.6, Postgres 16</td></tr>
+      <tr><td>Auth</td><td>Passport JWT, bcrypt</td><td>passport-jwt 4, bcrypt 6</td></tr>
+      <tr><td>Object storage</td><td>RustFS (S3-compatible) via AWS SDK v3</td><td>rustfs 1.0.0-rc.6</td></tr>
+      <tr><td>Rate limiting</td><td>@nestjs/throttler</td><td>60 req/min default, 10/min on login and register</td></tr>
+      <tr><td>Metrics</td><td>prom-client</td><td><code>invoi_http_requests_total</code> + Node defaults</td></tr>
+      <tr><td>AI extraction</td><td>Anthropic API (planned)</td><td>Claude Sonnet 5.5, <code>claude-sonnet-5-5</code></td></tr>
+      <tr><td>Runtime</td><td>Node.js</td><td>22 (alpine)</td></tr>
+      <tr><td>CI/CD</td><td>Jenkins, Docker Compose</td><td>Build, Lint, Test, Deploy</td></tr>
+    </tbody>
+  </table>
+  <h3>Repository layout</h3>
+<pre>invoi/
+├── backend/
+│   ├── prisma/            <span class="c">schema.prisma + 4 migrations</span>
+│   ├── src/
+│   │   ├── auth/          <span class="c">register, login, me, JWT guard</span>
+│   │   ├── invoices/      <span class="c">controller, service, review rules, CSV export</span>
+│   │   ├── storage/       <span class="c">RustFS + legacy local storage: upload, download, remove</span>
+│   │   ├── common/        <span class="c">global exception filter (logs 5xx with stack)</span>
+│   │   ├── metrics/       <span class="c">Prometheus endpoint + HTTP interceptor</span>
+│   │   ├── health/        <span class="c">GET /api/health</span>
+│   │   ├── proxy.config.ts <span class="c">trust exactly one proxy hop</span>
+│   │   └── main.ts        <span class="c">/api prefix, CORS, validation, serves frontend/dist</span>
+│   └── test/              <span class="c">15 e2e specs (Jest)</span>
+├── frontend/
+│   └── src/
+│       ├── features/      <span class="c">auth, dashboard, invoice, vendors, landing, shared</span>
+│       ├── services/api/  <span class="c">Axios client, React Query client</span>
+│       └── config/theme/  <span class="c">antd light and dark themes</span>
+├── docs/
+│   └── technical-documentation/ <span class="c">this document: source + build script</span>
+├── Dockerfile             <span class="c">3-stage build (frontend, backend, runtime)</span>
+├── docker-compose.yml     <span class="c">app, postgres, rustfs</span>
+├── Jenkinsfile
+└── .env.example</pre>
+  <p class="callout quiet">Phase 1 adds <code>backend/src/extraction/</code> (job runner, ZATCA QR reader, model client, checks). The root README still lists a <code>reports/</code> folder for Power BI assets; it is not in the repository.</p>
+</section>
+
+<!-- ============ 4 LIFECYCLE ============ -->
+<section class="sheet page" id="s4">
+  <div class="sec-head"><span class="num">4</span><h2>Invoice lifecycle</h2></div>
+  <figure>
+    <svg viewBox="0 0 760 560" role="img" aria-label="Invoice lifecycle diagram">
+      <defs>
+        <marker id="ar2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#94A3B8"/></marker>
+      </defs>
+      <rect class="box" x="250" y="14" width="270" height="56" rx="6"/>
+      <text class="t" x="264" y="32">1. User uploads a file</text><text x="264" y="47">POST /invoices/upload</text><text x="264" y="61">PDF, JPEG or PNG, up to 10 MB</text>
+      <path class="ln" d="M385 70V88" marker-end="url(#ar2)"/>
+      <rect class="box" x="250" y="90" width="270" height="58" rx="6"/>
+      <text class="t" x="264" y="108">2. File stored, invoice row created</text><text x="264" y="123">RustFS key invoices/uuid.ext · status = processing</text><text class="b" x="264" y="137">planned: extraction job queued</text>
+      <path class="ln" d="M385 148V166" marker-end="url(#ar2)"/>
+      <rect class="plan" x="250" y="168" width="270" height="74" rx="6"/>
+      <text class="bt" x="264" y="186">3. AI extraction (planned)</text><text x="264" y="201">ZATCA QR, then Claude Sonnet 5.5, then checks</text><text x="264" y="215">fills the 12 fields and a score per field</text><text x="264" y="229">edits, approve and flag locked while it runs</text>
+      <path class="lnp" d="M520 205H650V248" marker-end="url(#ar2)"/><text class="b s" x="528" y="199">fails 3 times</text>
+      <path class="ln" d="M385 242V258" marker-end="url(#ar2)"/>
+      <path d="M385 260L470 305L385 350L300 305Z" fill="#fff" stroke="#10B981" stroke-width="1.4"/>
+      <text class="t" x="385" y="302" text-anchor="middle">4. Any review</text><text class="t" x="385" y="316" text-anchor="middle">rule fires?</text>
+      <path class="ln" d="M300 305H186" marker-end="url(#ar2)"/><text x="240" y="298">no</text>
+      <path class="ln" d="M470 305H556" marker-end="url(#ar2)"/><text x="506" y="298">yes</text>
+      <rect class="ok" x="22" y="272" width="162" height="66" rx="6"/>
+      <text class="g" x="34" y="290">completed</text><text x="34" y="305">set automatically after a</text><text x="34" y="319">clean extraction (decision X1)</text>
+      <rect class="warnbox" x="558" y="250" width="186" height="118" rx="6"/>
+      <text class="t" x="570" y="268">needs_review</text>
+      <text x="570" y="283">low_confidence</text><text x="570" y="296">customer_name_mismatch</text><text x="570" y="309">amount_threshold_exceeded</text><text x="570" y="322">user_flagged</text>
+      <text class="b" x="570" y="338">planned: extraction_failed,</text><text class="b" x="570" y="351">zero_total, tax_over_30_percent,</text><text class="b" x="570" y="364">multiple_invoices</text>
+      <path class="ln" d="M651 368V398" marker-end="url(#ar2)"/>
+      <rect class="box" x="558" y="400" width="186" height="56" rx="6"/>
+      <text class="t" x="570" y="418">5a. User edits and saves</text><text x="570" y="433">PUT /invoices/:id · rules run again;</text><text x="570" y="447">stays needs_review until approved</text>
+      <path class="ln" d="M558 428H514" marker-end="url(#ar2)"/>
+      <rect class="ok" x="300" y="400" width="212" height="56" rx="6"/>
+      <text class="t" x="312" y="418">5b. User approves</text><text x="312" y="433">POST /invoices/:id/approve · needs vendor,</text><text x="312" y="447">total, date · clears every reason</text>
+      <path class="ln" d="M300 428H103V340" marker-end="url(#ar2)"/>
+      <rect class="box" x="22" y="476" width="290" height="46" rx="6"/>
+      <text class="t" x="34" y="494">Report error from any state</text><text x="34" y="509">POST /invoices/:id/flag → needs_review + user_flagged</text>
+      <path class="lnd" d="M312 499H752V310H746" marker-end="url(#ar2)"/>
+      <text class="s" x="22" y="548">Dashed blue = planned. DELETE /invoices/:id removes the row and its stored file (if any) from any state.</text>
+    </svg>
+    <figcaption>Figure 2 · invoice lifecycle and its three statuses</figcaption>
+  </figure>
+  <p>Today steps 1, 2, 4 and 5 run. Step 3 is missing, so the rules only fire when a user saves an edit, and a manually filled invoice reaches <code>completed</code> only through approve. With extraction, a clean result goes straight to <code>completed</code>; anything flagged waits for a human. The three statuses stay <code>processing</code>, <code>needs_review</code> and <code>completed</code>; no new status is needed.</p>
+</section>
+
+<!-- ============ 5 DATA MODEL ============ -->
+<section class="sheet page" id="s5">
+  <div class="sec-head"><span class="num">5</span><h2>Data model</h2></div>
+  <p>Two tables in PostgreSQL, one user to many invoices. IDs are Prisma <code>cuid</code> strings and money is <code>DECIMAL(12,2)</code>. Source: <code>backend/prisma/schema.prisma</code>, 4 migrations from 8 to 22 Sep 2026.</p>
+  <h3>User</h3>
+  <table>
+    <thead><tr><th style="width:28%">Field</th><th style="width:17%">Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td>string</td><td>Primary key, cuid</td></tr>
+      <tr><td>email</td><td>string</td><td>Unique; login identifier</td></tr>
+      <tr><td>passwordHash</td><td>string</td><td>bcrypt, cost 10</td></tr>
+      <tr><td>businessName</td><td>string</td><td>The customer identity for every invoice in the account</td></tr>
+      <tr><td>firstName, lastName</td><td>string</td><td>Required; Arabic or English letters</td></tr>
+      <tr><td>username</td><td>string</td><td>Required; not unique</td></tr>
+      <tr><td>phone</td><td>string</td><td>Required; format <code>+9665XXXXXXXX</code>; not unique</td></tr>
+      <tr><td>reviewAmountThreshold</td><td>decimal?</td><td>Invoices above this amount are flagged; settable from the settings page in Phase 1</td></tr>
+      <tr><td>createdAt</td><td>datetime</td><td>Default now</td></tr>
+    </tbody>
+  </table>
+  <h3>Invoice</h3>
+  <table>
+    <thead><tr><th style="width:28%">Field</th><th style="width:17%">Type</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>id</td><td>string</td><td>Primary key, cuid</td></tr>
+      <tr><td>userId</td><td>string</td><td>FK to User.id, ON DELETE RESTRICT; indexed</td></tr>
+      <tr><td>fileUrl</td><td>string</td><td><code>s3://invoices/invoices/&lt;uuid&gt;.&lt;ext&gt;</code> (RustFS), <code>/uploads/&lt;file&gt;</code> (legacy) or <code>seed://…</code> (demo data, no stored file); served by <code>GET /invoices/:id/file</code></td></tr>
+      <tr><td>status</td><td>InvoiceStatus</td><td>Default <code>processing</code>; indexed</td></tr>
+      <tr><td>vendorName, invoiceNumber</td><td>string?</td><td>Extracted</td></tr>
+      <tr><td>invoiceDate, dueDate</td><td>datetime?</td><td><code>invoiceDate</code> indexed</td></tr>
+      <tr><td>totalAmount, taxAmount, amountPaid</td><td>decimal?</td><td>12,2</td></tr>
+      <tr><td>currency</td><td>Currency?</td><td></td></tr>
+      <tr><td>paymentStatus, paymentMethod</td><td>enum?</td><td>Extracted only when clearly printed (decision F23)</td></tr>
+      <tr><td>customerName</td><td>string?</td><td>Name as printed on the invoice; compared with <code>businessName</code></td></tr>
+      <tr><td>taxNumber, crNumber</td><td>string?</td><td>Vendor VAT number and commercial registration</td></tr>
+      <tr><td>extractionConfidence</td><td>json?</td><td>Per-field scores 0–1, e.g. <code>{"totalAmount": 0.82}</code>, computed by code checks</td></tr>
+      <tr><td>needsReviewReason</td><td>string?</td><td>Comma-separated reason codes (section 8)</td></tr>
+      <tr><td>createdAt, updatedAt</td><td>datetime</td><td>Automatic</td></tr>
+    </tbody>
+  </table>
+  <h3>Enums</h3>
+  <table>
+    <thead><tr><th style="width:24%">Enum</th><th>Values</th></tr></thead>
+    <tbody>
+      <tr><td>InvoiceStatus</td><td>processing, needs_review, completed (unchanged in Phase 1)</td></tr>
+      <tr><td>PaymentStatus</td><td>paid, unpaid, partially_paid, overdue</td></tr>
+      <tr><td>PaymentMethod</td><td>bank_transfer, credit_card, cash, cheque, online_payment, mixed</td></tr>
+      <tr><td>Currency</td><td>SAR, USD, AED · <span class="pill ph">Phase 1</span> + EUR, GBP, KWD, QAR, BHD, OMR, EGP, JOD, CNY, INR</td></tr>
+    </tbody>
+  </table>
+  <p>API responses also carry <code>sellerName</code> and <code>amount</code>, copies of <code>vendorName</code> and <code>totalAmount</code> kept for older frontend code.</p>
+  <h3>Planned schema changes (one Phase 1 migration)</h3>
+  <table>
+    <thead><tr><th style="width:34%">Change</th><th style="width:16%">Type</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>User.businessNameEn</code></td><td>string?</td><td>English business name; the customer-name check compares against both names (F19)</td></tr>
+      <tr><td><code>Currency</code> + 10 values</td><td>enum</td><td>Vendors bill in other currencies (F22)</td></tr>
+      <tr><td><code>Invoice.editedFields</code></td><td>string[]</td><td>Fields the user changed by hand; re-extraction never overwrites them (C12)</td></tr>
+      <tr><td><code>Invoice.extractionModel</code></td><td>string?</td><td>Model ID used, e.g. <code>claude-sonnet-5-5</code>, or <code>zatca_qr</code> only (E17)</td></tr>
+      <tr><td><code>Invoice.extractionDurationMs</code></td><td>int?</td><td>Time taken (E17)</td></tr>
+      <tr><td><code>Invoice.extractionCostUsd</code></td><td>decimal(10,6)?</td><td>Cost of the call; summed for the monthly budget guard (A4, E17)</td></tr>
+      <tr><td><code>Invoice.extractedAt</code></td><td>datetime?</td><td>When the last extraction finished</td></tr>
+      <tr><td><code>Invoice.paidAt</code></td><td>datetime?</td><td>Real payment date for DPO; set when <code>paymentStatus</code> becomes <code>paid</code>, editable. Demo data copied once from <code>updatedAt</code> (H7)</td></tr>
+      <tr><td><code>User.isDemo</code></td><td>boolean</td><td>Marks the demo account (2,000 <code>seed://</code> invoices) in production (H9)</td></tr>
+      <tr><td>New table <code>AnalysisJob</code></td><td>table</td><td>userId, type, state, result (json), costUsd, timestamps; latest per user and type is reused (H1, H10)</td></tr>
+      <tr><td>New table <code>ExtractionJob</code></td><td>table</td><td>invoiceId, state (queued, running, done, failed), attempts, runAfter, lastError, timestamps. A Postgres-backed queue is enough below 200 invoices a day (A5)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><b>Not stored:</b> the raw model response (E17). The original file stays in RustFS and can be re-extracted at any time.</div>
+</section>
+
+<!-- ============ 6 API ============ -->
+<section class="sheet page" id="s6">
+  <div class="sec-head"><span class="num">6</span><h2>API reference</h2></div>
+  <p>Base URL <code>https://invoi.jxtechstudio.com/api</code>. All invoice endpoints need <code>Authorization: Bearer &lt;token&gt;</code> and only ever see the caller's own invoices; another user's invoice returns 404. Request bodies are validated strictly: unknown fields are rejected with 400.</p>
+  <table>
+    <thead><tr><th style="width:11%">Method</th><th style="width:30%">Path</th><th style="width:8%">Auth</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td>/auth/register</td><td>—</td><td>Create an account; returns the user, not a token</td></tr>
+      <tr><td>POST</td><td>/auth/login</td><td>—</td><td>Returns <code>{ access_token }</code>, valid 1 day</td></tr>
+      <tr><td>GET</td><td>/auth/me</td><td>JWT</td><td>Current user's profile</td></tr>
+      <tr><td>POST</td><td>/invoices/upload</td><td>JWT</td><td>Multipart field <code>file</code>; returns <code>{ invoice_id }</code></td></tr>
+      <tr><td>GET</td><td>/invoices</td><td>JWT</td><td>List, newest first; filters <code>status</code>, <code>date</code>, <code>search</code></td></tr>
+      <tr><td>GET</td><td>/invoices/export</td><td>JWT</td><td>Same filters; CSV download</td></tr>
+      <tr><td>GET</td><td>/invoices/:id</td><td>JWT</td><td>One invoice</td></tr>
+      <tr><td>GET</td><td>/invoices/:id/status</td><td>JWT</td><td><code>{ invoiceId, status }</code> for polling</td></tr>
+      <tr><td>GET</td><td>/invoices/:id/file <span class="pill new">new</span></td><td>JWT</td><td>Streams the original file inline (pdf, jpeg, png); owner only; 404 when there is no file</td></tr>
+      <tr><td>PUT</td><td>/invoices/:id</td><td>JWT</td><td>Edit fields; re-runs the review rules</td></tr>
+      <tr><td>POST</td><td>/invoices/:id/approve <span class="pill new">new</span></td><td>JWT</td><td>Human sign-off; sets <code>completed</code></td></tr>
+      <tr><td>POST</td><td>/invoices/:id/flag <span class="pill new">new</span></td><td>JWT</td><td>Report an error; sets <code>needs_review</code> + <code>user_flagged</code></td></tr>
+      <tr><td>DELETE</td><td>/invoices/:id</td><td>JWT</td><td>Deletes the row and its stored file, if any; 204</td></tr>
+      <tr><td>GET</td><td>/health, /metrics</td><td>—</td><td><code>{ status: "ok" }</code>; Prometheus text format</td></tr>
+    </tbody>
+  </table>
+  <h3>Planned</h3>
+  <table>
+    <thead><tr><th style="width:11%">Method</th><th style="width:30%">Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>POST</td><td>/invoices/:id/extract</td><td>Re-extract one invoice; never overwrites <code>editedFields</code>; 409 while a job is running; counts toward the budget</td></tr>
+      <tr><td>PATCH</td><td>/auth/me</td><td>Update <code>businessNameEn</code> and <code>reviewAmountThreshold</code> from the settings page</td></tr>
+      <tr><td>POST</td><td>/analytics</td><td><code>{ type }</code> → <code>{ jobId }</code>; daily limit 5 (H1, H10)</td></tr>
+      <tr><td>GET</td><td>/analytics/jobs/:id, /analytics/latest</td><td>Poll one job; latest result per type for the page</td></tr>
+      <tr><td>POST</td><td>/internal/n8n/results</td><td>n8n callback, <code>X-Invoi-Secret</code> only; analysis results and anomaly verdicts (H8)</td></tr>
+      <tr><td>PUT, POST</td><td>/invoices/:id, approve, flag</td><td>Return 409 while the invoice is <code>processing</code> with an active job (D15)</td></tr>
+    </tbody>
+  </table>
+  <h3>Rules worth knowing</h3>
+  <ul>
+    <li><b>Upload:</b> PDF, JPEG or PNG, up to 10 MB (<code>MAX_UPLOAD_SIZE_BYTES</code>). One file per request. The invoice is created with status <code>processing</code> and no extracted fields.</li>
+    <li><b>Search</b> matches vendor name, invoice number and customer name, case-insensitive.</li>
+    <li><b>Edit (PUT):</b> any of <code>vendorName, invoiceNumber, invoiceDate, dueDate, totalAmount, taxAmount, amountPaid, currency, paymentStatus, paymentMethod, customerName, taxNumber, crNumber</code>; at least one field. Amounts are non-negative with up to 2 decimals. Sending <code>null</code> clears a field. <code>status</code> cannot be set directly. The frontend form sends only changed fields and checks due date ≥ invoice date.</li>
+    <li><b>Approve:</b> 400 unless <code>vendorName</code>, <code>totalAmount</code> and <code>invoiceDate</code> are set; then <code>completed</code> and all reasons cleared, even if rules had fired. A total of zero is allowed.</li>
+    <li><b>Flag:</b> adds <code>user_flagged</code>, which survives edits and is cleared only by approval. An invoice in <code>needs_review</code> stays there after its flags are fixed until someone approves it.</li>
+    <li><b>File:</b> Content-Type comes from the stored extension, never from stored metadata; served inline with <code>nosniff</code> and <code>no-store</code>. Local storage refuses symlinks and directories. Demo invoices with <code>seed://</code> references have no stored file: the file returns 404 and delete removes only the row (PR #113). The frontend fetches the file with the token as a Blob.</li>
+    <li><b>CSV export:</b> UTF-8 with BOM so Excel shows Arabic correctly. Cells starting with <code>= + - @</code> are prefixed with <code>'</code> to block formula injection.</li>
+    <li><b>Register validation:</b> password 8+ characters with upper, lower, digit and symbol; phone <code>+9665</code> + 8 digits; names in Arabic or English letters; email unique (409 if taken).</li>
+    <li><b>Rate limits:</b> 60 requests per minute per IP, 10 per minute on login and register. Express trusts exactly one proxy hop, so <code>req.ip</code> is the address Nginx saw and a forged <code>X-Forwarded-For</code> no longer resets the login budget.</li>
+    <li><b>Errors</b> come back as JSON through a global exception filter, which logs every 5xx with its stack. A 401 makes the frontend clear the token and send the user to <code>/auth/login?reason=session_expired</code>. Logout clears the React Query cache and in-memory notifications; login clears the cache.</li>
+  </ul>
+  <div class="callout warn"><b>Endpoints the frontend still expects:</b> forgot/reset password (the page now says the feature is not available yet), settings (English business name, <code>reviewAmountThreshold</code>), and JSON dashboard metrics (the dashboard calls <code>GET /metrics</code>, which returns Prometheus text).</div>
+</section>
+
+<!-- ============ 7 FRONTEND ============ -->
+<section class="sheet page" id="s7">
+  <div class="sec-head"><span class="num">7</span><h2>Frontend</h2></div>
+  <p>The app is right-to-left Arabic by default, with a feature-based folder per area. Pages are lazy-loaded; everything except the landing and auth pages sits behind <code>ProtectedRoute</code>, which checks for a token in <code>localStorage</code> (<code>authToken</code>).</p>
+  <table>
+    <thead><tr><th style="width:21%">Route</th><th style="width:44%">Page</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>/</td><td>Landing page</td><td><span class="pill done">Done</span></td></tr>
+      <tr><td>/auth/login, /auth/register</td><td>Login and sign-up</td><td><span class="pill done">Done</span></td></tr>
+      <tr><td>/auth/forgot-password</td><td>Forgot password</td><td>UI only: shows "not available yet" instead of a fake success; backend in Phase 2</td></tr>
+      <tr><td>/dashboard</td><td>KPI cards, processing volume, confidence distribution, top vendors, recent invoices</td><td>Built from the invoice list; accuracy card waits on a metrics API</td></tr>
+      <tr><td>/invoices</td><td>Invoice table with search (400 ms delay before searching), status and date filters, CSV export of the current filters, view file</td><td><span class="pill done">Done</span> · Phase 1: poll while any row is processing</td></tr>
+      <tr><td>/upload-invoice</td><td>Drag-and-drop upload</td><td><span class="pill done">Done</span></td></tr>
+      <tr><td>/invoices/:id</td><td>File preview (image or PDF), edit form with all 13 fields, approve, report error, review reasons in Arabic, delete with a confirmation dialog</td><td><span class="pill done">Done</span> · Phase 1: polling, edit lock, re-extract button</td></tr>
+      <tr><td>/vendors</td><td>Vendors aggregated from invoices</td><td><span class="pill done">Done</span></td></tr>
+      <tr><td>/analytics</td><td>Buttons that trigger n8n analysis workflows</td><td><span class="pill hold">Placeholder</span> Phase 3</td></tr>
+      <tr><td>/settings</td><td>Account settings</td><td><span class="pill hold">Placeholder</span> Phase 1: English name and threshold</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="g">How data flows.</strong> Every call goes through one Axios client (<code>services/api/client.ts</code>) that adds the Bearer token and handles 401s. Server state is cached with TanStack Query. The base URL is <code>VITE_API_BASE_URL</code>, <code>/api</code> by default. Arabic labels live in <code>invoice/constants/invoiceLabels.ts</code>.</p>
+  <p><strong class="g">Modals.</strong> Edit and delete stay open until the request succeeds, so validation and server errors show inside the modal (<code>MainModal keepOpenOnConfirm</code>). After a delete the invoice list reloads.</p>
+  <p><strong class="g">Notifications.</strong> An in-memory MVP (<code>notificationsContext.tsx</code>, PR #94): the upload page adds a notification after each successful upload and the bell in the nav bar shows it. Notifications are lost on refresh and cleared on logout. The plan is a notifications table plus an endpoint, swapping only the context file (Phase 3).</p>
+  <h3>Design system</h3>
+  <div class="swatches keep">
+    <div class="sw"><i style="background:#047857"></i><b>Emerald 700</b><span>#047857</span></div>
+    <div class="sw"><i style="background:#059669"></i><b>Emerald 600</b><span>#059669</span></div>
+    <div class="sw"><i style="background:#10B981"></i><b>Emerald 500</b><span>#10B981</span></div>
+    <div class="sw"><i style="background:#0F172A"></i><b>Slate 900</b><span>#0F172A</span></div>
+    <div class="sw"><i style="background:#475569"></i><b>Slate 600</b><span>#475569</span></div>
+    <div class="sw"><i style="background:#F8FAFC"></i><b>Slate 50</b><span>#F8FAFC</span></div>
+    <div class="sw"><i style="background:#84CC16"></i><b>Success</b><span>#84CC16</span></div>
+    <div class="sw"><i style="background:#F59E0B"></i><b>Warning</b><span>#F59E0B</span></div>
+    <div class="sw"><i style="background:#EF4444"></i><b>Error</b><span>#EF4444</span></div>
+    <div class="sw"><i style="background:#3B82F6"></i><b>Info</b><span>#3B82F6</span></div>
+  </div>
+  <table>
+    <thead><tr><th style="width:24%">Token</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Primary</td><td>Emerald 500 <code>#10B981</code> (hover <code>#059669</code>, active <code>#047857</code>)</td></tr>
+      <tr><td>Status</td><td>Success <code>#84CC16</code>, warning <code>#F59E0B</code>, error <code>#EF4444</code>, info <code>#3B82F6</code></td></tr>
+      <tr><td>Light backgrounds</td><td>Layout <code>#F8FAFC</code>, container <code>#FFFFFF</code>, border <code>#E2E8F0</code></td></tr>
+      <tr><td>Dark backgrounds</td><td>Layout <code>#0F172A</code>, container <code>#1E293B</code>, border <code>#334155</code></td></tr>
+      <tr><td>Fonts</td><td>IBM Plex Sans Arabic (headings and body), Inter (Latin UI)</td></tr>
+      <tr><td>Shape</td><td>Border radius 8 px (cards 12 px), control height 40 px</td></tr>
+      <tr><td>Layout</td><td>12-column grid, 1440 px max width, 8 px spacing scale</td></tr>
+    </tbody>
+  </table>
+  <p>Tokens live in <code>src/index.css</code> (CSS variables) and <code>src/config/theme/theme.ts</code> (antd). Use <code>token.colorPrimary</code> and the CSS variables instead of hard-coded hex values so dark mode keeps working.</p>
+</section>
+
+<!-- ============ 8 EXTRACTION ============ -->
+<section class="sheet page" id="s8">
+  <div class="sec-head"><span class="num">8</span><h2>AI extraction: Phase 1 design</h2></div>
+  <p>The review rules are built; the extraction that should feed them is not. This section is the agreed design from the 21 Oct 2026 decision round, with the 22 Oct amendments. Section 9 lists each decision with its code (A1, B6, …) so it can be traced from here.</p>
+  <p><strong class="g">The 12 fields to extract:</strong> vendor name, invoice number, invoice date, due date, total amount, tax amount, currency, payment status, payment method, customer name (as printed), vendor tax number, vendor CR number. Line items are out of scope.</p>
+  <figure>
+    <svg viewBox="0 0 760 236" role="img" aria-label="Extraction pipeline diagram">
+      <defs><marker id="ar3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#94A3B8"/></marker></defs>
+      <rect class="plan" x="14" y="12" width="222" height="76" rx="6"/><text class="t" x="28" y="32">1. Load file</text><text x="28" y="47">RustFS · GET by fileUrl</text>
+      <rect class="plan" x="268" y="12" width="222" height="76" rx="6"/><text class="t" x="282" y="32">2. Read ZATCA QR</text><text x="282" y="47">5 fields, exact, free</text><text class="b" x="282" y="74">decision B7</text>
+      <rect class="plan" x="522" y="12" width="224" height="76" rx="6"/><text class="t" x="536" y="32">3. Claude Sonnet 5.5</text><text x="536" y="47">remaining fields, JSON schema</text><text class="b" x="536" y="74">decision A1 A2</text>
+      <rect class="plan" x="14" y="128" width="222" height="76" rx="6"/><text class="t" x="28" y="148">4. Normalise</text><text x="28" y="163">digits, dates, currency</text><text class="b" x="28" y="190">decision F20–F22</text>
+      <rect class="plan" x="268" y="128" width="222" height="76" rx="6"/><text class="t" x="282" y="148">5. Check and score</text><text x="282" y="163">code checks per field</text><text class="b" x="282" y="190">decision B6</text>
+      <rect class="ok" x="522" y="128" width="224" height="76" rx="6"/><text class="t" x="536" y="148">6. Review rules</text><text x="536" y="163">completed or needs_review</text><text class="b" x="536" y="190">decision X1</text>
+      <path class="ln" d="M236 50H266" marker-end="url(#ar3)"/><path class="ln" d="M490 50H520" marker-end="url(#ar3)"/>
+      <path class="ln" d="M634 88V108H125V126" marker-end="url(#ar3)"/>
+      <path class="ln" d="M236 166H266" marker-end="url(#ar3)"/><path class="ln" d="M490 166H520" marker-end="url(#ar3)"/>
+      <text class="s" x="14" y="226">Any step can fail; the job retries up to 3 times, then sets needs_review + extraction_failed. Budget guard and kill switch are checked before step 3.</text>
+    </svg>
+    <figcaption>Figure 3 · extraction pipeline, one job per uploaded invoice</figcaption>
+  </figure>
+  <h3>How it runs</h3>
+  <ol>
+    <li><b>Queue.</b> Upload creates the invoice and an <code>ExtractionJob</code> row in the same transaction. A worker inside the NestJS process claims jobs with <code>SELECT … FOR UPDATE SKIP LOCKED</code>, one or two at a time. No Redis: under 200 invoices a day this is enough (A5, C10).</li>
+    <li><b>Kill switch and budget.</b> Before each call the worker checks <code>EXTRACTION_ENABLED</code>, the account allow-list and the month's spend (sum of <code>extractionCostUsd</code>). At the cap it stops, leaves jobs queued and logs an alert; nothing is lost (A4, G25).</li>
+    <li><b>ZATCA QR first.</b> Decode the QR (TLV, Base64) from the image, or from rendered PDF pages. Tags 1–5 give seller name, VAT number, timestamp, total with VAT and VAT total. Decoded values get score 1.0 once they pass the checks (B7).</li>
+    <li><b>Model for the rest.</b> One call to Claude Sonnet 5.5 with the file and a fixed JSON schema for all 12 fields; QR values are passed in as known. Payment status and method only when clearly printed; anything not on the page comes back null (A1, A2, F23).</li>
+    <li><b>Normalise.</b> Arabic-Indic digits and the Arabic decimal separator to ASCII; dates to ISO; currency to the enum. Hijri dates are not converted: the field is left empty with a low score so a human enters it (F20, F21, F22).</li>
+    <li><b>Check and score</b> each field with code (below), then run the review rules. Clean result: <code>completed</code>. Any rule fires: <code>needs_review</code> with reasons (B6, X1).</li>
+  </ol>
+
+  <h3>Confidence: checks done by code</h3>
+  <p>Each field starts at 1.0 and loses score for every failed check; below 0.90 triggers <code>low_confidence</code>. The model's own view is not trusted as a score (B6).</p>
+  <table>
+    <thead><tr><th style="width:22%">Field</th><th>Check</th><th style="width:18%">On failure</th></tr></thead>
+    <tbody>
+      <tr><td>taxNumber</td><td>15 digits, starts and ends with 3; equals QR tag 2 when both exist</td><td>score 0.5</td></tr>
+      <tr class="amended"><td>taxAmount, totalAmount <span class="pill amd">22 Oct</span></td><td>Only for SAR invoices whose vendor has a valid Saudi VAT number (one that passes the taxNumber check): VAT ≈ 15% of (total − VAT) or exactly 0, ±1 SAR or 1%; equal to QR tags 4–5 when present. Other currencies, or no valid Saudi VAT number: check skipped, no penalty</td><td>score 0.6 on both</td></tr>
+      <tr><td>totalAmount</td><td>Greater than zero (also its own rule below)</td><td>score 0.5</td></tr>
+      <tr><td>amountPaid</td><td>Not above the total</td><td>score 0.6</td></tr>
+      <tr><td>invoiceDate, dueDate</td><td>Valid Gregorian date, not in the future, after 2000; due date ≥ invoice date; Hijri or unreadable → empty</td><td>score 0.5 or empty</td></tr>
+      <tr><td>currency</td><td>One of the 13 enum values; anything else → empty</td><td>score 0.5</td></tr>
+      <tr><td>crNumber</td><td>10 digits</td><td>score 0.7</td></tr>
+      <tr><td>Any required field</td><td>vendorName, totalAmount, invoiceDate missing</td><td>score 0</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Review rules</h3>
+  <p>An invoice moves to <code>needs_review</code> when any rule fires, and <code>needsReviewReason</code> lists every rule that did. Source: <code>backend/src/invoices/invoice-review.ts</code>.</p>
+  <table>
+    <thead><tr><th>Rule</th><th style="width:30%">Code</th><th style="width:24%">In the code?</th></tr></thead>
+    <tbody>
+      <tr><td>Any field's confidence below 0.90</td><td><code>low_confidence</code></td><td><span class="pill done">Yes</span></td></tr>
+      <tr><td>Customer name differs from <code>businessName</code> and from <code>businessNameEn</code></td><td><code>customer_name_mismatch</code></td><td><span class="pill done">Yes</span> English name in Phase 1</td></tr>
+      <tr><td>Total or tax above the account's <code>reviewAmountThreshold</code></td><td><code>amount_threshold_exceeded</code></td><td><span class="pill done">Yes</span> settable in Phase 1</td></tr>
+      <tr><td>User reported an error; kept until approval</td><td><code>user_flagged</code></td><td><span class="pill done">Yes</span> PR #108</td></tr>
+      <tr><td>Extraction failed after 3 attempts</td><td><code>extraction_failed</code></td><td><span class="pill ph">Phase 1</span></td></tr>
+      <tr><td>Total is zero; can still be approved</td><td><code>zero_total</code></td><td><span class="pill ph">Phase 1</span></td></tr>
+      <tr class="amended"><td>Tax above 30% of the total, on every invoice whatever its currency or VAT number <span class="pill amd">22 Oct</span></td><td><code>tax_over_30_percent</code></td><td><span class="pill ph">Phase 1</span></td></tr>
+      <tr><td>File holds more than one invoice; first one extracted</td><td><code>multiple_invoices</code></td><td><span class="pill ph">Phase 1</span></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Failure, retries and re-extraction</h3>
+  <ul>
+    <li><b>Retries:</b> 3 attempts with growing gaps (about 1 min, 5 min, 15 min). Then <code>needs_review</code> with <code>extraction_failed</code>, and the user fills the fields in by hand (C11). A file that is clearly not an invoice fails at once, without retries.</li>
+    <li><b>Re-extract button</b> on the detail page calls <code>POST /invoices/:id/extract</code>. Fields in <code>editedFields</code> are never overwritten; every PUT adds the fields it changed (C12).</li>
+    <li><b>Existing invoices:</b> a one-time backfill queues every invoice still in <code>processing</code> with empty fields, within the monthly budget, and only for accounts listed in <code>EXTRACTION_ACCOUNT_ALLOWLIST</code>. It does not run while the allow-list is empty, and the demo account is always skipped (C13, amended 22 Oct).</li>
+  </ul>
+
+  <h3>Frontend during extraction</h3>
+  <ul>
+    <li><b>Polling:</b> every 5 seconds on <code>GET /invoices/:id/status</code>, only on pages showing a <code>processing</code> invoice, stopping after 2 minutes. On the list page one list refetch replaces per-row polling. 12 requests a minute stay well inside the 60/min limit (D14).</li>
+    <li><b>While processing:</b> the user can view the invoice and its file, but edit, approve and report error are disabled, with a short Arabic note. The backend enforces the same with 409 (D15).</li>
+    <li><b>New reason labels</b> in Arabic for <code>extraction_failed</code>, <code>zero_total</code>, <code>tax_over_30_percent</code> and <code>multiple_invoices</code> in <code>invoiceLabels.ts</code>.</li>
+    <li><b>Settings page:</b> English business name and review threshold, via <code>PATCH /auth/me</code> (F19).</li>
+  </ul>
+
+  <h3>Data, privacy and cost</h3>
+  <ul>
+    <li><b>Outside KSA is allowed on one condition:</b> zero data retention at the provider. Confirm it in writing with Anthropic for this account before the first real invoice is sent; until then, test only on the anonymised test set (E16).</li>
+    <li><b>Account:</b> JX Tech Studio company account. Key <code>ANTHROPIC_API_KEY</code> in <code>/run/secrets/invoi.env</code>, like <code>JWT_SECRET</code> (A3).</li>
+    <li><b>Stored per invoice:</b> model, duration and cost. The raw response is not stored (E17).</li>
+    <li><b>Upload limit</b> unchanged: 10 MB, one file per upload; multi-file upload later (E18).</li>
+  </ul>
+  <div class="callout warn"><b>Budget is the tightest constraint.</b> The cap is USD 2 a month until the project gets its own budget (A4), shared with the analytics AI (H2). At an estimated USD 0.01 per one-page invoice on Sonnet 5.5 that is about 200 invoices a month, against an expected volume of up to 200 a day. The model comparison (about 50 invoices on Sonnet and 50 on Haiku, roughly USD 0.55) and the backfill also come out of it. Real costs must be measured on the test set; raise the cap before inviting more than one or two accounts.</div>
+
+  <h3>New environment variables</h3>
+  <table>
+    <thead><tr><th style="width:42%">Variable</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>ANTHROPIC_API_KEY</td><td>Required when extraction is enabled</td></tr>
+      <tr><td>EXTRACTION_ENABLED</td><td><code>true</code> / <code>false</code>; kill switch; no code change, only an app restart</td></tr>
+      <tr><td>EXTRACTION_ACCOUNT_ALLOWLIST</td><td>Comma-separated user IDs during gradual rollout; empty means everyone for new uploads (the backfill never runs while it is empty)</td></tr>
+      <tr><td>EXTRACTION_MODEL</td><td>Default <code>claude-sonnet-5-5</code></td></tr>
+      <tr><td>EXTRACTION_MONTHLY_BUDGET_USD</td><td>Default <code>2</code>; processing stops at the cap</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Measuring accuracy and rolling out</h3>
+  <ul>
+    <li><b>Test set:</b> Jana prepares 30–50 real invoices with their correct values: Arabic and English, PDFs and phone photos, some poor scans, some with Arabic-Indic digits, with sensitive data removed (B9).</li>
+    <li><b>Comparison:</b> a script runs the set on Sonnet 5.5 and Haiku 5.5 and reports field accuracy, cost and time per invoice. Proposed target: 95% of fields correct on clear PDFs. Accuracy is still not a hard MVP requirement.</li>
+    <li><b>Rollout:</b> one or two accounts first through the allow-list; the team checks the first ~100 extracted invoices before wider release (G25, G26).</li>
+  </ul>
+  <p class="callout quiet"><b>Definition of Done for the MVP:</b> an upload moves through extraction to <code>completed</code> or a reviewable state, all 12 fields are shown, the flags fire per the rules above, and the user can correct and save any field.</p>
+</section>
+
+<!-- ============ 9 DECISION LOG ============ -->
+<section class="sheet page" id="s9">
+  <div class="sec-head"><span class="num">9</span><h2>Decision log</h2></div>
+  <p>Decided by Jana on 21 Oct 2026; B6, B8 and C13 amended on 22 Oct (highlighted). Extraction decisions use codes A–G and X; analytics and n8n decisions use H. "Default" means the proposed option was kept without changes.</p>
+  <table>
+    <thead><tr><th style="width:8%">#</th><th style="width:30%">Question</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td class="code-col">A1</td><td>Kind of service</td><td>General document-reading AI model, one call for all fields</td></tr>
+      <tr><td class="code-col">A2</td><td>Which model</td><td>Claude Sonnet 5.5; measured against Haiku 5.5 on the test set before committing</td></tr>
+      <tr><td class="code-col">A3</td><td>Account and key</td><td>JX Tech Studio company account; key in <code>/run/secrets/invoi.env</code></td></tr>
+      <tr><td class="code-col">A4</td><td>Monthly budget</td><td>USD 2 hard cap for now; processing stops and alerts at the cap. To be raised when the project has a budget</td></tr>
+      <tr><td class="code-col">A5</td><td>Volume</td><td>Under 200 invoices a day at launch: Postgres-backed job table, no Redis</td></tr>
+      <tr class="amended"><td class="code-col">B6</td><td>Confidence scores</td><td>Computed by code checks (VAT format, VAT rate, sums, dates); model view only a hint. <b>22 Oct:</b> the 15% check runs only for SAR invoices from a vendor with a valid Saudi VAT number, and accepts ≈15% or exactly 0 (anything else 0.6); otherwise the check is skipped with no penalty</td></tr>
+      <tr><td class="code-col">B7</td><td>Read ZATCA QR first</td><td>Yes; the model fills only what the QR lacks</td></tr>
+      <tr class="amended"><td class="code-col">B8</td><td>30% tax and zero-total checks</td><td>Both added with extraction; a zero total goes to review but can be approved. <b>22 Oct:</b> the 30% rule applies to all invoices; no tax-category field for now</td></tr>
+      <tr><td class="code-col">B9</td><td>Test set</td><td>Jana prepares 30–50 invoices with correct answers. Target proposed: 95% on clear PDFs</td></tr>
+      <tr><td class="code-col">C10</td><td>Where extraction runs</td><td>Background job inside NestJS; n8n stays for alerts and digests</td></tr>
+      <tr><td class="code-col">C11</td><td>When extraction fails</td><td>3 retries with growing gaps, then <code>needs_review</code> + <code>extraction_failed</code></td></tr>
+      <tr><td class="code-col">C12</td><td>Re-extract button</td><td>Yes; never overwrites fields the user edited (<code>editedFields</code>)</td></tr>
+      <tr class="amended"><td class="code-col">C13</td><td>Invoices already uploaded</td><td>Processed once (backfill), within the budget. <b>22 Oct:</b> allow-listed accounts only, never while the allow-list is empty; demo account always excluded</td></tr>
+      <tr><td class="code-col">D14</td><td>How the frontend learns</td><td>Polling every 5 s, only for processing invoices, stop after 2 min; notifications later</td></tr>
+      <tr><td class="code-col">D15</td><td>Editing during extraction</td><td>Default: view only until it finishes</td></tr>
+      <tr><td class="code-col">E16</td><td>Sending invoices outside KSA</td><td>Allowed only with zero data retention at the provider</td></tr>
+      <tr><td class="code-col">E17</td><td>What to store</td><td>Default: model, timing and cost; no raw response</td></tr>
+      <tr><td class="code-col">E18</td><td>Upload limit</td><td>Default: 10 MB, one file; multi-file later</td></tr>
+      <tr><td class="code-col">F19</td><td>Arabic vs English business name</td><td>English name stored on the account; compare against both</td></tr>
+      <tr><td class="code-col">F20</td><td>Hijri dates</td><td>Not converted; left empty for review</td></tr>
+      <tr><td class="code-col">F21</td><td>Arabic-Indic digits</td><td>Normalised by code; included in the test set</td></tr>
+      <tr><td class="code-col">F22</td><td>Other currencies</td><td>Add EUR, GBP, KWD, QAR, BHD, OMR, EGP, JOD, CNY, INR</td></tr>
+      <tr><td class="code-col">F23</td><td>Payment status and method</td><td>Default: only when clearly printed</td></tr>
+      <tr><td class="code-col">F24</td><td>Files that aren't one invoice</td><td>Default: first invoice extracted, rest flagged; credit notes later</td></tr>
+      <tr><td class="code-col">G25</td><td>Rollout</td><td>Gradual, behind a kill switch and an account allow-list</td></tr>
+      <tr><td class="code-col">G26</td><td>Who checks results</td><td>The team reviews the first ~100 extracted invoices</td></tr>
+      <tr><td class="code-col">X1</td><td>Status after a clean extraction</td><td><code>completed</code> automatically; the user can still report an error</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Still open:</b> written confirmation of zero data retention for the account (blocks real invoices); the real monthly budget (blocks rollout beyond one or two accounts); the accuracy target, once the test set has numbers.</div>
+  <h3>Analytics, n8n and Power BI</h3>
+  <table>
+    <thead><tr><th style="width:8%">#</th><th style="width:30%">Question</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td class="code-col">H1</td><td>How a 20–60 s analysis returns</td><td>Job and polling: <code>POST /analytics</code> returns <code>jobId</code>, page polls every 3 s</td></tr>
+      <tr><td class="code-col">H2</td><td>AI provider and cost in n8n</td><td>Same Anthropic account and the same monthly cap as extraction; zero data retention</td></tr>
+      <tr><td class="code-col">H3</td><td>Free-text question box</td><td>Preset buttons only for now</td></tr>
+      <tr><td class="code-col">H4</td><td>The five scheduled workflows</td><td>Run per user instead of posting all companies' data to a team channel</td></tr>
+      <tr><td class="code-col">H5</td><td>How scheduled results reach the user</td><td>Inside the app only, as the latest result on the analytics page</td></tr>
+      <tr><td class="code-col">H6</td><td>Isolating each company's data</td><td>Backend sends the user's data in the webhook; n8n has no database access</td></tr>
+      <tr><td class="code-col">H7</td><td>Payment date for DPO</td><td>New <code>Invoice.paidAt</code>; demo data copied once from <code>updatedAt</code></td></tr>
+      <tr><td class="code-col">H8</td><td>How the anomaly detector flags</td><td>Through an internal endpoint with the shared secret; backend adds the reason</td></tr>
+      <tr><td class="code-col">H9</td><td>Demo account in production</td><td>Kept, marked <code>isDemo</code>, excluded from extraction and scheduled runs</td></tr>
+      <tr><td class="code-col">H10</td><td>Limits and history</td><td>5 analyses per user per day; latest result per type kept and reused within an hour</td></tr>
+      <tr><td class="code-col">H11</td><td>Role of Power BI</td><td>Empty templates sold with a paid plan; users download and load their own data (CSV)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Still open for analytics:</b> the final list of analysis types and their names (Abdullah); plans and billing for the Power BI tier; the full Confluence page, which could not be read for this version.</div>
+</section>
+
+<!-- ============ 10 ANALYTICS ============ -->
+<section class="sheet page" id="s10">
+  <div class="sec-head"><span class="num">10</span><h2>Analytics, n8n and Power BI</h2></div>
+  <p>Design agreed on 21 Oct 2026 (decisions H1–H11 in section 9). n8n does the analysis and the AI writing; the backend owns identity, data and budget. <b>n8n no longer connects to PostgreSQL</b>, and <b>Power BI no longer reads the production database</b>. Owners: Danah (analytics page, frontend and backend), Abdullah (n8n workflows, Power BI templates).</p>
+  <figure>
+    <svg viewBox="0 0 760 262" role="img" aria-label="Analysis request flow diagram">
+      <defs>
+        <marker id="ar4" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#94A3B8"/></marker>
+      </defs>
+      <rect class="box" x="14" y="24" width="190" height="84" rx="6"/>
+      <text class="t" x="26" y="42">1. Analytics page</text><text x="26" y="57">button → POST /analytics</text><text x="26" y="71">{ type } · token only</text><text x="26" y="85">never a userId</text>
+      <rect class="app" x="240" y="14" width="246" height="104" rx="6"/>
+      <text class="t" x="254" y="32">2. Backend</text><text x="254" y="47">JWT → userId · known type</text><text x="254" y="61">5 a day · reuse result &lt; 1 h · budget</text><text x="254" y="75">selects this user's invoices</text><text x="254" y="89">creates AnalysisJob → { jobId }</text><text class="b" x="254" y="108">owner: Danah</text>
+      <rect class="orange" x="522" y="14" width="226" height="104" rx="6"/>
+      <text class="t" x="536" y="32">3. n8n workflow</text><text x="536" y="47">checks X-Invoi-Secret</text><text x="536" y="61">body: jobId, type, invoices[] (one user)</text><text x="536" y="75">calculates, AI node = Claude, same account</text><text x="536" y="89">no Postgres node</text><text class="o" x="536" y="108">owner: Abdullah</text>
+      <path class="ln" d="M204 66H238" marker-end="url(#ar4)"/><path class="ln" d="M486 66H520" marker-end="url(#ar4)"/>
+      <rect class="box" x="240" y="150" width="246" height="66" rx="6"/>
+      <text class="t" x="254" y="168">4. Callback</text><text x="254" y="183">POST /internal/n8n/results + secret</text><text x="254" y="197">result and cost stored on the job</text>
+      <path class="ln" d="M635 118V183H488" marker-end="url(#ar4)"/>
+      <path class="lnd" d="M240 183H109V110" marker-end="url(#ar4)"/>
+      <text x="24" y="166">5. page polls</text><text x="24" y="180">GET /analytics/jobs/:id</text><text x="24" y="194">every 3 s</text>
+      <text class="s" x="14" y="248">A job with no callback after 3 minutes is marked failed. n8n never receives another user's rows, so a missing WHERE cannot leak data.</text>
+    </svg>
+    <figcaption>Figure 4 · analysis request flow (job and polling)</figcaption>
+  </figure>
+  <h3>Rules</h3>
+  <ul>
+    <li><b>Endpoint:</b> <code>POST /analytics</code>. The two team guides disagree (<code>/analytics</code> vs <code>/invoices/analysis</code>); this document uses the former, as its own Nest module.</li>
+    <li><b>Request:</b> preset buttons only; the free-text question waits until isolation and cost are proven (H3). The button list comes from Abdullah's workflows.</li>
+    <li><b>Data sent:</b> only fields the analysis needs, for invoices not in <code>processing</code>: vendor, number, dates, <code>paidAt</code>, amounts, currency, payment status, status (H6).</li>
+    <li><b>Limits and cache:</b> 5 analyses per user per day; the same type within an hour returns the stored result at no cost; the latest result per type is shown when the page opens (H10).</li>
+    <li><b>Cost:</b> the AI node uses Claude through the company Anthropic account, with zero data retention, inside the same monthly cap as extraction. n8n returns <code>costUsd</code> with each result (H2).</li>
+    <li><b>Currencies:</b> with 13 currencies, sums are grouped by currency, never added across them.</li>
+    <li><b>States on the page:</b> empty, running (button disabled, 20–60 s expected), result, error with "try again".</li>
+  </ul>
+  <h3>Result contract (every workflow returns this shape)</h3>
+<pre>{
+  "jobId": "clx…",
+  "type": "dpo_aging",
+  "title": "<span class="ar">DPO وأعمار المستحقات</span>",
+  "generatedAt": "2026-10-21T09:30:00Z",
+  "kpis":   [ { "label": "DPO", "value": 43, "unit": "days" } ],
+  "chart":  { "kind": "bar",
+              "items": [ { "label": "90+", "value": 755720.48, "currency": "SAR" } ] },
+  "report": "## <span class="ar">الملخص</span>\n…",          <span class="c">// optional Markdown from the AI</span>
+  "costUsd": 0.004                  <span class="c">// AI spend for this run, 0 if none</span>
+}</pre>
+  <h3>Workflows after the redesign</h3>
+  <table>
+    <thead><tr><th style="width:24%">Workflow</th><th style="width:22%">Trigger</th><th>What changes</th></tr></thead>
+    <tbody>
+      <tr><td>Payables aging and DPO</td><td>Button; every 2 weeks per user</td><td>DPO from <code>paidAt</code>, not <code>updatedAt</code> (H7); remaining = total − amount paid</td></tr>
+      <tr><td>Cash outflow predictor</td><td>Button; weekly per user</td><td>Unpaid invoices due in the next 28 days, 4 weekly buckets</td></tr>
+      <tr><td>Executive narrative</td><td>Button; monthly per user</td><td>KPIs and period change, written by the AI</td></tr>
+      <tr><td>Anomaly and duplicate detector</td><td>After each extraction</td><td>Backend sends the new invoice and that vendor's 6-month history; n8n calls back a verdict; backend adds <code>duplicate_suspected</code> or <code>amount_anomaly</code> and the invoice goes to <code>needs_review</code> (H8)</td></tr>
+      <tr><td>Financial analyst agent</td><td>—</td><td>Deferred with the free-text question (H3)</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="g">Scheduled runs</strong> are per user, not to a team channel (H4). A backend cron starts them for users active in the last 30 days; the result becomes that type's latest result on the analytics page. No email for now; it can come with persistent notifications (H5). While the budget is USD 2 a month, scheduled runs use the extraction allow-list, or they would spend the cap in days.</p>
+  <h3>Demo account in production</h3>
+  <p>The account with 2,000 fake invoices stays in production and is marked with <code>User.isDemo</code> (H9). It is excluded from extraction, backfill and scheduled runs, but buttons work on it for testing. Its <code>seed://</code> file references have no stored file: <code>GET /invoices/:id/file</code> returns 404 and <code>DELETE</code> removes the row only (fixed in PR #113; it used to fail with 500).</p>
+  <h3>Power BI: templates sold with a paid plan</h3>
+  <p>Power BI stops reading the database (H11). Each report becomes an empty template (<code>.pbit</code>) that users on a plan that includes Power BI can download; they load their own data, usually the CSV export. This needs:</p>
+  <ul>
+    <li>The CSV export to carry every column the templates use. Today it lacks <code>amountPaid</code>, <code>paidAt</code>, <code>status</code> and the upload date, so unpaid ratio, aging and DPO cannot be computed from it.</li>
+    <li>A plan on the account and a download endpoint gated by it. Plans and billing do not exist yet.</li>
+    <li>Templates on the brand colours (<code>#10B981</code>, <code>#047857</code>, <code>#0F172A</code>) and Arabic labels.</li>
+  </ul>
+  <div class="callout warn"><b>Remove direct database access</b> once the webhooks are live: the Postgres accounts used by n8n and Power BI (such as <code>powerbi_reader</code>) can see every company's invoices.</div>
+</section>
+
+<!-- ============ 11 INFRA ============ -->
+<section class="sheet page" id="s11">
+  <div class="sec-head"><span class="num">11</span><h2>Infrastructure and deployment</h2></div>
+  <p>invoi runs as three Docker Compose services on one server behind the host's Nginx, which terminates SSL for <code>invoi.jxtechstudio.com</code> and proxies to the app on <code>127.0.0.1:3016</code>. Every port is bound to localhost; only Nginx is public. The app trusts exactly one proxy hop, so Nginx must stay the only proxy in front of it.</p>
+  <table>
+    <thead><tr><th style="width:24%">Service</th><th style="width:25%">Image</th><th style="width:19%">Host port</th><th>Volume</th></tr></thead>
+    <tbody>
+      <tr><td>app (<code>invoice-app</code>)</td><td>Built from <code>Dockerfile</code>, Node 22 alpine, runs as <code>node</code></td><td>127.0.0.1:3016 → 3000</td><td><code>invoiproject_invoice_uploads</code> (legacy files)</td></tr>
+      <tr><td>postgres (<code>invoice-postgres</code>)</td><td>postgres:16</td><td>127.0.0.1:5433 → 5432</td><td><code>invoiproject_postgres_data</code></td></tr>
+      <tr><td>rustfs (<code>invoice-rustfs</code>)</td><td>rustfs/rustfs:1.0.0-rc.6</td><td>127.0.0.1:9001 (console)</td><td><code>invoiproject_rustfs_data</code></td></tr>
+    </tbody>
+  </table>
+  <p>The app waits for healthy Postgres and RustFS, then runs <code>prisma migrate deploy</code> and starts. Migrations therefore apply automatically on every deploy, including the Phase 1 migration. The extraction worker runs in the app container and needs outbound HTTPS to the Anthropic API.</p>
+  <h3>Jenkins pipeline (<code>Jenkinsfile</code>, one build at a time, env file at <code>/run/secrets/invoi.env</code>)</h3>
+  <ol>
+    <li><b>Build</b> — validate the Compose file, build the app image.</li>
+    <li><b>Lint</b> — ESLint on the backend.</li>
+    <li><b>Test</b> — <code>npm run test:e2e</code> inside the app image (15 Jest suites: lifecycle, ownership, review, approval, CORS, storage, metrics, proxy rate limit, exception filter). Extraction tests must mock the model call: CI never spends budget.</li>
+    <li><b>Deploy</b> — <code>docker compose up -d --build app postgres</code>, check both containers run, then call <code>/api/health</code> up to 5 times.</li>
+  </ol>
+  <p>The frontend has no lint or test stage yet.</p>
+  <h3>Environment variables (<code>.env.example</code>)</h3>
+  <table>
+    <thead><tr><th style="width:46%">Variable</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB</td><td>Database credentials; Compose builds <code>DATABASE_URL</code> from them</td></tr>
+      <tr><td>JWT_SECRET</td><td>Required; signs login tokens</td></tr>
+      <tr><td>JWT_EXPIRES_IN</td><td>In the example file but unused; expiry is hard-coded to 1 day</td></tr>
+      <tr><td>PORT, NODE_ENV, APP_URL</td><td>Runtime basics (port 3000 in the container)</td></tr>
+      <tr><td>VITE_API_BASE_URL</td><td>Frontend API base, baked in at build time; default <code>/api</code></td></tr>
+      <tr><td>CORS_ALLOWED_ORIGINS</td><td>Comma-separated origins; empty means no cross-origin access</td></tr>
+      <tr><td>STORAGE_DRIVER, STORAGE_LOCAL_PATH</td><td><code>rustfs</code> (default) or local disk</td></tr>
+      <tr><td>RUSTFS_ENDPOINT, RUSTFS_REGION, RUSTFS_BUCKET</td><td>Object storage; bucket <code>invoices</code></td></tr>
+      <tr><td>RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY</td><td>Required</td></tr>
+      <tr><td>MAX_UPLOAD_SIZE_BYTES</td><td>Upload limit; default 10485760 (10 MB)</td></tr>
+      <tr><td>ANTHROPIC_API_KEY, EXTRACTION_*</td><td><span class="pill ph">Phase 1</span> see section 8</td></tr>
+      <tr><td>N8N_WEBHOOK_BASE_URL, N8N_SHARED_SECRET, ANALYTICS_DAILY_LIMIT</td><td><span class="pill ph">Planned</span> n8n base URL (backend only), the <code>X-Invoi-Secret</code> value both ways, analyses per user per day (5)</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="g">Monitoring.</strong> <code>/api/metrics</code> exposes <code>invoi_http_requests_total</code> (by method, route and status code) plus Node.js defaults for Prometheus and Grafana. It is public: restrict it to the Prometheus host in Nginx. Unexpected errors reach the container log with their stack. Phase 1 adds extraction counters (jobs by outcome, spend this month).</p>
+  <div class="callout warn"><b>Not in place yet:</b> scheduled backups of the Postgres and RustFS volumes, a written restore procedure, and the Nginx config in version control.</div>
+</section>
+
+<!-- ============ 12 DEV GUIDE ============ -->
+<section class="sheet page" id="s12">
+  <div class="sec-head"><span class="num">12</span><h2>Developer guide</h2></div>
+  <p>A new developer can run invoi locally in about 15 minutes with Node 22 and Docker.</p>
+  <h3>Run it locally</h3>
+<pre>git clone https://github.com/JxTechStudio-org/invoi.git &amp;&amp; cd invoi
+git checkout develop
+cp .env.example .env              <span class="c"># fill in passwords, JWT_SECRET and RustFS keys</span>
+
+<span class="c"># Database and storage only</span>
+docker compose up -d postgres rustfs
+
+<span class="c"># Backend on http://localhost:3000/api</span>
+cd backend &amp;&amp; npm ci
+<span class="c"># DATABASE_URL=postgresql://&lt;user&gt;:&lt;pass&gt;@localhost:5433/&lt;db&gt;</span>
+<span class="c"># RUSTFS_ENDPOINT=http://localhost:9000 (map port 9000 in Compose for local use)</span>
+<span class="c"># EXTRACTION_ENABLED=false unless you are working on extraction</span>
+npx prisma generate &amp;&amp; npm run prisma:migrate:deploy
+npm run start:dev
+
+<span class="c"># Frontend on http://localhost:5173</span>
+cd ../frontend &amp;&amp; npm install
+VITE_API_BASE_URL=http://localhost:3000/api npm run dev</pre>
+  <p>Or run the whole stack exactly as production: <code>docker compose up -d --build</code>, then open <code>http://127.0.0.1:3016</code>.</p>
+  <h3>Useful scripts</h3>
+  <table>
+    <thead><tr><th style="width:14%">Where</th><th style="width:38%">Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td>backend</td><td><code>npm run start:dev</code></td><td>API with watch mode</td></tr>
+      <tr><td>backend</td><td><code>npm run lint</code></td><td>ESLint (CI runs this)</td></tr>
+      <tr><td>backend</td><td><code>npm run test:e2e</code></td><td>Jest e2e suites (CI runs this; needs a database)</td></tr>
+      <tr><td>backend</td><td><code>npm run prisma:validate</code></td><td>Check the schema</td></tr>
+      <tr><td>frontend</td><td><code>npm run dev</code> / <code>build</code> / <code>lint</code></td><td>Vite dev server, production build, ESLint</td></tr>
+      <tr><td>docs</td><td><code>python docs/technical-documentation/build.py</code></td><td>Export this document to PDF (Chrome or Edge)</td></tr>
+    </tbody>
+  </table>
+  <h3>Git workflow</h3>
+  <ul>
+    <li><code>main</code> is production; Jenkins deploys it. <code>develop</code> is the integration branch.</li>
+    <li>Branch from <code>develop</code> as <code>feature/&lt;name&gt;</code>, <code>fix/&lt;name&gt;</code> or <code>docs/&lt;name&gt;</code>, and open the PR into <code>develop</code>.</li>
+    <li><code>develop</code> is merged into <code>main</code> by PR once it is green. As of this version the two are in sync (PR #114, 22 Oct).</li>
+    <li>Schema changes always ship as a new Prisma migration; never edit an applied one.</li>
+  </ul>
+  <h3>Conventions</h3>
+  <ul>
+    <li>Backend: one Nest module per domain; validate every input with a DTO; scope every invoice query by <code>userId</code>.</li>
+    <li>Frontend: code goes in <code>features/&lt;area&gt;/{api,components,hooks,pages,constants}</code>; shared UI in <code>features/shared</code>; colours from theme tokens, never hex.</li>
+    <li>Text in the UI is Arabic and right-to-left; code, commits and PR titles are in English.</li>
+    <li>Never call the paid model from tests or CI; mock the client.</li>
+    <li>The repository has 41 remote branches; delete a branch once its PR is merged.</li>
+    <li>This document lives in <code>docs/technical-documentation/</code>; change it in the same PR as the code it describes.</li>
+  </ul>
+</section>
+
+<!-- ============ 13 STATUS ============ -->
+<section class="sheet page" id="s13">
+  <div class="sec-head"><span class="num">13</span><h2>Status, known gaps and roadmap</h2></div>
+  <p>The platform around extraction is in place and on the production branch: file preview, the approve/complete flow, the list filters and the demo-file fix all landed by 22 Oct. The MVP is now blocked mainly on AI extraction itself.</p>
+  <h3>Closed since v1.0</h3>
+  <table>
+    <thead><tr><th style="width:9%">Gap</th><th>What was wrong</th><th style="width:38%">Closed by</th></tr></thead>
+    <tbody>
+      <tr><td class="code-col">2</td><td>No endpoint to view or download an invoice's file</td><td>PR #109 · <code>GET /invoices/:id/file</code>, preview and "view file"</td></tr>
+      <tr><td class="code-col">3</td><td>Nothing sets status to <code>completed</code></td><td>PR #108 · approve and report-error</td></tr>
+      <tr><td class="code-col">—</td><td>Manual edit always failed with 400; only 4 of 13 fields</td><td>PR #107 · <code>InvoiceEditForm</code></td></tr>
+      <tr><td class="code-col">—</td><td>Login rate limit bypassable with <code>X-Forwarded-For</code>; 5xx not logged; data of the previous user kept after logout</td><td>PR #110</td></tr>
+      <tr><td class="code-col">—</td><td>No date filter or CSV export on the list; delete without confirmation; edit errors hidden by a closing modal; forgot password showed a fake success</td><td>PR #111</td></tr>
+      <tr><td class="code-col">5</td><td><code>seed://</code> demo invoices: file view and delete returned 500</td><td>PR #113 · file 404, delete removes the row only</td></tr>
+      <tr><td class="code-col">7</td><td><code>develop</code> ahead of <code>main</code></td><td>PR #114 · develop merged to main, 22 Oct</td></tr>
+    </tbody>
+  </table>
+  <h3>Open gaps, most important first</h3>
+  <p class="muted" style="font-size:8.5pt">Numbers are kept from v1.2 so references stay valid; closed gaps are listed above.</p>
+  <table>
+    <thead><tr><th style="width:7%">#</th><th>Gap</th><th style="width:11%">Area</th><th style="width:30%">Plan</th></tr></thead>
+    <tbody>
+      <tr><td class="code-col">1</td><td>No AI extraction</td><td>Backend</td><td>Phase 1 (section 8)</td></tr>
+      <tr><td class="code-col">2</td><td>30% tax and zero-total checks not coded</td><td>Backend</td><td>Phase 1, with extraction</td></tr>
+      <tr><td class="code-col">3</td><td>Edit, approve and flag allowed while <code>processing</code></td><td>Both</td><td>Phase 1, 409 + disabled buttons</td></tr>
+      <tr><td class="code-col">4</td><td>Settings page and endpoint missing (threshold, English name)</td><td>Both</td><td>Phase 1</td></tr>
+      <tr><td class="code-col">6</td><td>n8n and Power BI hold Postgres accounts that see every company</td><td>Infra</td><td>Remove when webhooks are live</td></tr>
+      <tr><td class="code-col">8</td><td>No backups of Postgres or RustFS volumes</td><td>Infra</td><td>Phase 2</td></tr>
+      <tr><td class="code-col">9</td><td><code>/api/metrics</code> is public</td><td>Infra</td><td>Phase 2, Nginx allow-list</td></tr>
+      <tr><td class="code-col">10</td><td>Dashboard calls <code>GET /metrics</code> expecting JSON</td><td>Both</td><td>Phase 2, JSON stats endpoint</td></tr>
+      <tr><td class="code-col">11</td><td>Forgot password has no backend</td><td>Both</td><td>Phase 2, needs an email sender</td></tr>
+      <tr><td class="code-col">12</td><td>No frontend lint or tests in CI</td><td>Infra</td><td>Phase 2</td></tr>
+      <tr><td class="code-col">13</td><td><code>JWT_EXPIRES_IN</code> ignored; expiry fixed at 1 day</td><td>Backend</td><td>Phase 2</td></tr>
+      <tr><td class="code-col">14</td><td>Token stored in <code>localStorage</code></td><td>Frontend</td><td>Later; httpOnly cookie</td></tr>
+      <tr><td class="code-col">15</td><td>Notifications live in memory only</td><td>Both</td><td>Phase 3</td></tr>
+      <tr><td class="code-col">16</td><td>CSV export lacks amount paid, paid date, status and upload date</td><td>Backend</td><td>Before Power BI templates</td></tr>
+      <tr><td class="code-col">17</td><td>Root README points to a missing <code>reports/</code>; frontend README is the Vite template</td><td>Docs</td><td>Any time</td></tr>
+    </tbody>
+  </table>
+  <h3>Phase 1 work, in order</h3>
+  <table>
+    <thead><tr><th style="width:7%">#</th><th style="width:38%">Task</th><th>Covers</th></tr></thead>
+    <tbody>
+      <tr><td class="code-col">1</td><td>Schema migration</td><td>Currencies, <code>businessNameEn</code>, <code>editedFields</code>, extraction metadata, <code>ExtractionJob</code></td></tr>
+      <tr><td class="code-col">2</td><td>Test set and correct answers (Jana)</td><td>30–50 invoices; can start now, in parallel</td></tr>
+      <tr><td class="code-col">3</td><td>Job runner</td><td>Claiming, 3 retries with backoff, kill switch, allow-list, budget guard, metrics</td></tr>
+      <tr><td class="code-col">4</td><td>ZATCA QR reader</td><td>Image and PDF pages, TLV decode, unit tests with sample QRs</td></tr>
+      <tr><td class="code-col">5</td><td>Model client</td><td>Sonnet 5.5, JSON schema output, cost and timing, mocked in tests</td></tr>
+      <tr><td class="code-col">6</td><td>Normalisation, checks and scores</td><td>Digits, dates, currency; checks table (SAR-only VAT check); new review reasons</td></tr>
+      <tr><td class="code-col">7</td><td>Locks and edit tracking</td><td>409 while processing; PUT records <code>editedFields</code></td></tr>
+      <tr><td class="code-col">8</td><td>Re-extract endpoint and button</td><td><code>POST /invoices/:id/extract</code></td></tr>
+      <tr><td class="code-col">9</td><td>Frontend polling and labels</td><td>Detail and list pages; Arabic labels for new reasons</td></tr>
+      <tr><td class="code-col">10</td><td>Settings</td><td><code>PATCH /auth/me</code> and the settings page</td></tr>
+      <tr><td class="code-col">11</td><td>Model comparison, then backfill</td><td>Sonnet vs Haiku on the test set; backfill allow-listed accounts only</td></tr>
+      <tr><td class="code-col">12</td><td>Rollout</td><td>Zero data retention confirmed; one or two accounts; review first ~100</td></tr>
+    </tbody>
+  </table>
+  <h3>Roadmap</h3>
+  <div class="roadmap keep">
+    <div class="phase"><small>PHASE 1</small><b>MVP complete</b>AI extraction with ZATCA QR, code-based confidence, the missing review checks, edit locks, re-extract, settings. <em>Done: file preview, approve and complete, list filters.</em></div>
+    <div class="phase"><small>PHASE 2</small><b>Hardening</b>Backups and restore runbook, metrics locked down, JSON dashboard stats, password reset, frontend CI, JWT expiry from env.</div>
+    <div class="phase"><small>PHASE 3</small><b>Insight</b>Analytics page and n8n webhooks (section 10, may start in parallel), anomaly detector after extraction, persistent notifications, Power BI templates for a paid plan.</div>
+    <div class="phase"><small>PHASE 4</small><b>Later</b>Outgoing invoices, multi-user accounts, ERP integrations, line items, credit notes, multi-file upload.</div>
+  </div>
+</section>
+
+<!-- ============ 14 RELATED + CHANGELOG ============ -->
+<section class="sheet page" id="s14">
+  <div class="sec-head"><span class="num">14</span><h2>Related documents and changelog</h2></div>
+  <p>The Notion pages stay as working notes; where they disagree with this document, the code wins. Known differences: the Notion backend page says authentication is not implemented (it is, since 22 Sep 2026), and the Notion workflow diagram shows AI analysis as optional.</p>
+  <table>
+    <thead><tr><th style="width:50%">Document</th><th>Covers</th></tr></thead>
+    <tbody>
+      <tr><td>Invoi — Project Documentation (Notion)</td><td>Product scope, fields, review rules, Definition of Done</td></tr>
+      <tr><td>Invoi Back-end / Database schema v4 (Notion)</td><td>Earlier API notes; schema with field notes</td></tr>
+      <tr><td>Invoi Front-end / Workflow Diagram (Notion)</td><td>Design system research and routes; upload-to-database flow</td></tr>
+      <tr><td>Invoi x n8n / Invoi X PowerBI (Notion)</td><td>Workflow and dashboard specs</td></tr>
+      <tr><td>invoi-Visual-Identity.pdf + invoi-Logo-Assets.zip</td><td>Logo, colours, type, favicons, social images</td></tr>
+    </tbody>
+  </table>
+  <h3>Changelog</h3>
+  <table>
+    <thead><tr><th style="width:17%">Version</th><th>Changes</th></tr></thead>
+    <tbody>
+      <tr><td>v1.3 · 22 Oct 2026</td><td>Rebuilt as an editable source in the repository (<code>docs/technical-documentation/</code>) with a PDF build script. Synced with <code>develop</code> @ 07f2e22 (PRs #111, #113) and <code>main</code> (PR #114). Decisions B6, B8 and C13 amended: the 15% VAT check applies only to SAR invoices from vendors with a valid Saudi VAT number, accepts 0 VAT and is otherwise skipped with no penalty; the 30% rule applies to all invoices; no tax-category field; the backfill runs only for allow-listed accounts. Section 7 updated for PR #111 (search delay, CSV export of current filters, delete confirmation, modals stay open on error, forgot password says "not available yet"). Gaps 5 and 7 closed.</td></tr>
+      <tr><td>v1.2 · 21 Oct 2026</td><td>Section 10 rewritten as the analytics, n8n and Power BI design: job and polling, n8n without database access, per-user scheduled runs, result contract, demo account, Power BI templates. Decisions H1–H11. New gaps for <code>seed://</code> files, database access and CSV columns.</td></tr>
+      <tr><td>v1.1 · 21 Oct 2026</td><td>Synced with <code>develop</code> @ 93a004c (PRs #107–#110): file endpoint, approve and flag, full edit form, auth hardening. Section 8 rewritten as the Phase 1 extraction design; new section 9, decision log; planned schema, endpoints and environment variables; gaps table split into closed and open; Phase 1 task list.</td></tr>
+      <tr><td>v1.0 · 15 Oct 2026</td><td>First edition, synced with <code>main</code> (PR #105). Replaced the separate Notion pages as the single reference.</td></tr>
+    </tbody>
+  </table>
+  <p><strong class="g">Brand in one line:</strong> the name is always lowercase <b>invoi</b>; primary colour Emerald 500 <code>#10B981</code> with Emerald 700 <code>#047857</code>; text Slate 900 <code>#0F172A</code>; IBM Plex Sans Arabic for all text.</p>
+</section>
+
+<script>
+  // Edit these for each new version; they fill the cover, contents and page footer.
+  const DOC = {
+    version: 'v1.3',
+    date: '22 October 2026',
+    source: 'develop (PR #113)',
+    repo: 'develop @ 07f2e22',
+  };
+
+  document.querySelectorAll('[data-doc]').forEach(el => { el.textContent = DOC[el.dataset.doc] ?? ''; });
+  const footer = document.createElement('style');
+  footer.textContent = `@page { @bottom-left { content: "invoi · ${DOC.version} · ${DOC.date} · JX Tech Studio"; font: 400 8pt var(--font); color: #475569; } }`;
+  document.head.append(footer);
+
+  // build.py passes section start pages as ?pages=s1:3,s2:4,… for the contents page.
+  const pages = new URLSearchParams(location.search).get('pages');
+  if (pages) {
+    for (const pair of pages.split(',')) {
+      const [id, page] = pair.split(':');
+      const el = document.querySelector(`.pg[data-for="${id}"]`);
+      if (el) el.textContent = page;
+    }
+  }
+</script>
+</body>
+</html>

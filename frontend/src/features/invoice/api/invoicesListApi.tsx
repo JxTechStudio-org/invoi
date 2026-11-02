@@ -20,7 +20,8 @@ export interface Invoice {
     crNumber: string | null
     paymentMethod: string | null
     paymentStatus: string | null
-    extractionConfidence: number | null
+    // Per-field scores 0–1 from the backend's code checks, e.g. { totalAmount: 0.6 }
+    extractionConfidence: Record<string, number> | null
     needsReviewReason: string | null
     createdAt: string
     updatedAt: string
@@ -29,6 +30,8 @@ export interface Invoice {
 export interface InvoicesListFilters {
     status?: 'processing' | 'completed' | 'needs_review'
     search?: string
+    // YYYY-MM-DD, matches the invoice date (not the upload date)
+    date?: string
 }
 
 export const invoicesListApi = {
