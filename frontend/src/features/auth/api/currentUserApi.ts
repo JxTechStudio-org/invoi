@@ -27,7 +27,7 @@ export type ProfileUpdate = Partial<{
 
 export const currentUserApi = {
     get: () => apiClient.get<CurrentUser>('/auth/me'),
-    // recheckedInvoices: needs_review invoices whose review flags were recomputed.
+    // recheckedInvoices: needs_review invoices whose review reasons actually changed.
     update: (changes: ProfileUpdate) =>
         apiClient.patch<CurrentUser & { recheckedInvoices: number }>('/auth/me', changes)
 }

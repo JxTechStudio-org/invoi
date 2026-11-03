@@ -7,8 +7,8 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  ForbiddenException,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ExtractionTrigger, Invoice, InvoiceStatus, JobState, Prisma } from '@prisma/client';
 import { ExtractionAvailabilityService } from '../extraction/extraction-availability.service';
@@ -31,7 +31,10 @@ type EditableInvoice = Pick<Invoice,
   | 'invoiceDate' | 'dueDate' | 'totalAmount' | 'taxAmount' | 'amountPaid'
 >;
 
-/** Re-extractions a user may request per invoice; upload and backfill jobs do not count. */
+/**
+ * Re-extractions a user may request per invoice. Upload and backfill jobs do not count, nor
+ * do re-extracts the user cancelled or that never reached the model (no cost).
+ */
 export const MAX_REEXTRACTS = 3;
 
 // Minimum data a human must have confirmed before an invoice can be completed.
@@ -258,9 +261,14 @@ export class InvoicesService {
         }
         const unavailable = await this.extractionAvailability.unavailableReason(invoice.user);
         if (unavailable) {
-          throw new ServiceUnavailableException({
+          // 4xx, not 5xx: these are expected refusals, not server faults, and must not show up
+          // as errors in the HTTP metrics. 403 = not for this account; 409 = not right now.
+          const refusal = {
             code: `EXTRACTION_${unavailable.toUpperCase()}`, message: `Extraction is not available: ${unavailable}`,
-          });
+          };
+          throw unavailable === 'demo_account' || unavailable === 'not_allowed'
+            ? new ForbiddenException(refusal)
+            : new ConflictException(refusal);
         }
         const active = await tx.extractionJob.count({
           where: { invoiceId: id, state: { in: [JobState.queued, JobState.running] } },
@@ -268,7 +276,14 @@ export class InvoicesService {
         if (active) {
           throw new ConflictException({ code: 'EXTRACTION_IN_PROGRESS', message: `Invoice ${id} is already queued for extraction` });
         }
-        const used = await tx.extractionJob.count({ where: { invoiceId: id, trigger: ExtractionTrigger.reextract } });
+        // Only re-extracts that reached the model count: a job the user cancelled, or one
+        // that failed before any spend (missing file, network), does not use up an attempt.
+        const used = await tx.extractionJob.count({
+          where: {
+            invoiceId: id, trigger: ExtractionTrigger.reextract, costUsd: { gt: 0 },
+            OR: [{ lastError: null }, { lastError: { not: CANCELLED_BY_USER_ERROR } }],
+          },
+        });
         if (used >= MAX_REEXTRACTS) {
           throw new HttpException({
             code: 'REEXTRACT_LIMIT_REACHED', message: `Invoice ${id} was already re-extracted ${MAX_REEXTRACTS} times`,

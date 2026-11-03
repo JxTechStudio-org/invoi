@@ -72,7 +72,7 @@ export default function SettingsPage() {
             if (recheckedInvoices > 0) {
                 // Review flags of open invoices changed: refresh lists and the dashboard.
                 queryClient.invalidateQueries({ queryKey: ['invoices'] })
-                pushAlert(`تمت إعادة فحص ${recheckedInvoices} فاتورة تحتاج مراجعة وفق الإعدادات الجديدة.`, 'info')
+                pushAlert(`تغيّرت ملاحظات المراجعة في ${recheckedInvoices} فاتورة وفق الإعدادات الجديدة.`, 'info')
             }
         } catch (saveError) {
             pushAlert(getErrorMessage(mapAxiosErrorToCode(saveError)), 'error')

@@ -97,11 +97,14 @@ describeDatabase('Account settings (PostgreSQL, F19)', () => {
     await addInvoice('c-completed', { status: 'completed', customerName: 'Owner Trading', needsReviewReason: null });
     await addInvoice('d-processing', { status: 'processing', customerName: 'Owner Trading', needsReviewReason: null });
     await addInvoice('e-other-account', { customerName: 'Owner Trading', needsReviewReason: 'customer_name_mismatch' }, 'other');
+    // Open but unaffected by the new name: looked at, not counted.
+    await addInvoice('f-unaffected', { needsReviewReason: 'user_flagged' });
 
     const profile = await auth.updateMe('owner', { businessNameEn: 'Owner Trading' });
 
     expect(profile.recheckedInvoices).toBe(2);
     expect(await reasons()).toEqual({
+      'f-unaffected': ['needs_review', 'user_flagged'],
       'a-mismatch': ['needs_review', null],
       'b-flagged': ['needs_review', 'user_flagged,extraction_failed'],
       'c-completed': ['completed', null],

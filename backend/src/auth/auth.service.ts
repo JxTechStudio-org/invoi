@@ -124,15 +124,18 @@ export class AuthService {
 
       // One update per resulting reason list instead of one per invoice.
       const idsByReasons = new Map<string | null, string[]>();
+      let changed = 0;
       for (const invoice of invoices) {
         const reasons = recheckReviewReasons(invoice, user);
         if (reasons === invoice.needsReviewReason) continue;
         idsByReasons.set(reasons, [...(idsByReasons.get(reasons) ?? []), invoice.id]);
+        changed++;
       }
       for (const [needsReviewReason, ids] of idsByReasons) {
         await tx.invoice.updateMany({ where: { id: { in: ids }, userId }, data: { needsReviewReason } });
       }
-      return { user, recheckedInvoices: invoices.length };
+      // Invoices whose review reasons actually changed, not every invoice that was looked at.
+      return { user, recheckedInvoices: changed };
     });
 
     return { ...await this.toProfile(user), recheckedInvoices };
