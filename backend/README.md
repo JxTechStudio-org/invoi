@@ -104,7 +104,9 @@ All routes use the **`/api`** prefix. A standalone server defaults to `http://lo
 
 Uploads use multipart fields `file` and `userId`, accepting PDF, JPEG, and PNG. The configured size limit defaults to 10 MiB. Listing and export accept `status` and `date=YYYY-MM-DD`; date filtering uses `invoiceDate` within that UTC day. Results are ordered by `createdAt` descending.
 
-Updates accept the editable business fields defined in [UpdateInvoiceDto](src/invoices/dto/update-invoice.dto.ts). Omitted fields are preserved, explicit `null` clears nullable fields, and at least one editable field is required. Ownership, file references, status, and extraction confidence are not client-editable through this DTO. Record responses retain `sellerName` and `amount` aliases for `vendorName` and `totalAmount`.
+Updates accept the editable business fields defined in [UpdateInvoiceDto](src/invoices/dto/update-invoice.dto.ts). Omitted fields are preserved, explicit `null` clears nullable fields, and at least one editable field is required. Ownership, file references, status, and extraction confidence are not client-editable through this DTO. Each update adds the fields whose value it changed to `editedFields` (extraction never overwrites them) and drops their extraction scores.
+
+While an invoice is `processing` and its extraction job is running, `PUT /api/invoices/:id`, `POST /api/invoices/:id/approve` and `POST /api/invoices/:id/flag` return HTTP 409. A job that is only queued does not lock the invoice; approving, flagging, or an edit that moves the invoice out of `processing` cancels it. Record responses retain `sellerName` and `amount` aliases for `vendorName` and `totalAmount`.
 
 The team's detailed API contract is maintained separately in Notion. This section provides codebase orientation rather than the complete contract.
 
