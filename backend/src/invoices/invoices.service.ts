@@ -1,13 +1,17 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
-import { Invoice, InvoiceStatus, JobState, Prisma } from '@prisma/client';
+import { ExtractionTrigger, Invoice, InvoiceStatus, JobState, Prisma } from '@prisma/client';
+import { ExtractionAvailabilityService } from '../extraction/extraction-availability.service';
 import { CANCELLED_BY_USER_ERROR } from '../extraction/extraction-jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
@@ -26,6 +30,9 @@ type EditableInvoice = Pick<Invoice,
   typeof editableTextFields[number] | 'currency' | 'paymentStatus' | 'paymentMethod'
   | 'invoiceDate' | 'dueDate' | 'totalAmount' | 'taxAmount' | 'amountPaid'
 >;
+
+/** Re-extractions a user may request per invoice; upload and backfill jobs do not count. */
+export const MAX_REEXTRACTS = 3;
 
 // Minimum data a human must have confirmed before an invoice can be completed.
 const approvalRequiredFields = ['vendorName', 'totalAmount', 'invoiceDate'] as const;
@@ -61,6 +68,7 @@ export class InvoicesService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(STORAGE_SERVICE) private readonly storageService: StorageService,
+    private readonly extractionAvailability: ExtractionAvailabilityService,
   ) { }
 
   async createFromUpload(file: Express.Multer.File, userId: string): Promise<Invoice> {
@@ -212,6 +220,54 @@ export class InvoicesService {
       }
       return { status: InvoiceStatus.completed, needsReviewReason: null };
     });
+  }
+
+  /**
+   * Queues a fresh extraction and puts the invoice back in processing (C12). The worker
+   * keeps every field in editedFields, and the result counts toward the budget like any
+   * other job. Refused for approved invoices (flag first), while a job is queued or
+   * running, when extraction cannot run for the account, and after MAX_REEXTRACTS.
+   */
+  async reExtract(id: string, userId: string): Promise<InvoiceResponse> {
+    try {
+      return await this.prisma.$transaction(async tx => {
+        // Same row lock as changeByUser, so two clicks cannot queue two jobs.
+        await tx.$queryRaw`SELECT 1 FROM "Invoice" WHERE "id" = ${id} AND "userId" = ${userId} FOR UPDATE`;
+        const invoice = await tx.invoice.findUnique({
+          where: { id, userId }, select: { status: true, user: { select: { id: true, isDemo: true } } },
+        });
+        if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
+
+        if (invoice.status === InvoiceStatus.completed) {
+          throw new ConflictException({
+            code: 'INVOICE_COMPLETED', message: 'Approved invoices cannot be re-extracted; flag the invoice first',
+          });
+        }
+        const unavailable = await this.extractionAvailability.unavailableReason(invoice.user);
+        if (unavailable) {
+          throw new ServiceUnavailableException({
+            code: `EXTRACTION_${unavailable.toUpperCase()}`, message: `Extraction is not available: ${unavailable}`,
+          });
+        }
+        const active = await tx.extractionJob.count({
+          where: { invoiceId: id, state: { in: [JobState.queued, JobState.running] } },
+        });
+        if (active) {
+          throw new ConflictException({ code: 'EXTRACTION_IN_PROGRESS', message: `Invoice ${id} is already queued for extraction` });
+        }
+        const used = await tx.extractionJob.count({ where: { invoiceId: id, trigger: ExtractionTrigger.reextract } });
+        if (used >= MAX_REEXTRACTS) {
+          throw new HttpException({
+            code: 'REEXTRACT_LIMIT_REACHED', message: `Invoice ${id} was already re-extracted ${MAX_REEXTRACTS} times`,
+          }, HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        await tx.extractionJob.create({ data: { invoiceId: id, trigger: ExtractionTrigger.reextract } });
+        return this.toResponse(await tx.invoice.update({ where: { id }, data: { status: InvoiceStatus.processing } }));
+      });
+    } catch (error) {
+      this.rethrowPersistenceError(error, id);
+    }
   }
 
   /** User reports a problem: sends the invoice back to review until it is approved. */

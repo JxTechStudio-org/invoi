@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
+import { ExtractionAvailabilityService } from '../src/extraction/extraction-availability.service';
 import { InvoicesService } from '../src/invoices/invoices.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
@@ -24,6 +25,7 @@ describe('Invoice approval, flagging and file access', () => {
     };
     const moduleRef = await Test.createTestingModule({ providers: [
       InvoicesService,
+      { provide: ExtractionAvailabilityService, useValue: {} },
       { provide: PrismaService, useValue: prisma },
       { provide: STORAGE_SERVICE, useValue: { download } },
     ] }).compile();
