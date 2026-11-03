@@ -100,6 +100,9 @@ describe('Invoices API (e2e)', () => {
           return Promise.resolve(invoice);
         }),
       },
+      extractionJob: { count: jest.fn().mockResolvedValue(0), updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      $queryRaw: jest.fn().mockResolvedValue([]),
+      $transaction: (action: (tx: unknown) => Promise<unknown>) => action(prismaMock),
     };
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -318,6 +321,18 @@ describe('Invoices API (e2e)', () => {
     await request(app.getHttpServer())
       .post(`/api/invoices/missing-invoice/${action}`)
       .expect(404);
+  });
+
+  it('refuses re-extract with 409 and a code the frontend can map while extraction is off', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/extract')
+      .expect(409);
+    expect(response.body).toMatchObject({ code: 'EXTRACTION_DISABLED' });
+    expect(invoices[0].status).toBe(InvoiceStatus.processing);
+  });
+
+  it('returns 404 when trying to re-extract an unknown invoice', async () => {
+    await request(app.getHttpServer()).post('/api/invoices/missing-invoice/extract').expect(404);
   });
 
   it('streams the invoice file inline with safe headers', async () => {

@@ -16,7 +16,16 @@ export const ERROR_MESSAGES: Record<string, string> = {
     PAYLOAD_TOO_LARGE: 'حجم الملف أكبر من الحد المسموح به.',
 
     // خاصة بالموردين — مثال جاهز لـ CONFLICT لو الباك إند يفرّق بينهم
-    DUPLICATE_VENDOR: 'يوجد مورّد مكرر بنفس البيانات.'
+    DUPLICATE_VENDOR: 'يوجد مورّد مكرر بنفس البيانات.',
+
+    // إعادة استخراج الفاتورة
+    INVOICE_COMPLETED: 'لا يمكن إعادة استخراج فاتورة معتمدة. أبلغ عن خطأ فيها أولاً.',
+    EXTRACTION_IN_PROGRESS: 'الاستخراج قيد التنفيذ لهذه الفاتورة. انتظر حتى ينتهي.',
+    REEXTRACT_LIMIT_REACHED: 'تم الوصول للحد الأقصى لإعادة الاستخراج لهذه الفاتورة. عدّل الحقول يدويًا.',
+    EXTRACTION_DISABLED: 'الاستخراج التلقائي غير مفعّل حاليًا.',
+    EXTRACTION_DEMO_ACCOUNT: 'الاستخراج التلقائي غير متاح للحساب التجريبي.',
+    EXTRACTION_NOT_ALLOWED: 'الاستخراج التلقائي غير مفعّل لحسابك بعد.',
+    EXTRACTION_BUDGET_REACHED: 'تم بلوغ حد الاستخراج الشهري. حاول الشهر القادم أو عدّل الحقول يدويًا.'
 }
 
 export function getErrorMessage(code: string): string {
