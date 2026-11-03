@@ -1,5 +1,6 @@
 import { BadRequestException, Logger, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ExtractionAvailabilityService } from '../src/extraction/extraction-availability.service';
 import { InvoicesService } from '../src/invoices/invoices.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
@@ -23,6 +24,7 @@ describe('Invoice upload ownership service', () => {
     }));
     const moduleRef = await Test.createTestingModule({ providers: [
       InvoicesService,
+      { provide: ExtractionAvailabilityService, useValue: {} },
       { provide: PrismaService, useValue: { invoice: { create }, user: { findUnique: findUser } } },
       { provide: STORAGE_SERVICE, useValue: { upload, remove } },
     ] }).compile();

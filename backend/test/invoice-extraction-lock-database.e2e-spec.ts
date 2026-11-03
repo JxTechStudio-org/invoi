@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { cpSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { ExtractionAvailabilityService } from '../src/extraction/extraction-availability.service';
 import { CANCELLED_BY_USER_ERROR, ExtractionJobsService } from '../src/extraction/extraction-jobs.service';
 import { InvoicesService } from '../src/invoices/invoices.service';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -54,7 +55,7 @@ describeDatabase('Invoice locks while extracting (PostgreSQL, D15)', () => {
       '--schema', join(temporaryDirectory, 'schema.prisma'),
     ], { env: { ...process.env, DATABASE_URL: url.toString() }, stdio: 'pipe', timeout: 30000 });
 
-    invoices = new InvoicesService(prisma as PrismaService, {} as StorageService);
+    invoices = new InvoicesService(prisma as PrismaService, {} as StorageService, {} as ExtractionAvailabilityService);
     jobs = new ExtractionJobsService(prisma as PrismaService);
   }, 60000);
 

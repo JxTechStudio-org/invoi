@@ -20,6 +20,7 @@ import {
   REVIEW_REASON_LABELS
 } from '../constants/invoiceLabels';
 import { invoiceReviewApi } from '../api/invoiceReviewApi';
+import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
 import { openInvoiceFile } from '../api/invoiceFileApi';
 import { useInvoiceFile } from '../hooks/useInvoiceFile';
 import DocumentPreview from '../../shared/components/DocumentPreview';
@@ -55,7 +56,9 @@ export default function InvoiceDetailPage() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [reviewAction, setReviewAction] = useState<'approve' | 'flag' | null>(null);
+  const [reviewAction, setReviewAction] = useState<'approve' | 'flag' | 'reextract' | null>(null);
+  const [isReExtractModalVisible, setIsReExtractModalVisible] = useState(false);
+  const { data: currentUser } = useCurrentUser();
   const [form] = Form.useForm<InvoiceFormValues>();
   const invoiceFile = useInvoiceFile(id);
   const queryClient = useQueryClient();
@@ -145,6 +148,25 @@ export default function InvoiceDetailPage() {
       pushAlert('تم تحويل الفاتورة للمراجعة', 'info');
     } catch (error) {
       pushAlert(getErrorMessage(mapAxiosErrorToCode(error)), 'error');
+    } finally {
+      setReviewAction(null);
+    }
+  };
+
+  const handleReExtract = async () => {
+    setReviewAction('reextract');
+    try {
+      const res = await invoiceReviewApi.reExtract(id!);
+      setInvoice(res.data);
+      setIsReExtractModalVisible(false);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      pushAlert('تمت جدولة إعادة الاستخراج. حدّث الصفحة بعد لحظات لرؤية البيانات الجديدة.', 'info');
+    } catch (error) {
+      const code = mapAxiosErrorToCode(error);
+      // Availability changed since the page loaded (e.g. budget reached): refresh the button state.
+      if (code.startsWith('EXTRACTION_')) queryClient.invalidateQueries({ queryKey: ['current-user'] });
+      setIsReExtractModalVisible(false);
+      pushAlert(getErrorMessage(code), 'error');
     } finally {
       setReviewAction(null);
     }
@@ -335,6 +357,18 @@ export default function InvoiceDetailPage() {
   ];
 
   const dataSource = invoice ? [invoice] : [];
+
+  // Re-extract is shown only where extraction runs for this account; a used-up budget keeps
+  // it visible but disabled, so the user knows why. Approved invoices must be flagged first.
+  const extractionReason = currentUser?.extractionUnavailableReason;
+  const showReExtract = currentUser?.extractionAvailable || extractionReason === 'budget_reached';
+  const reExtractHint = invoice?.status === 'completed'
+    ? 'لإعادة استخراج فاتورة معتمدة، أبلغ عن خطأ فيها أولاً.'
+    : invoice?.status === 'processing'
+      ? 'الفاتورة قيد المعالجة حاليًا.'
+      : extractionReason === 'budget_reached'
+        ? getErrorMessage('EXTRACTION_BUDGET_REACHED')
+        : null;
 
 
   return (
@@ -535,6 +569,20 @@ export default function InvoiceDetailPage() {
                   loading={reviewAction === 'flag'}
                   disabled={reviewAction !== null}
                 />
+                {showReExtract && (
+                  <>
+                    <MainButton
+                      type="default"
+                      text="إعادة الاستخراج"
+                      onClick={() => setIsReExtractModalVisible(true)}
+                      loading={reviewAction === 'reextract'}
+                      disabled={reExtractHint !== null || reviewAction !== null}
+                    />
+                    {reExtractHint && (
+                      <span style={{ fontSize: 12, color: token.colorTextSecondary }}>{reExtractHint}</span>
+                    )}
+                  </>
+                )}
                 <MainButton type="default" danger text="حذف الفاتورة" onClick={() => setIsDeleteModalVisible(true)} />
               </div>
 
@@ -558,6 +606,20 @@ export default function InvoiceDetailPage() {
         danger
       >
         سيتم حذف الفاتورة وملفها نهائيًا ولا يمكن التراجع عن ذلك. هل تريد المتابعة؟
+      </MainModal>
+
+      {/* تأكيد إعادة الاستخراج */}
+      <MainModal
+        title="إعادة استخراج الفاتورة"
+        open={isReExtractModalVisible}
+        onOpenChange={(isOpen) => setIsReExtractModalVisible(isOpen)}
+        onConfirm={handleReExtract}
+        okText="إعادة الاستخراج"
+        confirmLoading={reviewAction === 'reextract'}
+        keepOpenOnConfirm
+      >
+        ستُقرأ بيانات الفاتورة من الملف من جديد بالذكاء الاصطناعي. الحقول التي عدّلتها يدويًا لن تتغير.
+        يمكن إعادة استخراج الفاتورة الواحدة 3 مرات كحد أقصى.
       </MainModal>
 
       {/*تعديل الفاتورة */}

@@ -201,7 +201,7 @@
     <li><span class="n">06</span><a href="#s6">API reference<small>Every endpoint and the rules behind it</small></a><span class="pg" data-for="s6"></span></li>
     <li><span class="n">07</span><a href="#s7">Frontend<small>Routes, data flow and the design system</small></a><span class="pg" data-for="s7"></span></li>
     <li><span class="n">08</span><a href="#s8">AI extraction: Phase 1 design<small>Pipeline, confidence checks, review rules, failure and rollout</small></a><span class="pg" data-for="s8"></span></li>
-    <li><span class="n">09</span><a href="#s9">Decision log<small>38 decisions from 21 Oct 2026, B6, B8 and C13 amended 22 Oct, D15 on 3 Nov; what is still open</small></a><span class="pg" data-for="s9"></span></li>
+    <li><span class="n">09</span><a href="#s9">Decision log<small>38 decisions from 21 Oct 2026, B6, B8 and C13 amended 22 Oct, C12 and D15 on 3 Nov; what is still open</small></a><span class="pg" data-for="s9"></span></li>
     <li><span class="n">10</span><a href="#s10">Analytics, n8n and Power BI<small>Analytics page, n8n webhooks, scheduled reports, Power BI templates</small></a><span class="pg" data-for="s10"></span></li>
     <li><span class="n">11</span><a href="#s11">Infrastructure and deployment<small>Docker, Jenkins, environment and monitoring</small></a><span class="pg" data-for="s11"></span></li>
     <li><span class="n">12</span><a href="#s12">Developer guide<small>Local setup, scripts, Git workflow, conventions</small></a><span class="pg" data-for="s12"></span></li>
@@ -456,7 +456,7 @@
       <tr><td><code>Invoice.paidAt</code></td><td>datetime?</td><td>Real payment date for DPO; set when <code>paymentStatus</code> becomes <code>paid</code>, editable. Demo data copied once from <code>updatedAt</code> (H7)</td></tr>
       <tr><td><code>User.isDemo</code></td><td>boolean</td><td>Marks the demo account (2,000 <code>seed://</code> invoices) in production (H9)</td></tr>
       <tr><td>New table <code>AnalysisJob</code></td><td>table</td><td>userId, type, state, result (json), costUsd, timestamps; latest per user and type is reused (H1, H10)</td></tr>
-      <tr><td>New table <code>ExtractionJob</code></td><td>table</td><td>invoiceId, state (queued, running, done, failed), attempts, runAfter, lastError, timestamps. A Postgres-backed queue is enough below 200 invoices a day (A5)</td></tr>
+      <tr><td>New table <code>ExtractionJob</code></td><td>table</td><td>invoiceId, state (queued, running, done, failed), trigger (upload, reextract, backfill; added 3 Nov), attempts, runAfter, lastError, timestamps. A Postgres-backed queue is enough below 200 invoices a day (A5)</td></tr>
     </tbody>
   </table>
   <div class="callout"><b>Not stored:</b> the raw model response (E17). The original file stays in RustFS and can be re-extracted at any time.</div>
@@ -489,7 +489,7 @@
   <table>
     <thead><tr><th style="width:11%">Method</th><th style="width:30%">Path</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td>POST</td><td>/invoices/:id/extract</td><td>Re-extract one invoice; never overwrites <code>editedFields</code>; 409 while a job is running; counts toward the budget</td></tr>
+      <tr><td>POST</td><td>/invoices/:id/extract</td><td>Re-extract one invoice (202, back to <code>processing</code>); never overwrites <code>editedFields</code>; counts toward the budget. 409 <code>INVOICE_COMPLETED</code> for approved invoices (flag first) and <code>EXTRACTION_IN_PROGRESS</code> while a job is queued or running; 503 <code>EXTRACTION_DISABLED</code> / <code>_DEMO_ACCOUNT</code> / <code>_NOT_ALLOWED</code> / <code>_BUDGET_REACHED</code>; 429 <code>REEXTRACT_LIMIT_REACHED</code> after 3 per invoice (C12, amended 3 Nov)</td></tr>
       <tr><td>PATCH</td><td>/auth/me</td><td>Update <code>businessNameEn</code> and <code>reviewAmountThreshold</code> from the settings page</td></tr>
       <tr><td>POST</td><td>/analytics</td><td><code>{ type }</code> → <code>{ jobId }</code>; daily limit 5 (H1, H10)</td></tr>
       <tr><td>GET</td><td>/analytics/jobs/:id, /analytics/latest</td><td>Poll one job; latest result per type for the page</td></tr>
@@ -629,7 +629,7 @@
   <h3>Failure, retries and re-extraction</h3>
   <ul>
     <li><b>Retries:</b> 3 attempts with growing gaps (about 1 min, 5 min, 15 min). Then <code>needs_review</code> with <code>extraction_failed</code>, and the user fills the fields in by hand (C11). A file that is clearly not an invoice fails at once, without retries.</li>
-    <li><b>Re-extract button</b> on the detail page calls <code>POST /invoices/:id/extract</code>. Fields in <code>editedFields</code> are never overwritten; every PUT adds the fields whose value it changed and drops their extraction scores, so a corrected field no longer raises <code>low_confidence</code> (C12).</li>
+    <li><b>Re-extract button</b> on the detail page calls <code>POST /invoices/:id/extract</code> after a confirmation. It is shown only when <code>GET /auth/me</code> reports <code>extractionAvailable</code> (or the budget is used up, then disabled with a note), and is disabled with a note for approved invoices (flag first) and while processing. At most 3 re-extracts per invoice, counted from <code>ExtractionJob.trigger = reextract</code> (upload and backfill jobs do not count). Fields in <code>editedFields</code> are never overwritten; every PUT adds the fields whose value it changed and drops their extraction scores, so a corrected field no longer raises <code>low_confidence</code> (C12).</li>
     <li><b>Existing invoices:</b> a one-time backfill queues every invoice still in <code>processing</code> with empty fields, within the monthly budget, and only for accounts listed in <code>EXTRACTION_ACCOUNT_ALLOWLIST</code>. It does not run while the allow-list is empty, and the demo account is always skipped (C13, amended 22 Oct).</li>
   </ul>
 
@@ -675,7 +675,7 @@
 <!-- ============ 9 DECISION LOG ============ -->
 <section class="sheet page" id="s9">
   <div class="sec-head"><span class="num">9</span><h2>Decision log</h2></div>
-  <p>Decided by Jana on 21 Oct 2026; B6, B8 and C13 amended on 22 Oct, D15 on 3 Nov (highlighted). Extraction decisions use codes A–G and X; analytics and n8n decisions use H. "Default" means the proposed option was kept without changes.</p>
+  <p>Decided by Jana on 21 Oct 2026; B6, B8 and C13 amended on 22 Oct, C12 and D15 on 3 Nov (highlighted). Extraction decisions use codes A–G and X; analytics and n8n decisions use H. "Default" means the proposed option was kept without changes.</p>
   <table>
     <thead><tr><th style="width:8%">#</th><th style="width:30%">Question</th><th>Decision</th></tr></thead>
     <tbody>
@@ -690,7 +690,7 @@
       <tr><td class="code-col">B9</td><td>Test set</td><td>Jana prepares 30–50 invoices with correct answers. Target proposed: 95% on clear PDFs</td></tr>
       <tr><td class="code-col">C10</td><td>Where extraction runs</td><td>Background job inside NestJS; n8n stays for alerts and digests</td></tr>
       <tr><td class="code-col">C11</td><td>When extraction fails</td><td>3 retries with growing gaps, then <code>needs_review</code> + <code>extraction_failed</code></td></tr>
-      <tr><td class="code-col">C12</td><td>Re-extract button</td><td>Yes; never overwrites fields the user edited (<code>editedFields</code>)</td></tr>
+      <tr class="amended"><td class="code-col">C12</td><td>Re-extract button</td><td>Yes; never overwrites fields the user edited (<code>editedFields</code>). <b>3 Nov:</b> not for approved invoices (flag first); refused with a reason when extraction cannot run for the account; at most 3 per invoice</td></tr>
       <tr class="amended"><td class="code-col">C13</td><td>Invoices already uploaded</td><td>Processed once (backfill), within the budget. <b>22 Oct:</b> allow-listed accounts only, never while the allow-list is empty; demo account always excluded</td></tr>
       <tr><td class="code-col">D14</td><td>How the frontend learns</td><td>Polling every 5 s, only for processing invoices, stop after 2 min; notifications later</td></tr>
       <tr class="amended"><td class="code-col">D15</td><td>Editing during extraction</td><td>Default: view only until it finishes. <b>3 Nov:</b> locked only while the job is running, not while it is queued (queued jobs wait indefinitely while extraction is off); approving, flagging or leaving <code>processing</code> cancels a queued job</td></tr>

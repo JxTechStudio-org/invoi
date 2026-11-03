@@ -52,6 +52,13 @@ enum JobState {
   failed
 }
 
+// Why an extraction job exists; only reextract jobs count toward the per-invoice limit.
+enum ExtractionTrigger {
+  upload
+  reextract
+  backfill
+}
+
 model User {
   id                    String        @id @default(cuid())
   email                 String        @unique
@@ -112,18 +119,19 @@ model Invoice {
 }
 
 model ExtractionJob {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   // Null once the invoice is deleted; the row stays so its cost still counts toward the budget.
   invoiceId String?
-  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  state     JobState @default(queued)
-  attempts  Int      @default(0)
-  runAfter  DateTime @default(now())
+  invoice   Invoice?          @relation(fields: [invoiceId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  state     JobState          @default(queued)
+  trigger   ExtractionTrigger @default(upload)
+  attempts  Int               @default(0)
+  runAfter  DateTime          @default(now())
   lastError String?
   // AI spend across all attempts; summed per month for the budget guard.
-  costUsd   Decimal  @default(0) @db.Decimal(10, 6)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  costUsd   Decimal           @default(0) @db.Decimal(10, 6)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   // The worker claims the oldest due queued job.
   @@index([state, runAfter])

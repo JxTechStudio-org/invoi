@@ -4,12 +4,14 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { ExtractionAvailabilityService } from '../extraction/extraction-availability.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly extractionAvailability: ExtractionAvailabilityService,
   ) { }
 
   // NOTE: existingUser function allows seamless test account generation through the register endpoint
@@ -80,6 +82,7 @@ export class AuthService {
         lastName: true,
         username: true,
         phone: true,
+        isDemo: true,
       },
     });
 
@@ -87,6 +90,9 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    return user;
+    // Lets the frontend hide re-extract up front instead of failing on click.
+    const { isDemo, ...profile } = user;
+    const extractionUnavailableReason = await this.extractionAvailability.unavailableReason({ id: user.id, isDemo });
+    return { ...profile, extractionAvailable: !extractionUnavailableReason, extractionUnavailableReason };
   }
 }

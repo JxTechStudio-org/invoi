@@ -323,6 +323,18 @@ describe('Invoices API (e2e)', () => {
       .expect(404);
   });
 
+  it('refuses re-extract with 503 and a code the frontend can map while extraction is off', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/invoices/existing-invoice/extract')
+      .expect(503);
+    expect(response.body).toMatchObject({ code: 'EXTRACTION_DISABLED' });
+    expect(invoices[0].status).toBe(InvoiceStatus.processing);
+  });
+
+  it('returns 404 when trying to re-extract an unknown invoice', async () => {
+    await request(app.getHttpServer()).post('/api/invoices/missing-invoice/extract').expect(404);
+  });
+
   it('streams the invoice file inline with safe headers', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/invoices/existing-invoice/file')
