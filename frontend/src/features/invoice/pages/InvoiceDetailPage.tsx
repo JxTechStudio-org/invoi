@@ -23,6 +23,7 @@ import { invoiceReviewApi } from '../api/invoiceReviewApi';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
 import { openInvoiceFile } from '../api/invoiceFileApi';
 import { useInvoiceFile } from '../hooks/useInvoiceFile';
+import { useInvoiceStatusPolling } from '../hooks/useInvoiceStatusPolling';
 import DocumentPreview from '../../shared/components/DocumentPreview';
 import MobileDataCard from '../../shared/components/MobileDataCard';
 import { FileTextOutlined } from '@ant-design/icons';
@@ -66,9 +67,10 @@ export default function InvoiceDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
 
-  const fetchInvoice = async () => {
+  // silent: refresh in place (after extraction finishes) without the full-page spinner.
+  const fetchInvoice = async ({ silent = false } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await apiClient.get(`/invoices/${id}`);
       setInvoice(res.data);
       setLoading(false);
@@ -86,6 +88,22 @@ export default function InvoiceDetailPage() {
     if (!id) return;
     fetchInvoice();
   }, [id]);
+
+  // D14/D15: while processing, poll the status; lock edit/approve/flag only while a job runs,
+  // as the backend does. After 2 minutes polling stops and the buttons unlock again.
+  const isProcessing = invoice?.status === 'processing';
+  const extractionRuns = Boolean(currentUser?.extractionAvailable);
+  const statusPoll = useInvoiceStatusPolling(id, isProcessing, extractionRuns);
+  const isExtracting = isProcessing && statusPoll.extractionState === 'running' && !statusPoll.timedOut;
+
+  useEffect(() => {
+    if (!isProcessing || !statusPoll.status || statusPoll.status === 'processing') return;
+    fetchInvoice({ silent: true });
+    queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    pushAlert(statusPoll.status === 'completed'
+      ? 'اكتمل استخراج بيانات الفاتورة.'
+      : 'اكتمل الاستخراج، والفاتورة تحتاج مراجعة.', statusPoll.status === 'completed' ? 'success' : 'warning');
+  }, [statusPoll.status]);
 
 
   // Edit invoice form
@@ -157,10 +175,12 @@ export default function InvoiceDetailPage() {
     setReviewAction('reextract');
     try {
       const res = await invoiceReviewApi.reExtract(id!);
+      // Drop the finished status of the previous run so polling starts clean.
+      queryClient.removeQueries({ queryKey: ['invoice-status', id] });
       setInvoice(res.data);
       setIsReExtractModalVisible(false);
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      pushAlert('تمت جدولة إعادة الاستخراج. حدّث الصفحة بعد لحظات لرؤية البيانات الجديدة.', 'info');
+      pushAlert('بدأت إعادة الاستخراج. ستتحدث البيانات تلقائيًا عند الانتهاء.', 'info');
     } catch (error) {
       const code = mapAxiosErrorToCode(error);
       // Availability changed since the page loaded (e.g. budget reached): refresh the button state.
@@ -417,11 +437,12 @@ export default function InvoiceDetailPage() {
                     text="اعتماد الفاتورة"
                     onClick={handleApprove}
                     loading={reviewAction === 'approve'}
-                    disabled={invoice?.status === 'completed' || reviewAction !== null}
+                    disabled={invoice?.status === 'completed' || reviewAction !== null || isExtracting}
                   />
                   <MainButton
                     type="default"
                     text="تعديل يدوي"
+                    disabled={isExtracting}
                     onClick={() => {
                       setIsEditModalVisible(true);
                     }}
@@ -448,6 +469,23 @@ export default function InvoiceDetailPage() {
                 })()}
               </div>
             </div>
+
+            {isProcessing && extractionRuns && (
+              <Alert
+                type={statusPoll.timedOut ? 'warning' : 'info'}
+                showIcon
+                icon={statusPoll.timedOut ? undefined : <Spin size="small" />}
+                style={{ marginBottom: 24 }}
+                title={statusPoll.timedOut
+                  ? 'يستغرق الاستخراج وقتًا أطول من المعتاد'
+                  : isExtracting ? 'جارٍ استخراج بيانات الفاتورة تلقائيًا' : 'الفاتورة في انتظار الاستخراج التلقائي'}
+                description={statusPoll.timedOut
+                  ? 'توقفنا عن التحديث التلقائي. حدّث الصفحة لاحقًا لرؤية النتيجة.'
+                  : isExtracting
+                    ? 'يمكنك عرض الفاتورة وملفها الآن، والتعديل والاعتماد والإبلاغ متاحة بعد انتهاء الاستخراج.'
+                    : 'ستتحدث البيانات تلقائيًا عند انتهاء الاستخراج.'}
+              />
+            )}
 
             {invoice?.status === 'needs_review' && (
               <Alert
@@ -560,14 +598,14 @@ export default function InvoiceDetailPage() {
                   text="اعتماد كل الحقول"
                   onClick={handleApprove}
                   loading={reviewAction === 'approve'}
-                  disabled={invoice?.status === 'completed' || reviewAction !== null}
+                  disabled={invoice?.status === 'completed' || reviewAction !== null || isExtracting}
                 />
                 <MainButton
                   type="default"
                   text="رفض / إبلاغ عن خطأ"
                   onClick={handleFlag}
                   loading={reviewAction === 'flag'}
-                  disabled={reviewAction !== null}
+                  disabled={reviewAction !== null || isExtracting}
                 />
                 {showReExtract && (
                   <>

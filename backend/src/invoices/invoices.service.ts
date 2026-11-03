@@ -149,12 +149,25 @@ export class InvoicesService {
     return invoicesToCsv(await this.list(query, userId));
   }
 
-  async getStatus(id: string, userId: string): Promise<{ invoiceId: string; status: InvoiceStatus }> {
+  /**
+   * Polled by the frontend while an invoice is processing (D14). extractionState tells it
+   * whether a job is waiting or running, so it can lock the page only while one runs (D15).
+   */
+  async getStatus(id: string, userId: string): Promise<{
+    invoiceId: string; status: InvoiceStatus; extractionState: 'queued' | 'running' | null;
+  }> {
     const invoice = await this.prisma.invoice.findUnique({
-      where: { id, userId }, select: { id: true, status: true },
+      where: { id, userId },
+      select: {
+        id: true, status: true,
+        extractionJobs: { where: { state: { in: [JobState.queued, JobState.running] } }, select: { state: true } },
+      },
     });
     if (!invoice) throw new NotFoundException(`Invoice ${id} was not found`);
-    return { invoiceId: invoice.id, status: invoice.status };
+    const states = invoice.extractionJobs.map(job => job.state);
+    const extractionState = states.includes(JobState.running) ? 'running'
+      : states.includes(JobState.queued) ? 'queued' : null;
+    return { invoiceId: invoice.id, status: invoice.status, extractionState };
   }
 
   /**
@@ -303,7 +316,11 @@ export class InvoicesService {
         const processing = invoice.status === InvoiceStatus.processing;
         const assertNotExtracting = async () => {
           const running = await tx.extractionJob.count({ where: { invoiceId: id, state: JobState.running } });
-          if (running) throw new ConflictException(`Invoice ${id} is being extracted; try again when it finishes`);
+          if (running) {
+            throw new ConflictException({
+              code: 'EXTRACTION_IN_PROGRESS', message: `Invoice ${id} is being extracted; try again when it finishes`,
+            });
+          }
         };
 
         if (processing) await assertNotExtracting();

@@ -476,7 +476,7 @@
       <tr><td>GET</td><td>/invoices</td><td>JWT</td><td>List, newest first; filters <code>status</code>, <code>date</code>, <code>search</code></td></tr>
       <tr><td>GET</td><td>/invoices/export</td><td>JWT</td><td>Same filters; CSV download</td></tr>
       <tr><td>GET</td><td>/invoices/:id</td><td>JWT</td><td>One invoice</td></tr>
-      <tr><td>GET</td><td>/invoices/:id/status</td><td>JWT</td><td><code>{ invoiceId, status }</code> for polling</td></tr>
+      <tr><td>GET</td><td>/invoices/:id/status</td><td>JWT</td><td><code>{ invoiceId, status, extractionState }</code> for polling; <code>extractionState</code> is <code>queued</code>, <code>running</code> or <code>null</code> (added 3 Nov, so the page locks exactly while the backend would return 409)</td></tr>
       <tr><td>GET</td><td>/invoices/:id/file <span class="pill new">new</span></td><td>JWT</td><td>Streams the original file inline (pdf, jpeg, png); owner only; 404 when there is no file</td></tr>
       <tr><td>PUT</td><td>/invoices/:id</td><td>JWT</td><td>Edit fields; re-runs the review rules</td></tr>
       <tr><td>POST</td><td>/invoices/:id/approve <span class="pill new">new</span></td><td>JWT</td><td>Human sign-off; sets <code>completed</code></td></tr>
@@ -635,7 +635,7 @@
 
   <h3>Frontend during extraction</h3>
   <ul>
-    <li><b>Polling:</b> every 5 seconds on <code>GET /invoices/:id/status</code>, only on pages showing a <code>processing</code> invoice, stopping after 2 minutes. On the list page one list refetch replaces per-row polling. 12 requests a minute stay well inside the 60/min limit (D14).</li>
+    <li><b>Polling:</b> every 5 seconds on <code>GET /invoices/:id/status</code>, only on pages showing a <code>processing</code> invoice, stopping after 2 minutes. On the list page one list refetch replaces per-row polling. 12 requests a minute stay well inside the 60/min limit (D14). Polling runs only when <code>GET /auth/me</code> reports <code>extractionAvailable</code>; otherwise the detail page asks for the status once and nothing is locked. When the status leaves <code>processing</code> the invoice reloads in place with a short Arabic message.</li>
     <li><b>While extraction is running:</b> the user can view the invoice and its file, but edit, approve and report error are disabled, with a short Arabic note. The backend enforces the same with 409 (D15).</li>
     <li><b>While the job is only queued</b> (extraction switched off, account not on the allow-list, budget used up, or waiting for a retry), the invoice is not locked, so manual entry keeps working. Approve, report error, or an edit that moves the invoice out of <code>processing</code> cancels the queued job (state <code>failed</code>, <code>lastError</code> "Cancelled: …"), so no money is spent on an invoice a person already handled. The cancel and the worker's claim are both conditional updates on <code>state = 'queued'</code> inside a transaction holding the invoice row lock, so exactly one of them wins; if the worker won, the user gets 409 (D15, amended 3 Nov).</li>
     <li><b>New reason labels</b> in Arabic for <code>extraction_failed</code>, <code>zero_total</code>, <code>tax_over_30_percent</code> and <code>multiple_invoices</code> in <code>invoiceLabels.ts</code>.</li>
