@@ -93,6 +93,14 @@ describeDatabase('Invoice locks while extracting (PostgreSQL, D15)', () => {
     expect((await job('a')).state).toBe('running');
   });
 
+  it.each(['queued', 'running'] as const)('reports a %s job in the polled status', async state => {
+    await addInvoice('a', state);
+    await expect(invoices.getStatus('a', 'owner'))
+      .resolves.toEqual({ invoiceId: 'a', status: 'processing', extractionState: state });
+    await prisma.extractionJob.update({ where: { id: 'job-a' }, data: { state: 'done' } });
+    await expect(invoices.getStatus('a', 'owner')).resolves.toMatchObject({ extractionState: null });
+  });
+
   it('allows changes while the job is only queued (extraction off, retry wait, budget used)', async () => {
     await addInvoice('a', 'queued');
     await invoices.update('a', { vendorName: 'Typed' }, 'owner');

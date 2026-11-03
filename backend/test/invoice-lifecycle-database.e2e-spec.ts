@@ -109,7 +109,7 @@ describeDatabase('Invoice lifecycle persistence (PostgreSQL)', () => {
     expect(saved.needsReviewReason).toBeNull();
     await request(app.getHttpServer()).put(`/api/invoices/${id}`).send({ customerName: 'Other Business' }).expect(200);
     await request(app.getHttpServer()).get(`/api/invoices/${id}/status`)
-      .expect(200).expect({ invoiceId: id, status: 'needs_review' });
+      .expect(200).expect({ invoiceId: id, status: 'needs_review', extractionState: null });
     expect((await prisma.invoice.findUniqueOrThrow({ where: { id } })).needsReviewReason)
       .toBe('customer_name_mismatch');
   });

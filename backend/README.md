@@ -98,7 +98,7 @@ All routes use the **`/api`** prefix. A standalone server defaults to `http://lo
 | GET | `/api/invoices` | List invoices with optional status and date filters |
 | GET | `/api/invoices/export` | Export the filtered list as CSV |
 | GET | `/api/invoices/:id` | Retrieve an invoice record |
-| GET | `/api/invoices/:id/status` | Retrieve its stored status |
+| GET | `/api/invoices/:id/status` | Retrieve its stored status and `extractionState` (`queued`, `running` or `null`) for polling |
 | PUT | `/api/invoices/:id` | Apply manual corrections and reevaluate review rules |
 | POST | `/api/invoices/:id/extract` | Queue a fresh AI extraction (202); see below |
 | DELETE | `/api/invoices/:id` | Delete the record and associated file; return HTTP 204 |
