@@ -21,6 +21,7 @@ const ForgotPasswordPage = lazy(() => import('./features/auth/pages/ForgotPasswo
 const InvoiceListPage = lazy(() => import('./features/invoice/pages/InvoicesListPage'))
 const DashboardPage = lazy(() => import('./features/dashboard/pages/DashboardPage'))
 const AllVendorsPage = lazy(() => import('./features/vendors/pages/VendorsPage'))
+const SettingsPage = lazy(() => import('./features/settings/pages/SettingsPage'))
 
 
 
@@ -45,7 +46,7 @@ function App() {
                     <Route path='/dashboard' element={<DashboardPage />} />
                     <Route path='/vendors' element={<AllVendorsPage />} />
                     <Route path='/analytics' element={<div>Analytics</div>} />
-                    <Route path='/settings' element={<div>Settings</div>} />
+                    <Route path='/settings' element={<SettingsPage />} />
                     <Route path='/invoices' element={<InvoiceListPage />} />
                     <Route path='/upload-invoice' element={<UploadInvoicePage />} />
                     <Route path='/invoices/:id' element={<InvoiceDetailPage />} />
