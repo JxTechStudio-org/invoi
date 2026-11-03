@@ -1,4 +1,4 @@
-import { ConflictException, HttpException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, HttpException, NotFoundException } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -6,7 +6,7 @@ import { cpSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { ExtractionAvailabilityService } from '../src/extraction/extraction-availability.service';
-import { ExtractionJobsService } from '../src/extraction/extraction-jobs.service';
+import { CANCELLED_BY_USER_ERROR, ExtractionJobsService } from '../src/extraction/extraction-jobs.service';
 import { InvoicesService, MAX_REEXTRACTS } from '../src/invoices/invoices.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { StorageService } from '../src/storage/storage.service';
@@ -127,31 +127,57 @@ describeDatabase('Re-extract (PostgreSQL, C12)', () => {
   });
 
   it.each([
-    ['disabled', 'EXTRACTION_DISABLED'],
-    ['demo_account', 'EXTRACTION_DEMO_ACCOUNT'],
-    ['not_allowed', 'EXTRACTION_NOT_ALLOWED'],
-    ['budget_reached', 'EXTRACTION_BUDGET_REACHED'],
-  ])('refuses with 503 when extraction is unavailable (%s) and leaves the invoice as it was', async (reason, code) => {
+    ['disabled', ConflictException, 'EXTRACTION_DISABLED'],
+    ['demo_account', ForbiddenException, 'EXTRACTION_DEMO_ACCOUNT'],
+    ['not_allowed', ForbiddenException, 'EXTRACTION_NOT_ALLOWED'],
+    ['budget_reached', ConflictException, 'EXTRACTION_BUDGET_REACHED'],
+  ])('refuses with a 4xx when extraction is unavailable (%s) and leaves the invoice as it was', async (reason, type, code) => {
     unavailableReason.mockResolvedValue(reason);
     await addInvoice('a');
-    await expectRefusal(invoices.reExtract('a', 'owner'), ServiceUnavailableException, code);
+    await expectRefusal(invoices.reExtract('a', 'owner'), type, code);
     expect(await invoice('a')).toMatchObject({ status: 'needs_review', needsReviewReason: 'extraction_failed' });
     expect(await jobsOf('a')).toHaveLength(0);
   });
 
+  // Finishes the queued job as the worker would after a model call that cost money.
+  async function finishQueuedJob(invoiceId: string, data: Prisma.ExtractionJobUpdateManyMutationInput = {}) {
+    await prisma.extractionJob.updateMany({
+      where: { invoiceId, state: 'queued' }, data: { state: 'done', costUsd: '0.012', ...data },
+    });
+    await prisma.invoice.update({ where: { id: invoiceId }, data: { status: 'needs_review' } });
+  }
+
   it(`stops after ${MAX_REEXTRACTS} re-extracts; upload and backfill jobs do not count`, async () => {
     await addInvoice('a', {
-      extractionJobs: { create: [{ state: 'done', trigger: 'upload' }, { state: 'done', trigger: 'backfill' }] },
+      extractionJobs: {
+        create: [{ state: 'done', trigger: 'upload', costUsd: '0.01' }, { state: 'done', trigger: 'backfill', costUsd: '0.01' }],
+      },
     });
     for (let round = 0; round < MAX_REEXTRACTS; round++) {
       await invoices.reExtract('a', 'owner');
-      await prisma.extractionJob.updateMany({ where: { invoiceId: 'a', state: 'queued' }, data: { state: 'done' } });
-      await prisma.invoice.update({ where: { id: 'a' }, data: { status: 'needs_review' } });
+      await finishQueuedJob('a');
     }
     const refusal = invoices.reExtract('a', 'owner');
     await expectRefusal(refusal, HttpException, 'REEXTRACT_LIMIT_REACHED');
     await expect(refusal).rejects.toMatchObject({ status: 429 });
     expect((await invoice('a')).status).toBe('needs_review');
+  });
+
+  it('does not count re-extracts the user cancelled or that never reached the model', async () => {
+    await addInvoice('a');
+    // Cancelled by the user, even after a paid first attempt; then two that failed before any spend.
+    await invoices.reExtract('a', 'owner');
+    await finishQueuedJob('a', { state: 'failed', lastError: CANCELLED_BY_USER_ERROR });
+    for (let round = 0; round < 2; round++) {
+      await invoices.reExtract('a', 'owner');
+      await finishQueuedJob('a', { state: 'failed', costUsd: 0, lastError: 'Invoice file not found' });
+    }
+    // Three paid re-extracts are still available.
+    for (let round = 0; round < MAX_REEXTRACTS; round++) {
+      await invoices.reExtract('a', 'owner');
+      await finishQueuedJob('a');
+    }
+    await expectRefusal(invoices.reExtract('a', 'owner'), HttpException, 'REEXTRACT_LIMIT_REACHED');
   });
 
   it('returns 404 for invoices of another account', async () => {

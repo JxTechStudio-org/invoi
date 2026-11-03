@@ -487,23 +487,36 @@ export default function InvoiceDetailPage() {
               />
             )}
 
-            {invoice?.status === 'needs_review' && (
-              <Alert
-                type="warning"
-                showIcon
-                style={{ marginBottom: 24 }}
-                title="هذه الفاتورة تحتاج مراجعة"
-                description={invoice.needsReviewReason
-                  ? (
+            {invoice?.status === 'needs_review' && (() => {
+              const reasons = String(invoice.needsReviewReason ?? '').split(',').filter(Boolean);
+              // Every flag was resolved (by an edit or a settings re-check): only approval is left.
+              if (!reasons.length) {
+                return (
+                  <Alert
+                    type="success"
+                    showIcon
+                    style={{ marginBottom: 24 }}
+                    title="لا توجد ملاحظات متبقية على هذه الفاتورة"
+                    description="تمت معالجة كل ملاحظات المراجعة، والفاتورة جاهزة للاعتماد."
+                  />
+                );
+              }
+              return (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 24 }}
+                  title="هذه الفاتورة تحتاج مراجعة"
+                  description={(
                     <ul style={{ margin: 0, paddingInlineStart: 18 }}>
-                      {String(invoice.needsReviewReason).split(',').filter(Boolean).map((reason: string) => (
+                      {reasons.map((reason) => (
                         <li key={reason}>{REVIEW_REASON_LABELS[reason] || reason}</li>
                       ))}
                     </ul>
-                  )
-                  : 'تم تصحيح البيانات، راجعها ثم اعتمد الفاتورة.'}
-              />
-            )}
+                  )}
+                />
+              );
+            })()}
 
             {/* مستند الفاتورة */}
             <div className="mb-6">

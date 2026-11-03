@@ -52,9 +52,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? (errorResponse as ErrorResponseObject).code as string
         : undefined;
 
-    // Client errors are expected; server errors are hidden from the client, so they must be
-    // logged. A 5xx with a code is a known condition (such as extraction switched off), not a fault.
-    if (status >= 500 && !code) {
+    // Client errors are expected; server errors are hidden from the client, so they must be logged.
+    if (status >= 500) {
       this.logger.error(
         `${request.method} ${request.originalUrl ?? request.url} failed with ${status}`,
         exception instanceof Error ? exception.stack : String(exception),

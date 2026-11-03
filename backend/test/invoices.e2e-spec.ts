@@ -323,10 +323,10 @@ describe('Invoices API (e2e)', () => {
       .expect(404);
   });
 
-  it('refuses re-extract with 503 and a code the frontend can map while extraction is off', async () => {
+  it('refuses re-extract with 409 and a code the frontend can map while extraction is off', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/invoices/existing-invoice/extract')
-      .expect(503);
+      .expect(409);
     expect(response.body).toMatchObject({ code: 'EXTRACTION_DISABLED' });
     expect(invoices[0].status).toBe(InvoiceStatus.processing);
   });
