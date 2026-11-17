@@ -1,6 +1,5 @@
 import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
 
-// this is just a setup, i will take actual list from abdullah later
 export const ANALYTICS_TYPES = [
   'ap_summary',
   'dpo_aging',
