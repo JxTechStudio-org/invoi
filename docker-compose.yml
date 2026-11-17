@@ -41,6 +41,18 @@ services:
   postgres:
     image: postgres:16
     restart: unless-stopped
+    # Optional TLS for external clients. Off unless POSTGRES_SSL=on; then
+    # POSTGRES_SSL_DIR must contain server.crt and server.key (key: owner 999, mode 0600).
+    command:
+      - postgres
+      - -c
+      - ssl=${POSTGRES_SSL:-off}
+      - -c
+      - ssl_cert_file=/etc/postgresql/ssl/server.crt
+      - -c
+      - ssl_key_file=/etc/postgresql/ssl/server.key
+      - -c
+      - ssl_min_protocol_version=TLSv1.2
     ports:
       - "127.0.0.1:5433:5432"
 
@@ -51,6 +63,7 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ${POSTGRES_SSL_DIR:-./.postgres-ssl}:/etc/postgresql/ssl:ro
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]

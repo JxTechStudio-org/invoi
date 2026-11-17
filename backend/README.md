@@ -98,13 +98,20 @@ All routes use the **`/api`** prefix. A standalone server defaults to `http://lo
 | GET | `/api/invoices` | List invoices with optional status and date filters |
 | GET | `/api/invoices/export` | Export the filtered list as CSV |
 | GET | `/api/invoices/:id` | Retrieve an invoice record |
-| GET | `/api/invoices/:id/status` | Retrieve its stored status |
+| GET | `/api/invoices/:id/status` | Retrieve its stored status and `extractionState` (`queued`, `running` or `null`) for polling |
 | PUT | `/api/invoices/:id` | Apply manual corrections and reevaluate review rules |
+| POST | `/api/invoices/:id/extract` | Queue a fresh AI extraction (202); see below |
 | DELETE | `/api/invoices/:id` | Delete the record and associated file; return HTTP 204 |
 
 Uploads use multipart fields `file` and `userId`, accepting PDF, JPEG, and PNG. The configured size limit defaults to 10 MiB. Listing and export accept `status` and `date=YYYY-MM-DD`; date filtering uses `invoiceDate` within that UTC day. Results are ordered by `createdAt` descending.
 
-Updates accept the editable business fields defined in [UpdateInvoiceDto](src/invoices/dto/update-invoice.dto.ts). Omitted fields are preserved, explicit `null` clears nullable fields, and at least one editable field is required. Ownership, file references, status, and extraction confidence are not client-editable through this DTO. Record responses retain `sellerName` and `amount` aliases for `vendorName` and `totalAmount`.
+Updates accept the editable business fields defined in [UpdateInvoiceDto](src/invoices/dto/update-invoice.dto.ts). Omitted fields are preserved, explicit `null` clears nullable fields, and at least one editable field is required. Ownership, file references, status, and extraction confidence are not client-editable through this DTO. Each update adds the fields whose value it changed to `editedFields` (extraction never overwrites them) and drops their extraction scores.
+
+While an invoice is `processing` and its extraction job is running, `PUT /api/invoices/:id`, `POST /api/invoices/:id/approve` and `POST /api/invoices/:id/flag` return HTTP 409. A job that is only queued does not lock the invoice; approving, flagging, or an edit that moves the invoice out of `processing` cancels it.
+
+Re-extract puts the invoice back in `processing` and queues a job with `trigger = reextract`; fields in `editedFields` are kept. Errors carry a `code` for the frontend: 409 `INVOICE_COMPLETED` (flag an approved invoice first) `EXTRACTION_IN_PROGRESS`, `EXTRACTION_DISABLED` or `EXTRACTION_BUDGET_REACHED`; 403 `EXTRACTION_DEMO_ACCOUNT` or `EXTRACTION_NOT_ALLOWED`; 429 `REEXTRACT_LIMIT_REACHED` after 3 re-extracts (only paid ones count: jobs the user cancelled or with zero cost do not). These refusals are 4xx so they never count as server errors in the HTTP metrics. `GET /api/auth/me` returns `extractionAvailable` and `extractionUnavailableReason` so the button can be hidden up front.
+
+`PATCH /api/auth/me` accepts `businessName`, `businessNameEn` and `reviewAmountThreshold` (validated by [UpdateProfileDto](src/auth/dto/update-profile.dto.ts); `null` clears the two optional ones). If any of them changes, the review rules are re-run on the account's `needs_review` invoices in the same transaction; reasons set by a person or by extraction (`user_flagged`, `multiple_invoices`, `extraction_failed`) are kept. The response adds `recheckedInvoices`, the number of invoices whose reasons actually changed. Record responses retain `sellerName` and `amount` aliases for `vendorName` and `totalAmount`.
 
 The team's detailed API contract is maintained separately in Notion. This section provides codebase orientation rather than the complete contract.
 

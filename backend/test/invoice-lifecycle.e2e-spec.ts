@@ -23,6 +23,9 @@ describe('Invoice lifecycle API (e2e)', () => {
   let transactionError: Error | null;
   let reviewAmountThreshold: Prisma.Decimal | null;
   let errorLog: jest.SpyInstance;
+  let extractionJob: { count: jest.Mock; updateMany: jest.Mock };
+  let $queryRaw: jest.Mock;
+  let jobStates: string[];
 
   function notFound() {
     return new Prisma.PrismaClientKnownRequestError('Record not found', { code: 'P2025', clientVersion: '6' });
@@ -32,11 +35,16 @@ describe('Invoice lifecycle API (e2e)', () => {
     records = new Map([['test-invoice', invoiceFixture()]]);
     transactionError = null;
     reviewAmountThreshold = null;
+    jobStates = [];
     errorLog = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     findUnique = jest.fn(async ({ where, select, include }) => {
       const invoice = records.get(where.id);
       if (!invoice) return null;
-      if (select) return Object.fromEntries(Object.keys(select).map(key => [key, invoice[key as keyof Invoice]]));
+      if (select) {
+        return Object.fromEntries(Object.keys(select).map(key => [key, key === 'extractionJobs'
+          ? jobStates.map(state => ({ state }))
+          : invoice[key as keyof Invoice]]));
+      }
       return include?.user
         ? { ...invoice, user: { businessName: 'Demo Business', reviewAmountThreshold } }
         : invoice;
@@ -63,12 +71,15 @@ describe('Invoice lifecycle API (e2e)', () => {
     restore = jest.fn().mockResolvedValue(undefined);
     stageRemoval = jest.fn().mockResolvedValue({ finalize, restore });
     const invoice = { findUnique, findMany, update, delete: deleteInvoice };
+    extractionJob = { count: jest.fn().mockResolvedValue(0), updateMany: jest.fn().mockResolvedValue({ count: 0 }) };
+    $queryRaw = jest.fn().mockResolvedValue([]);
     const prisma = {
       invoice,
-      $transaction: async (action: (tx: { invoice: typeof invoice }) => Promise<unknown>) => {
+      extractionJob,
+      $transaction: async (action: (tx: unknown) => Promise<unknown>) => {
         const snapshot = new Map(records);
         try {
-          const result = await action({ invoice });
+          const result = await action({ invoice, extractionJob, $queryRaw });
           if (transactionError) throw transactionError;
           return result;
         } catch (error) {
@@ -195,17 +206,69 @@ describe('Invoice lifecycle API (e2e)', () => {
     expect(records.get('test-invoice')?.currency).toBe(currency);
   });
 
-  it('preserves confidence after manual corrections and reapplies review rules', async () => {
+  it('drops the scores of corrected fields so their low_confidence clears, and reapplies review rules', async () => {
     records.set('test-invoice', invoiceFixture({
-      status: 'needs_review', extractionConfidence: { totalAmount: 0.75 },
+      status: 'needs_review', extractionConfidence: { totalAmount: 0.75, vendorName: 0.5 },
       totalAmount: null, taxAmount: null, needsReviewReason: 'low_confidence',
     }));
-    const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+    const corrected = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
       .send({ totalAmount: '100.00', customerName: 'Other Business' }).expect(200);
-    expect(response.body).toMatchObject({
-      status: 'needs_review', extractionConfidence: { totalAmount: 0.75 },
+    expect(corrected.body).toMatchObject({
+      status: 'needs_review', extractionConfidence: { vendorName: 0.5 },
       needsReviewReason: 'low_confidence,customer_name_mismatch',
+      editedFields: ['customerName', 'totalAmount'],
     });
+
+    const allCorrected = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ vendorName: 'Checked Vendor', customerName: 'Demo Business' }).expect(200);
+    expect(allCorrected.body).toMatchObject({
+      status: 'needs_review', extractionConfidence: {}, needsReviewReason: null,
+      editedFields: ['customerName', 'totalAmount', 'vendorName'],
+    });
+  });
+
+  it('records only fields whose value really changed', async () => {
+    records.set('test-invoice', invoiceFixture({ editedFields: ['crNumber'], extractionConfidence: { totalAmount: 0.6 } }));
+    const response = await request(app.getHttpServer()).put('/api/invoices/test-invoice')
+      .send({ vendorName: 'Example Vendor', totalAmount: '100.00', invoiceDate: '2026-09-12', taxNumber: '999' }).expect(200);
+    expect(response.body.editedFields).toEqual(['crNumber', 'taxNumber']);
+    expect(response.body.extractionConfidence).toEqual({ totalAmount: 0.6 });
+  });
+
+  it.each([
+    ['PUT', ''],
+    ['POST', '/approve'],
+    ['POST', '/flag'],
+  ])('returns 409 for %s %s while the invoice is being extracted (D15)', async (method, action) => {
+    records.set('test-invoice', invoiceFixture({ status: 'processing' }));
+    extractionJob.count.mockResolvedValue(1);
+    const path = `/api/invoices/test-invoice${action}`;
+    const server = request(app.getHttpServer());
+    await (method === 'PUT' ? server.put(path).send({ vendorName: 'Vendor' }) : server.post(path)).expect(409);
+    expect(update).not.toHaveBeenCalled();
+    expect(extractionJob.count).toHaveBeenCalledWith({ where: { invoiceId: 'test-invoice', state: 'running' } });
+  });
+
+  it('does not check for running jobs once the invoice has left processing', async () => {
+    extractionJob.count.mockResolvedValue(1);
+    await request(app.getHttpServer()).put('/api/invoices/test-invoice').send({ vendorName: 'Vendor' }).expect(200);
+    expect(extractionJob.count).not.toHaveBeenCalled();
+  });
+
+  it('keeps the queued job when an edit leaves the invoice processing', async () => {
+    records.set('test-invoice', invoiceFixture({ status: 'processing' }));
+    await request(app.getHttpServer()).put('/api/invoices/test-invoice').send({ vendorName: 'Updated' }).expect(200);
+    expect(extractionJob.updateMany).not.toHaveBeenCalled();
+  });
+
+  it.each(['approve', 'flag'])('cancels queued jobs when a person %ss a processing invoice', async action => {
+    records.set('test-invoice', invoiceFixture({ status: 'processing' }));
+    await request(app.getHttpServer()).post(`/api/invoices/test-invoice/${action}`).expect(200);
+    expect(extractionJob.updateMany).toHaveBeenCalledWith({
+      where: { invoiceId: 'test-invoice', state: 'queued' },
+      data: { state: 'failed', lastError: expect.stringContaining('Cancelled') },
+    });
+    expect($queryRaw).toHaveBeenCalled();
   });
 
   it('does not mark processing invoices completed after a correction', async () => {
@@ -302,8 +365,32 @@ describe('Invoice lifecycle API (e2e)', () => {
   it.each(['processing', 'completed', 'needs_review'] as const)('returns only the stored %s status', async status => {
     records.set('test-invoice', invoiceFixture({ status }));
     await request(app.getHttpServer()).get('/api/invoices/test-invoice/status')
-      .expect(200).expect({ invoiceId: 'test-invoice', status });
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'test-invoice', userId: 'test-owner' }, select: { id: true, status: true } });
+      .expect(200).expect({ invoiceId: 'test-invoice', status, extractionState: null });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: 'test-invoice', userId: 'test-owner' },
+      select: {
+        id: true, status: true,
+        extractionJobs: { where: { state: { in: ['queued', 'running'] } }, select: { state: true } },
+      },
+    });
+  });
+
+  it.each([
+    [['queued'], 'queued'],
+    [['running'], 'running'],
+    [['queued', 'running'], 'running'],
+  ])('reports active extraction jobs %p as %s', async (states, expected) => {
+    records.set('test-invoice', invoiceFixture({ status: 'processing' }));
+    jobStates = states;
+    const response = await request(app.getHttpServer()).get('/api/invoices/test-invoice/status').expect(200);
+    expect(response.body.extractionState).toBe(expected);
+  });
+
+  it('returns code EXTRACTION_IN_PROGRESS with the 409 so the frontend can explain it', async () => {
+    records.set('test-invoice', invoiceFixture({ status: 'processing' }));
+    extractionJob.count.mockResolvedValue(1);
+    const response = await request(app.getHttpServer()).post('/api/invoices/test-invoice/flag').expect(409);
+    expect(response.body.code).toBe('EXTRACTION_IN_PROGRESS');
   });
 
   it('returns 404 for unknown status requests', async () => {

@@ -109,23 +109,29 @@ describeDatabase('Invoice lifecycle persistence (PostgreSQL)', () => {
     expect(saved.needsReviewReason).toBeNull();
     await request(app.getHttpServer()).put(`/api/invoices/${id}`).send({ customerName: 'Other Business' }).expect(200);
     await request(app.getHttpServer()).get(`/api/invoices/${id}/status`)
-      .expect(200).expect({ invoiceId: id, status: 'needs_review' });
+      .expect(200).expect({ invoiceId: id, status: 'needs_review', extractionState: null });
     expect((await prisma.invoice.findUniqueOrThrow({ where: { id } })).needsReviewReason)
       .toBe('customer_name_mismatch');
   });
 
-  it('preserves original confidence and does not expose the User when updating', async () => {
+  it('keeps the scores of untouched fields, drops corrected ones, records edits and hides the User', async () => {
     const invoice = await prisma.invoice.create({ data: invoiceData({
       userId, extractionConfidence: { totalAmount: 0.75 },
     }) });
     const response = await request(app.getHttpServer()).put(`/api/invoices/${invoice.id}`)
-      .send({ totalAmount: '1234567890.12' }).expect(200);
+      .send({ vendorName: 'Typed Vendor' }).expect(200);
     expect(response.body).toMatchObject({ status: 'needs_review', needsReviewReason: 'low_confidence' });
     expect(response.body).not.toHaveProperty('user');
     expect(response.body).not.toHaveProperty('passwordHash');
+
+    await request(app.getHttpServer()).put(`/api/invoices/${invoice.id}`)
+      .send({ totalAmount: '1234567890.12' }).expect(200);
     const saved = await prisma.invoice.findUniqueOrThrow({ where: { id: invoice.id } });
     expect(saved.totalAmount?.toFixed(2)).toBe('1234567890.12');
-    expect(saved.extractionConfidence).toEqual({ totalAmount: 0.75 });
+    expect(saved.extractionConfidence).toEqual({});
+    expect(saved).toMatchObject({
+      status: 'needs_review', needsReviewReason: null, editedFields: ['vendorName', 'totalAmount'],
+    });
   });
 
   it('exports persisted reporting values and applies list filters', async () => {

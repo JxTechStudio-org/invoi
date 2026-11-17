@@ -3,6 +3,7 @@ import { ClaudeInvoiceModel } from './claude-invoice-model';
 import { MetricsModule } from '../metrics/metrics.module';
 import { StorageModule } from '../storage/storage.module';
 import { EXTRACTION_CONFIG, ExtractionConfig, extractionConfigFromEnvironment } from './extraction.config';
+import { ExtractionAvailabilityService } from './extraction-availability.service';
 import { ExtractionJobsService } from './extraction-jobs.service';
 import { ExtractionWorkerService } from './extraction-worker.service';
 import { InvoiceExtractionPipeline } from './invoice-extraction-pipeline';
@@ -27,6 +28,8 @@ export function invoiceExtractorFor(
     { provide: INVOICE_EXTRACTOR, inject: [EXTRACTION_CONFIG], useFactory: (config: ExtractionConfig) => invoiceExtractorFor(config) },
     ExtractionJobsService,
     ExtractionWorkerService,
+    ExtractionAvailabilityService,
   ],
+  exports: [ExtractionAvailabilityService],
 })
 export class ExtractionModule {}

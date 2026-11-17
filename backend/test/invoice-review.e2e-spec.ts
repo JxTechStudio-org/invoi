@@ -1,5 +1,5 @@
 import { Invoice, Prisma } from '@prisma/client';
-import { evaluateInvoiceReview, normalizeCustomerName } from '../src/invoices/invoice-review';
+import { evaluateInvoiceReview, normalizeCustomerName, recheckReviewReasons } from '../src/invoices/invoice-review';
 import { invoiceFixture } from './fixtures/invoice';
 
 describe('Invoice review rules', () => {
@@ -144,6 +144,37 @@ describe('Invoice review rules', () => {
   it('keeps multiple_invoices and user_flagged until approval, and drops extraction_failed on edit', () => {
     expect(review({ needsReviewReason: 'multiple_invoices,user_flagged,extraction_failed' })).toEqual({
       status: 'needs_review', needsReviewReason: 'user_flagged,multiple_invoices',
+    });
+  });
+
+  describe('re-check after a settings change', () => {
+    const account = (changes: Partial<Parameters<typeof recheckReviewReasons>[1]> = {}) => ({
+      businessName: 'Demo Business', businessNameEn: null, reviewAmountThreshold: null, ...changes,
+    });
+    const recheck = (changes: Partial<Invoice>, settings = account()) =>
+      recheckReviewReasons(invoiceFixture({ status: 'needs_review', ...changes }), settings);
+
+    it('drops a customer_name_mismatch the new English name resolves', () => {
+      expect(recheck({ customerName: 'Demo Trading', needsReviewReason: 'customer_name_mismatch' },
+        account({ businessNameEn: 'Demo Trading' }))).toBeNull();
+    });
+
+    it('adds amount_threshold_exceeded when the threshold drops below the total', () => {
+      expect(recheck({ needsReviewReason: null }, account({ reviewAmountThreshold: new Prisma.Decimal('50') })))
+        .toBe('amount_threshold_exceeded');
+    });
+
+    it('never removes reasons a person or the extraction added', () => {
+      expect(recheck({
+        customerName: 'Demo Trading',
+        needsReviewReason: 'customer_name_mismatch,user_flagged,multiple_invoices,extraction_failed',
+      }, account({ businessNameEn: 'Demo Trading' }))).toBe('user_flagged,multiple_invoices,extraction_failed');
+    });
+
+    it('keeps rule reasons that still apply and adds new ones before the kept reasons', () => {
+      expect(recheck({
+        customerName: 'Someone Else', extractionConfidence: { vendorName: 0.5 }, needsReviewReason: 'user_flagged',
+      })).toBe('low_confidence,customer_name_mismatch,user_flagged');
     });
   });
 });

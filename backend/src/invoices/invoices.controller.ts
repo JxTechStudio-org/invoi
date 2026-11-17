@@ -145,6 +145,16 @@ export class InvoicesController {
     return this.invoicesService.flag(id, userId);
   }
 
+  @Post(':id/extract')
+  @HttpCode(202)
+  reExtract(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user.userId;
+    return this.invoicesService.reExtract(id, userId);
+  }
+
   @Delete(':id')
   @HttpCode(204)
   async delete(@Param('id') id: string,

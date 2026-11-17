@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
+import { ExtractionAvailabilityService } from '../src/extraction/extraction-availability.service';
 import { InvoicesService } from '../src/invoices/invoices.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { STORAGE_SERVICE } from '../src/storage/storage.service';
@@ -11,14 +12,21 @@ describe('Invoice approval, flagging and file access', () => {
   let findUnique: jest.Mock;
   let update: jest.Mock;
   let download: jest.Mock;
+  let extractionJob: { count: jest.Mock; updateMany: jest.Mock };
 
   beforeEach(async () => {
     findUnique = jest.fn();
     download = jest.fn();
     update = jest.fn().mockImplementation(({ data }) => Promise.resolve(invoiceFixture(data)));
+    extractionJob = { count: jest.fn().mockResolvedValue(0), updateMany: jest.fn().mockResolvedValue({ count: 0 }) };
+    const prisma = {
+      invoice: { findUnique, update }, extractionJob, $queryRaw: jest.fn().mockResolvedValue([]),
+      $transaction: (action: (tx: unknown) => Promise<unknown>) => action(prisma),
+    };
     const moduleRef = await Test.createTestingModule({ providers: [
       InvoicesService,
-      { provide: PrismaService, useValue: { invoice: { findUnique, update } } },
+      { provide: ExtractionAvailabilityService, useValue: {} },
+      { provide: PrismaService, useValue: prisma },
       { provide: STORAGE_SERVICE, useValue: { download } },
     ] }).compile();
     service = moduleRef.get(InvoicesService);
@@ -29,7 +37,7 @@ describe('Invoice approval, flagging and file access', () => {
       status: 'needs_review', needsReviewReason: 'amount_threshold_exceeded,user_flagged',
     }));
     const result = await service.approve('test-invoice', 'test-owner');
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'test-invoice', userId: 'test-owner' } });
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'test-invoice', userId: 'test-owner' }, include: expect.anything() });
     expect(update).toHaveBeenCalledWith({
       where: { id: 'test-invoice' }, data: { status: 'completed', needsReviewReason: null },
     });
@@ -68,9 +76,7 @@ describe('Invoice approval, flagging and file access', () => {
   ])('flags an invoice for review keeping existing reasons: %p', async (existing, expected) => {
     findUnique.mockResolvedValue({ needsReviewReason: existing });
     await service.flag('test-invoice', 'test-owner');
-    expect(findUnique).toHaveBeenCalledWith({
-      where: { id: 'test-invoice', userId: 'test-owner' }, select: { needsReviewReason: true },
-    });
+    expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'test-invoice', userId: 'test-owner' } }));
     expect(update).toHaveBeenCalledWith({
       where: { id: 'test-invoice' }, data: { status: 'needs_review', needsReviewReason: expected },
     });

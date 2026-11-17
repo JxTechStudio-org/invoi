@@ -45,6 +45,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
           ? exception.name
           : 'Internal Server Error';
 
+    // Machine-readable reason the frontend maps to an Arabic message (e.g. EXTRACTION_DISABLED).
+    const code =
+      typeof errorResponse === 'object' && errorResponse !== null
+        && typeof (errorResponse as ErrorResponseObject).code === 'string'
+        ? (errorResponse as ErrorResponseObject).code as string
+        : undefined;
+
     // Client errors are expected; server errors are hidden from the client, so they must be logged.
     if (status >= 500) {
       this.logger.error(
@@ -57,6 +64,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       statusCode: status,
       message: message,
       error: error,
+      ...(code && { code }),
     });
   }
 }

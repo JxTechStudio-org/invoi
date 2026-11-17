@@ -8,6 +8,7 @@ import PendingValue from '../../shared/components/PendingValue'
 import MainAlert from '../../shared/components/MainAlert'
 import MainButton from '../../shared/components/MainButton'
 import { useInvoicesList } from '../hooks/useInvoicesList'
+import { useCurrentUser } from '../../auth/hooks/useCurrentUser'
 import { openInvoiceFile } from '../api/invoiceFileApi'
 import { mapAxiosErrorToCode } from '../../../services/api/mapAxiosError'
 import { getErrorMessage } from '../../../errors/errorMassages'
@@ -41,7 +42,10 @@ export default function InvoicesListPage() {
         }, 400)
         return () => clearTimeout(timer)
     }, [searchInput])
-    const { invoices, isLoading, errorMessage } = useInvoicesList(filters)
+    const { data: currentUser } = useCurrentUser()
+    const { invoices, isLoading, errorMessage } = useInvoicesList(filters, {
+        pollWhileProcessing: Boolean(currentUser?.extractionAvailable)
+    })
     const screens = useBreakpoint()
     const isMobileOrTablet = !screens.lg
     const navigate = useNavigate()

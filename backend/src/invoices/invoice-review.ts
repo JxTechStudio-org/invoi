@@ -71,3 +71,19 @@ export function evaluateInvoiceReview(invoice: ReviewInput, account: ReviewAccou
     needsReviewReason: reasons.length ? reasons.join(',') : null,
   };
 }
+
+// Reasons evaluateInvoiceReview derives from the invoice and the account settings.
+const RULE_REASONS = [
+  'low_confidence', 'customer_name_mismatch', 'amount_threshold_exceeded', 'zero_total', 'tax_over_30_percent',
+];
+
+/**
+ * Review reasons after the account settings changed: rule reasons are recomputed, every
+ * other reason (user_flagged, multiple_invoices, extraction_failed, anything unknown) is
+ * kept exactly as it was. The status is not part of the answer: it stays needs_review.
+ */
+export function recheckReviewReasons(invoice: ReviewInput, account: ReviewAccount): string | null {
+  const ruled = parseReviewReasons(evaluateInvoiceReview({ ...invoice, needsReviewReason: null }, account).needsReviewReason);
+  const kept = parseReviewReasons(invoice.needsReviewReason).filter(reason => !RULE_REASONS.includes(reason));
+  return [...ruled, ...kept].join(',') || null;
+}

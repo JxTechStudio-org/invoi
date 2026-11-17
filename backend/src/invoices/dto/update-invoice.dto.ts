@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'invoiceAmount', async: false })
-class InvoiceAmountConstraint implements ValidatorConstraintInterface {
+export class InvoiceAmountConstraint implements ValidatorConstraintInterface {
   validate(value: unknown): boolean {
     return (typeof value === 'string' || typeof value === 'number')
       && /^\d{1,10}(?:\.\d{1,2})?$/.test(String(value));

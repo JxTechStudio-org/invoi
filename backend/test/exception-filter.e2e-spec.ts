@@ -1,4 +1,6 @@
-import { ArgumentsHost, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost, BadRequestException, ConflictException, InternalServerErrorException, Logger,
+} from '@nestjs/common';
 import { AllExceptionsFilter } from '../src/common/filters/http-exception.filter';
 
 describe('Global exception filter', () => {
@@ -36,6 +38,23 @@ describe('Global exception filter', () => {
 
   it('logs explicit server errors', () => {
     new AllExceptionsFilter().catch(new InternalServerErrorException('Invoice deleted but file cleanup failed'), host);
+    expect(logError).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes a machine-readable code to the client', () => {
+    new AllExceptionsFilter().catch(
+      new ConflictException({ code: 'EXTRACTION_DISABLED', message: 'Extraction is not available: disabled' }), host,
+    );
+    expect(status).toHaveBeenCalledWith(409);
+    expect(json).toHaveBeenCalledWith({
+      statusCode: 409, message: 'Extraction is not available: disabled', error: 'ConflictException',
+      code: 'EXTRACTION_DISABLED',
+    });
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it('still logs a server error that carries a code', () => {
+    new AllExceptionsFilter().catch(new InternalServerErrorException({ code: 'SOME_CODE', message: 'failed' }), host);
     expect(logError).toHaveBeenCalledTimes(1);
   });
 
