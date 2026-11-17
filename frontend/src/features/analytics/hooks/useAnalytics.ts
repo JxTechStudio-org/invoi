@@ -5,10 +5,16 @@ import { runAnalysis } from '../api/analyticsApi'
 function getErrorMessage(error: unknown): string {
     if (isAxiosError(error)) {
         const status = error.response?.status
+        const serverMessage = error.response?.data?.message
+        if (typeof serverMessage === 'string' && serverMessage.trim()) {
+            return serverMessage
+        }
         if (status === 504 || error.code === 'ECONNABORTED') {
             return 'التحليل أخذ وقتاً أطول من المتوقع، حاول مرة ثانية'
         }
         if (status === 502) return 'تعذر إكمال التحليل حالياً، حاول مرة ثانية'
+        if (status === 500) return 'حدث خطأ في خادم التحليل، تحقق من إعدادات الخدمة'
+        if (status === 404) return 'خدمة التحليل غير متوفرة أو المسار غير موجود'
         if (status === 429) return 'طلبات كثيرة خلال وقت قصير، انتظر قليلاً ثم حاول مرة ثانية'
         if (status === 400) return 'طلب التحليل غير صالح'
         if (!error.response) return 'تعذر الاتصال بالخادم، تحقق من الاتصال وحاول مرة ثانية'
@@ -36,7 +42,7 @@ export function useAnalytics() {
         retry,
         result: mutation.data,
         isPending: mutation.isPending,
-        activeType: mutation.isPending ? mutation.variables?.type : undefined,
+        activeType: mutation.isPending ? mutation.variables?.type : mutation.data?.type,
         errorMessage: mutation.isError ? getErrorMessage(mutation.error) : null
     }
 }

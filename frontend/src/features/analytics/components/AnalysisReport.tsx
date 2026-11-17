@@ -1,53 +1,9 @@
-import type { ReactNode } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Typography, theme } from 'antd'
 import AnalysisCard from './AnalysisCard'
 
-const { Title, Paragraph } = Typography
-
-// i will use markdown library later, this is just for testing
-type Block =
-    | { kind: 'h'; level: number; text: string }
-    | { kind: 'p'; text: string }
-    | { kind: 'ul'; items: string[] }
-    | { kind: 'ol'; items: string[] }
-
-function parseMarkdown(markdown: string): Block[] {
-    const blocks: Block[] = []
-
-    for (const raw of markdown.split('\n')) {
-        const line = raw.trim()
-        if (!line) continue
-
-        const heading = /^(#{1,3})\s+(.*)$/.exec(line)
-        const bullet = /^[-*]\s+(.*)$/.exec(line)
-        const numbered = /^\d+[.)]\s+(.*)$/.exec(line)
-        const last = blocks[blocks.length - 1]
-
-        if (heading) {
-            blocks.push({ kind: 'h', level: heading[1].length, text: heading[2] })
-        } else if (bullet) {
-            if (last?.kind === 'ul') last.items.push(bullet[1])
-            else blocks.push({ kind: 'ul', items: [bullet[1]] })
-        } else if (numbered) {
-            if (last?.kind === 'ol') last.items.push(numbered[1])
-            else blocks.push({ kind: 'ol', items: [numbered[1]] })
-        } else {
-            blocks.push({ kind: 'p', text: line })
-        }
-    }
-
-    return blocks
-}
-
-function renderInline(text: string): ReactNode[] {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) =>
-        part.length > 4 && part.startsWith('**') && part.endsWith('**') ? (
-            <strong key={index}>{part.slice(2, -2)}</strong>
-        ) : (
-            part
-        )
-    )
-}
+const { Title, Paragraph, Text } = Typography
 
 interface AnalysisReportProps {
     report: string
@@ -55,37 +11,119 @@ interface AnalysisReportProps {
 
 export default function AnalysisReport({ report }: AnalysisReportProps) {
     const { token } = theme.useToken()
-    const blocks = parseMarkdown(report)
 
     return (
         <AnalysisCard title="التقرير" extra="ملخص بالذكاء الاصطناعي">
-            {blocks.map((block, index) => {
-                if (block.kind === 'h') {
-                    const level = Math.min(block.level + 2, 5) as 3 | 4 | 5
-                    return (
-                        <Title key={index} level={level} style={{ marginTop: index === 0 ? 0 : 20 }}>
-                            {renderInline(block.text)}
-                        </Title>
-                    )
-                }
-                if (block.kind === 'p') {
-                    return (
-                        <Paragraph key={index} style={{ color: token.colorText }}>
-                            {renderInline(block.text)}
-                        </Paragraph>
-                    )
-                }
-                const ListTag = block.kind === 'ul' ? 'ul' : 'ol'
-                return (
-                    <ListTag key={index} style={{ paddingInlineStart: 22, color: token.colorText }}>
-                        {block.items.map((item, i) => (
-                            <li key={i} style={{ marginBottom: 6 }}>
-                                {renderInline(item)}
-                            </li>
-                        ))}
-                    </ListTag>
-                )
-            })}
+            <div style={{ color: token.colorText, lineHeight: 1.8 }}>
+                <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                        h1: ({ children }) => (
+                            <Title level={3} style={{ marginTop: 24, marginBottom: 12, color: token.colorText }}>
+                                {children}
+                            </Title>
+                        ),
+                        h2: ({ children }) => (
+                            <Title level={4} style={{ marginTop: 20, marginBottom: 10, color: token.colorText }}>
+                                {children}
+                            </Title>
+                        ),
+                        h3: ({ children }) => (
+                            <Title level={5} style={{ marginTop: 16, marginBottom: 8, color: token.colorText }}>
+                                {children}
+                            </Title>
+                        ),
+                        p: ({ children }) => (
+                            <Paragraph style={{ color: token.colorText, marginBottom: 14 }}>
+                                {children}
+                            </Paragraph>
+                        ),
+                        ul: ({ children }) => (
+                            <ul style={{ paddingInlineStart: 24, marginBottom: 14, color: token.colorText }}>
+                                {children}
+                            </ul>
+                        ),
+                        ol: ({ children }) => (
+                            <ol style={{ paddingInlineStart: 24, marginBottom: 14, color: token.colorText }}>
+                                {children}
+                            </ol>
+                        ),
+                        li: ({ children }) => <li style={{ marginBottom: 6 }}>{children}</li>,
+                        strong: ({ children }) => (
+                            <Text strong style={{ color: token.colorText }}>
+                                {children}
+                            </Text>
+                        ),
+                        table: ({ children }) => (
+                            <div style={{ overflowX: 'auto', marginBottom: 16 }}>
+                                <table
+                                    style={{
+                                        width: '100%',
+                                        borderCollapse: 'collapse',
+                                        border: `1px solid ${token.colorBorderSecondary}`,
+                                        borderRadius: token.borderRadiusSM
+                                    }}
+                                >
+                                    {children}
+                                </table>
+                            </div>
+                        ),
+                        th: ({ children }) => (
+                            <th
+                                style={{
+                                    backgroundColor: token.colorFillAlter,
+                                    border: `1px solid ${token.colorBorderSecondary}`,
+                                    padding: '8px 12px',
+                                    fontWeight: 600,
+                                    textAlign: 'start'
+                                }}
+                            >
+                                {children}
+                            </th>
+                        ),
+                        td: ({ children }) => (
+                            <td
+                                style={{
+                                    border: `1px solid ${token.colorBorderSecondary}`,
+                                    padding: '8px 12px'
+                                }}
+                            >
+                                {children}
+                            </td>
+                        ),
+                        blockquote: ({ children }) => (
+                            <blockquote
+                                style={{
+                                    borderInlineStart: `4px solid ${token.colorPrimary}`,
+                                    paddingInlineStart: 12,
+                                    margin: '12px 0',
+                                    color: token.colorTextSecondary,
+                                    backgroundColor: token.colorFillAlter,
+                                    paddingBlock: 8,
+                                    borderRadius: 4
+                                }}
+                            >
+                                {children}
+                            </blockquote>
+                        ),
+                        code: ({ children }) => (
+                            <code
+                                style={{
+                                    backgroundColor: token.colorFillTertiary,
+                                    padding: '2px 6px',
+                                    borderRadius: 4,
+                                    fontSize: '0.9em',
+                                    fontFamily: 'monospace'
+                                }}
+                            >
+                                {children}
+                            </code>
+                        )
+                    }}
+                >
+                    {report}
+                </ReactMarkdown>
+            </div>
         </AnalysisCard>
     )
 }

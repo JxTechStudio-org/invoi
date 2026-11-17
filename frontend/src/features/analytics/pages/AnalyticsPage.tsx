@@ -1,7 +1,6 @@
-import { Empty, Flex, Spin, Typography } from 'antd'
+import { Alert, Empty, Flex, Spin, Typography } from 'antd'
 import { AiOutlineBarChart } from 'react-icons/ai'
 import PageHeader from '../../shared/components/PageHeader'
-import MainAlert from '../../shared/components/MainAlert'
 import MainButton from '../../shared/components/MainButton'
 import AnalysisRequest from '../components/AnalysisRequest'
 import AnalysisKpis from '../components/AnalysisKpis'
@@ -34,8 +33,13 @@ export default function AnalyticsPage() {
 
         if (errorMessage) {
             return (
-                <Flex vertical align="center" gap={16}>
-                    <MainAlert alertMessage={errorMessage} alertType="error" />
+                <Flex vertical align="center" gap={16} style={{ padding: '40px 16px' }}>
+                    <Alert
+                        message={errorMessage}
+                        type="error"
+                        showIcon
+                        style={{ width: '100%', maxWidth: 500 }}
+                    />
                     <MainButton text="حاول مرة ثانية" type="primary" onClick={retry} />
                 </Flex>
             )
@@ -56,7 +60,11 @@ export default function AnalyticsPage() {
                         <Title level={4} style={{ margin: 0 }}>
                             {result.title}
                         </Title>
-                        {generatedAtText && <Text type="secondary">{generatedAtText}</Text>}
+                        {generatedAtText && (
+                            <Text type="secondary" style={{ fontSize: 13 }}>
+                                تم التحليل بتاريخ: {generatedAtText}
+                            </Text>
+                        )}
                     </div>
                     {hasKpis && <AnalysisKpis kpis={result.kpis!} />}
                     {hasChart && <AnalysisChart chart={result.chart!} />}

@@ -27,8 +27,9 @@ export default function AnalysisRequest({ onRun, disabled = false, activeType }:
                     <Input
                         value={question}
                         maxLength={500}
+                        allowClear
                         disabled={disabled}
-                        placeholder="اسأل عن فواتيرك… مثلاً: من أكثر مورد متأخرين في السداد له؟"
+                        placeholder="اسأل المساعد الذكي عن فواتيرك… مثلاً: من أكثر مورد متأخرين في السداد له؟"
                         onChange={(e) => setQuestion(e.target.value)}
                         onPressEnter={submitQuestion}
                         style={{ flex: '1 1 260px' }}
@@ -37,6 +38,7 @@ export default function AnalysisRequest({ onRun, disabled = false, activeType }:
                         text="اسأل"
                         type="primary"
                         onClick={submitQuestion}
+                        loading={disabled && activeType === 'custom_question'}
                         disabled={disabled || question.trim() === ''}
                     />
                 </Flex>
@@ -46,7 +48,9 @@ export default function AnalysisRequest({ onRun, disabled = false, activeType }:
                         <MainButton
                             key={type}
                             text={ANALYSIS_LABELS[type]}
+                            shape="round"
                             type={activeType === type ? 'primary' : 'default'}
+                            loading={disabled && activeType === type}
                             onClick={() => onRun({ type })}
                             disabled={disabled}
                         />

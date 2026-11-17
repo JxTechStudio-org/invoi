@@ -1,6 +1,10 @@
 const UNIT_LABELS: Record<string, string> = {
     days: 'يوم',
-    invoices: 'فاتورة'
+    day: 'يوم',
+    invoices: 'فاتورة',
+    invoice: 'فاتورة',
+    SAR: 'ر.س',
+    sar: 'ر.س'
 }
 
 export const unitLabel = (unit?: string) => (unit ? (UNIT_LABELS[unit] ?? unit) : '')

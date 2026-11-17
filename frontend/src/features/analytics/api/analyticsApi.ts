@@ -12,11 +12,11 @@ export const ANALYSIS_TYPES = [
 export type AnalysisType = (typeof ANALYSIS_TYPES)[number]
 
 export const ANALYSIS_LABELS: Record<AnalysisType, string> = {
-    ap_summary: 'ملخص الذمم الدائنة',
-    dpo_aging: 'DPO وأعمار المستحقات',
-    top_suppliers: 'أعلى الموردين',
-    invoices_review: 'فواتير تحتاج مراجعة',
-    custom_question: 'سؤال مخصص'
+    ap_summary: 'ملخص الحسابات الدائنة',
+    dpo_aging: 'تحليل أعمار الديون و DPO',
+    top_suppliers: 'أبرز الموردين',
+    invoices_review: 'مراجعة الفواتير',
+    custom_question: 'المساعد الذكي'
 }
 
 // section 1 buttons

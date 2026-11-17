@@ -7,13 +7,22 @@ interface AnalysisKpisProps {
     kpis: AnalysisKpi[]
 }
 
+function getKpiTitle(kpi: AnalysisKpi): string {
+    // إذا كان العنوان يحتوي مسبقاً على أقواس للوحدة (مثل "DPO (يوم)")، لا نكرر الوحدة
+    if (kpi.label.includes('(') || kpi.label.includes(')')) {
+        return kpi.label
+    }
+    const unit = unitLabel(kpi.unit)
+    return unit ? `${kpi.label} (${unit})` : kpi.label
+}
+
 export default function AnalysisKpis({ kpis }: AnalysisKpisProps) {
     return (
         <Row gutter={[16, 16]}>
             {kpis.map((kpi, index) => (
                 <Col key={`${kpi.label}-${index}`} xs={24} sm={12} lg={8}>
                     <StatCard
-                        title={kpi.unit ? `${kpi.label} (${unitLabel(kpi.unit)})` : kpi.label}
+                        title={getKpiTitle(kpi)}
                         value={formatNumber(kpi.value)}
                     />
                 </Col>

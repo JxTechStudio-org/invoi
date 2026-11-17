@@ -47,8 +47,6 @@ function App() {
                     <Route path='/dashboard' element={<DashboardPage />} />
                     <Route path='/vendors' element={<AllVendorsPage />} />
                     <Route path='/analytics' element={<AnalyticsPage />} />
-                    <Route path='/settings' element={<div>Settings</div>} />
-                    <Route path='/analytics' element={<div>Analytics</div>} />
                     <Route path='/settings' element={<SettingsPage />} />
                     <Route path='/invoices' element={<InvoiceListPage />} />
                     <Route path='/upload-invoice' element={<UploadInvoicePage />} />
