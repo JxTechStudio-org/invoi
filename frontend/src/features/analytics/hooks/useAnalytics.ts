@@ -26,7 +26,7 @@ export function useAnalytics() {
     const mutation = useMutation({ mutationFn: runAnalysis })
 
     const run: typeof mutation.mutate = (body, options) => {
-        // منع الضغط المكرر أثناء التحليل
+        // Prevent duplicate submissions while analysis is pending
         if (mutation.isPending) return
         mutation.mutate(body, options)
     }

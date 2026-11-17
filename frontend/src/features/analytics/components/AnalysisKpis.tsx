@@ -8,7 +8,7 @@ interface AnalysisKpisProps {
 }
 
 function getKpiTitle(kpi: AnalysisKpi): string {
-    // إذا كان العنوان يحتوي مسبقاً على أقواس للوحدة (مثل "DPO (يوم)")، لا نكرر الوحدة
+    // If label already contains unit parentheses (e.g. "DPO (يوم)"), avoid duplicating it
     if (kpi.label.includes('(') || kpi.label.includes(')')) {
         return kpi.label
     }

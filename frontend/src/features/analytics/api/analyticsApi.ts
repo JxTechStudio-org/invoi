@@ -1,6 +1,6 @@
 import { apiClient } from '../../../services/api/client'
 
-// لازم تطابق ANALYTICS_TYPES في الباك اند (analytics.dto.ts)
+// Must match ANALYTICS_TYPES in backend (analytics.dto.ts)
 export const ANALYSIS_TYPES = [
     'ap_summary',
     'dpo_aging',
@@ -52,7 +52,7 @@ export interface AnalysisResult {
     report?: string
 }
 
-// التحليل ياخذ 60 ثانية، والباك اند مهلته دقيقتين، فمهلة الواجهة أطول بشوي
+// Analysis takes up to 60s; backend timeout is 2m, so frontend timeout is set slightly higher
 const ANALYSIS_TIMEOUT_MS = 130_000
 
 export async function runAnalysis(body: AnalysisRequestBody): Promise<AnalysisResult> {
