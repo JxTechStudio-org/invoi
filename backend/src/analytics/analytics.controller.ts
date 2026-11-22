@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 import { AnalyticsRequestDto } from './dto/analytics.dto';
@@ -18,6 +18,16 @@ export class AnalyticsController {
 
   @Post()
   run(@Req() req: AuthenticatedRequest, @Body() dto: AnalyticsRequestDto) {
-    return this.analytics.run(req.user.userId, dto);
+    return this.analytics.createJob(req.user.userId, dto);
+  }
+
+  @Get('latest')
+  getLatest(@Req() req: AuthenticatedRequest) {
+    return this.analytics.getLatest(req.user.userId);
+  }
+
+  @Get('jobs/:id')
+  getJob(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
+    return this.analytics.getJob(req.user.userId, id);
   }
 }
