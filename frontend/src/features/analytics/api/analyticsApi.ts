@@ -19,7 +19,7 @@ export const ANALYSIS_LABELS: Record<AnalysisType, string> = {
     custom_question: 'المساعد الذكي'
 }
 
-// section 1 buttons
+// Section 1 buttons
 export const PRESET_TYPES = ANALYSIS_TYPES.filter((t) => t !== 'custom_question')
 
 export interface AnalysisRequestBody {
@@ -52,12 +52,30 @@ export interface AnalysisResult {
     report?: string
 }
 
-// Analysis takes up to 60s; backend timeout is 2m, so frontend timeout is set slightly higher
-const ANALYSIS_TIMEOUT_MS = 130_000
+export type AnalysisJobStatus = 'pending' | 'completed' | 'failed'
 
-export async function runAnalysis(body: AnalysisRequestBody): Promise<AnalysisResult> {
-    const { data } = await apiClient.post<AnalysisResult>('/analytics', body, {
-        timeout: ANALYSIS_TIMEOUT_MS
-    })
+export interface AnalysisJob {
+    id: string
+    type: AnalysisType
+    question?: string
+    status: AnalysisJobStatus
+    result?: AnalysisResult
+    error?: string
+    createdAt: string
+    completedAt?: string
+}
+
+export async function createAnalysisJob(body: AnalysisRequestBody): Promise<{ jobId: string }> {
+    const { data } = await apiClient.post<{ jobId: string }>('/analytics', body)
+    return data
+}
+
+export async function getAnalysisJob(jobId: string): Promise<AnalysisJob> {
+    const { data } = await apiClient.get<AnalysisJob>(`/analytics/jobs/${jobId}`)
+    return data
+}
+
+export async function getLatestAnalysis(): Promise<Record<string, AnalysisResult>> {
+    const { data } = await apiClient.get<Record<string, AnalysisResult>>('/analytics/latest')
     return data
 }

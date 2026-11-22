@@ -56,16 +56,26 @@ export default function AnalyticsPage() {
 
             return (
                 <Flex vertical gap={24}>
-                    <div>
-                        <Title level={4} style={{ margin: 0 }}>
-                            {result.title}
-                        </Title>
-                        {generatedAtText && (
-                            <Text type="secondary" style={{ fontSize: 13 }}>
-                                تم التحليل بتاريخ: {generatedAtText}
-                            </Text>
+                    <Flex align="center" justify="space-between" wrap gap={8}>
+                        <div>
+                            <Title level={4} style={{ margin: 0 }}>
+                                {result.title}
+                            </Title>
+                            {generatedAtText && (
+                                <Text type="secondary" style={{ fontSize: 13 }}>
+                                    تم التحليل بتاريخ: {generatedAtText}
+                                </Text>
+                            )}
+                        </div>
+                        {activeType && activeType !== 'custom_question' && (
+                            <MainButton
+                                text="تحديث التحليل"
+                                size="small"
+                                disabled={isPending}
+                                onClick={() => run({ type: activeType }, { force: true })}
+                            />
                         )}
-                    </div>
+                    </Flex>
                     {hasKpis && <AnalysisKpis kpis={result.kpis!} />}
                     {hasChart && <AnalysisChart chart={result.chart!} />}
                     {hasReport && <AnalysisReport report={result.report!} />}
