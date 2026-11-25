@@ -52,6 +52,12 @@ enum JobState {
   failed
 }
 
+enum AnalysisJobStatus {
+  pending
+  completed
+  failed
+}
+
 // Why an extraction job exists; only reextract jobs count toward the per-invoice limit.
 enum ExtractionTrigger {
   upload
@@ -140,18 +146,20 @@ model ExtractionJob {
 }
 
 model AnalysisJob {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  // Analysis type from the n8n workflow list, e.g. dpo_aging.
-  type      String
-  state     JobState @default(queued)
-  result    Json?
-  costUsd   Decimal? @db.Decimal(10, 6)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  type        String
+  question    String?
+  status      AnalysisJobStatus @default(pending)
+  result      Json?
+  error       String?
+  costUsd     Decimal?          @db.Decimal(10, 6)
+  createdAt   DateTime          @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime          @updatedAt
 
-  // Latest result per user and type.
-  @@index([userId, type, createdAt])
-  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([userId, type, status])
 }
+
